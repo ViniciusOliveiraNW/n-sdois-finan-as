@@ -1,0 +1,163 @@
+export type UsuarioId = string;
+
+export type CategoriaId =
+  | 'Mercado'
+  | 'Aluguel'
+  | 'Luz'
+  | 'Água'
+  | 'Padaria'
+  | 'Farmácia'
+  | 'Compras'
+  | 'Emergência'
+  | 'Outros';
+
+export type DivisaoTipo = '50/50' | string; // '50/50' ou UID/Nome do parceiro correspondente
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  coupleId?: string;
+  createdAt?: string;
+}
+
+export interface CoupleSpace {
+  id: string;
+  inviteCode: string;
+  members: string[];
+  partner1Uid: string;
+  partner1Name: string;
+  partner1Email?: string;
+  partner2Uid?: string;
+  partner2Name?: string;
+  partner2Email?: string;
+  createdAt: string;
+}
+
+export interface Compra {
+  id: string;
+  coupleId?: string;
+  nome: string; // Estabelecimento
+  valor: number; // Total em reais
+  valorCentavos?: number; // Total em centavos inteiros
+  pagoPorUid?: string;
+  pagoPorNome?: string;
+  pagoPor?: string; // Compatibilidade / Nome de exibição
+  cadastradoPorUid?: string;
+  cadastradoPorNome?: string;
+  cadastradoPor?: string; // Compatibilidade / Nome de exibição
+  divisao: DivisaoTipo; // '50/50' ou o UID/Nome da pessoa a quem a despesa pertence
+  categoria: CategoriaId;
+  dataPrimeiroPagamento: string; // 'AAAA-MM-DD'
+  numeroDeParcelas: number;
+  ultimaParcelaAtiva: number; // Número ordinal inclusivo
+  descricao?: string;
+  createdAt?: string;
+}
+
+export interface LancamentoMensal {
+  compraId: string;
+  numeroParcela: number;
+  totalParcelas: number;
+  mesReferencia: string; // 'AAAA-MM'
+  dataReferencia: string; // 'AAAA-MM-DD'
+  valorCentavos: number;
+  nome: string;
+  categoria: CategoriaId;
+  descricao?: string;
+  pagoPorUid?: string;
+  pagoPorNome?: string;
+  pagoPor?: string;
+  cadastradoPorUid?: string;
+  cadastradoPorNome?: string;
+  cadastradoPor?: string;
+  divisao: DivisaoTipo;
+  minhaParteCentavos: number; // Cota individual do usuário ativo
+}
+
+export interface CategoriaMeta {
+  id: CategoriaId;
+  nome: string;
+  icone: string;
+  tetoEstimadoCentavos: number;
+  divisaoPadrao: string;
+  descricao: string;
+  isFixo: boolean;
+}
+
+export interface PagamentoAcerto {
+  id: string;
+  dataPagamento: string; // 'AAAA-MM-DD'
+  valorCentavos: number;
+  formaPagamento: 'pix' | 'ted' | 'dinheiro';
+  pagador?: string;
+  pagadorUid?: string;
+  pagadorNome?: string;
+  recebedor?: string;
+  recebedorUid?: string;
+  recebedorNome?: string;
+  observacoes?: string;
+  comprovanteNome?: string;
+}
+
+export interface FechamentoMensal {
+  id: string;
+  coupleId?: string;
+  mesReferencia: string; // 'AAAA-MM'
+  dataFechamento: string;
+  conciliadoPor?: string;
+  conciliadoPorUid?: string;
+  conciliadoPorNome?: string;
+  totalCompartilhadoCentavos: number;
+  totalPagoP1Centavos?: number;
+  totalPagoP2Centavos?: number;
+  totalPagoViniciusCentavos?: number;
+  totalPagoSilviaCentavos?: number;
+  saldoOriginalCentavos: number; // positivo: Parceiro 2 paga Parceiro 1; negativo: Parceiro 1 paga Parceiro 2
+  devedor?: string;
+  devedorUid?: string;
+  devedorNome?: string;
+  credor?: string;
+  credorUid?: string;
+  credorNome?: string;
+  status: 'quitado' | 'parcial' | 'retroativo';
+  pagamentos: PagamentoAcerto[];
+  notaRetroativa?: string;
+  saldoResidualCentavos?: number;
+}
+
+export interface ResumoAcerto {
+  mesReferencia: string;
+  temLancamentos: boolean;
+  totalCasalCentavos: number;
+  totalPagoP1Centavos: number;
+  totalPagoP2Centavos: number;
+  totalPagoViniciusCentavos: number;
+  totalPagoSilviaCentavos: number;
+  devidoAP1Centavos: number;
+  devidoAP2Centavos: number;
+  saldoCentavos: number; // positivo = P2 paga P1, negativo = P1 paga P2
+  devedor: string;
+  devedorUid?: string;
+  devedorNome?: string;
+  credor: string;
+  credorUid?: string;
+  credorNome?: string;
+  valorAcertoCentavos: number;
+  p1Name?: string;
+  p2Name?: string;
+  p1Uid?: string;
+  p2Uid?: string;
+  cotaSilviaEm5050Centavos: number;
+  cotaViniciusEm5050Centavos: number;
+  cotaP2Em5050Centavos: number;
+  cotaP1Em5050Centavos: number;
+  detalhesExclusivosCentavos: {
+    p1PagouParaP2: number;
+    p2PagouParaP1: number;
+    viniciusPagouParaSilvia?: number;
+    silviaPagouParaVinicius?: number;
+  };
+  totalCompartilhadoCentavos: number;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "NósDois Finanças",
+  "description": "Sistema de controle financeiro do casal com divisão justa 50/50, gestão de parcelas em centavos, conciliação e acertos mensais.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

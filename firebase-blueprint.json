@@ -1,0 +1,114 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Perfil de usuário cadastrado no NósDois Finanças",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "ID único do Firebase Auth" },
+        "email": { "type": "string", "description": "Email do usuário" },
+        "displayName": { "type": "string", "description": "Nome de exibição" },
+        "photoURL": { "type": "string", "description": "Foto do perfil (opcional)" },
+        "coupleId": { "type": "string", "description": "ID do espaço de casal vinculado" },
+        "createdAt": { "type": "string", "description": "Timestamp ISO de criação" }
+      },
+      "required": ["uid", "email", "displayName"]
+    },
+    "Couple": {
+      "title": "Couple",
+      "description": "Espaço compartilhado do casal para gestão financeira conjunta",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID único do casal" },
+        "inviteCode": { "type": "string", "description": "Código de 6 caracteres para filiação do parceiro" },
+        "members": { "type": "string", "description": "Lista de UIDs dos membros do casal" },
+        "partner1Uid": { "type": "string", "description": "UID do primeiro parceiro" },
+        "partner1Name": { "type": "string", "description": "Nome do primeiro parceiro" },
+        "partner2Uid": { "type": "string", "description": "UID do segundo parceiro (opcional até filiação)" },
+        "partner2Name": { "type": "string", "description": "Nome do segundo parceiro" },
+        "createdAt": { "type": "string", "description": "Data de criação" }
+      },
+      "required": ["id", "inviteCode", "partner1Uid", "partner1Name"]
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "Registro de compra ou despesa do casal",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID único da compra" },
+        "coupleId": { "type": "string", "description": "ID do casal proprietário" },
+        "nome": { "type": "string", "description": "Nome do estabelecimento ou item" },
+        "valorCentavos": { "type": "integer", "description": "Valor total em centavos inteiros" },
+        "pagoPorUid": { "type": "string", "description": "UID de quem pagou" },
+        "pagoPorNome": { "type": "string", "description": "Nome de exibição de quem pagou" },
+        "cadastradoPorUid": { "type": "string", "description": "UID do autor do cadastro" },
+        "cadastradoPorNome": { "type": "string", "description": "Nome do autor do cadastro" },
+        "divisao": { "type": "string", "description": "50/50 ou UID do parceiro responsável" },
+        "categoria": { "type": "string", "description": "Categoria da despesa" },
+        "dataPrimeiroPagamento": { "type": "string", "description": "Data do 1º pagamento (AAAA-MM-DD)" },
+        "numeroDeParcelas": { "type": "integer", "description": "Quantidade total de parcelas" },
+        "ultimaParcelaAtiva": { "type": "integer", "description": "Limite inclusivo de parcelas ativas" },
+        "descricao": { "type": "string", "description": "Observações adicionais (opcional)" }
+      },
+      "required": [
+        "id",
+        "coupleId",
+        "nome",
+        "valorCentavos",
+        "pagoPorUid",
+        "cadastradoPorUid",
+        "divisao",
+        "categoria",
+        "dataPrimeiroPagamento",
+        "numeroDeParcelas",
+        "ultimaParcelaAtiva"
+      ]
+    },
+    "Closure": {
+      "title": "Closure",
+      "description": "Fechamento mensal e histórico de acertos do casal",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID único do fechamento" },
+        "coupleId": { "type": "string", "description": "ID do casal proprietário" },
+        "mesReferencia": { "type": "string", "description": "Mês de referência (AAAA-MM)" },
+        "dataFechamento": { "type": "string", "description": "Data do fechamento (AAAA-MM-DD)" },
+        "conciliadoPorUid": { "type": "string", "description": "UID de quem conciliou" },
+        "totalCompartilhadoCentavos": { "type": "integer", "description": "Total compartilhado" },
+        "totalPagoP1Centavos": { "type": "integer", "description": "Total pago pelo parceiro 1" },
+        "totalPagoP2Centavos": { "type": "integer", "description": "Total pago pelo parceiro 2" },
+        "saldoOriginalCentavos": { "type": "integer", "description": "Saldo líquido original apurado" },
+        "devedorUid": { "type": "string", "description": "UID do devedor ou Nenhum" },
+        "credorUid": { "type": "string", "description": "UID do credor ou Nenhum" },
+        "status": { "type": "string", "description": "quitado, parcial ou retroativo" }
+      },
+      "required": [
+        "id",
+        "coupleId",
+        "mesReferencia",
+        "dataFechamento",
+        "conciliadoPorUid",
+        "saldoOriginalCentavos",
+        "status"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Documentos privados de perfil de usuário"
+    },
+    "/couples/{coupleId}": {
+      "schema": { "$ref": "#/entities/Couple" },
+      "description": "Espaço compartilhado do casal"
+    },
+    "/couples/{coupleId}/purchases/{purchaseId}": {
+      "schema": { "$ref": "#/entities/Purchase" },
+      "description": "Compras e despesas do casal"
+    },
+    "/couples/{coupleId}/closures/{closureId}": {
+      "schema": { "$ref": "#/entities/Closure" },
+      "description": "Fechamentos mensais e pagamentos do acerto"
+    }
+  }
+}

@@ -1,0 +1,665 @@
+import React, { useState, useMemo } from 'react';
+import { CategoriaId, Compra, DivisaoTipo, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
+import { formatarBRL } from '../calculations/acertoMensal';
+import { CATEGORIAS_PADRAO } from '../data/initialData';
+
+interface LancamentosViewProps {
+  mesSelecionado: string;
+  onMudarMes: (novoMes: string) => void;
+  visao: 'meus' | 'casal';
+  onAlternarVisao: (novaVisao: 'meus' | 'casal') => void;
+  usuarioAtual: UsuarioId;
+  todosLancamentosDoMes: LancamentoMensal[];
+  compras: Compra[];
+  resumoAcerto: ResumoAcerto;
+  onAbrirNovaCompra: () => void;
+  onEditarCompra: (compraId: string) => void;
+  onRemoverCompra: (compraId: string, numeroParcela: number) => void;
+  onAbrirModalAcerto: () => void;
+}
+
+export const LancamentosView: React.FC<LancamentosViewProps> = ({
+  mesSelecionado,
+  onMudarMes,
+  visao,
+  onAlternarVisao,
+  usuarioAtual,
+  todosLancamentosDoMes,
+  resumoAcerto,
+  onAbrirNovaCompra,
+  onEditarCompra,
+  onRemoverCompra,
+  onAbrirModalAcerto,
+}) => {
+  const [busca, setBusca] = useState('');
+  const [filtroCategoria, setFiltroCategoria] = useState<string>('');
+  const [filtroPagador, setFiltroPagador] = useState<string>('');
+  const [filtroDivisao, setFiltroDivisao] = useState<string>('');
+  const [filtroRapido, setFiltroRapido] = useState<'todos' | 'parcelados' | 'mercado'>('todos');
+  const [ordenacao, setOrdenacao] = useState<'recente' | 'antigo' | 'maior_valor' | 'menor_valor'>(
+    'recente'
+  );
+  const [pagina, setPagina] = useState(1);
+  const itensPorPagina = 8;
+
+  // Navegação de mês
+  const handleAvancarMes = (offset: number) => {
+    const [anoStr, mesStr] = mesSelecionado.split('-');
+    let ano = parseInt(anoStr, 10);
+    let mes = parseInt(mesStr, 10) + offset;
+    if (mes > 12) {
+      mes = 1;
+      ano += 1;
+    } else if (mes < 1) {
+      mes = 12;
+      ano -= 1;
+    }
+    const novoMes = `${ano}-${String(mes).padStart(2, '0')}`;
+    onMudarMes(novoMes);
+    setPagina(1);
+  };
+
+  const nomeMesFormatado = (() => {
+    const [ano, mes] = mesSelecionado.split('-');
+    const dataObj = new Date(parseInt(ano, 10), parseInt(mes, 10) - 1, 1);
+    const mesNome = dataObj.toLocaleDateString('pt-BR', { month: 'long' });
+    return `${mesNome.charAt(0).toUpperCase() + mesNome.slice(1)} ${ano}`;
+  })();
+
+  // Filtra lançamentos conforme visão e filtros aplicados
+  const lancamentosFiltrados = useMemo(() => {
+    return todosLancamentosDoMes.filter((l) => {
+      // Visão Meus vs Casal
+      if (visao === 'meus' && l.pagoPor !== usuarioAtual) {
+        return false;
+      }
+
+      // Busca por texto
+      if (busca.trim()) {
+        const termo = busca.toLowerCase();
+        const bateNome = l.nome.toLowerCase().includes(termo);
+        const bateDesc = l.descricao?.toLowerCase().includes(termo) ?? false;
+        const bateCat = l.categoria.toLowerCase().includes(termo);
+        if (!bateNome && !bateDesc && !bateCat) return false;
+      }
+
+      // Categoria
+      if (filtroCategoria && l.categoria !== filtroCategoria) {
+        return false;
+      }
+
+      // Pagador
+      if (filtroPagador && l.pagoPor !== filtroPagador) {
+        return false;
+      }
+
+      // Divisão
+      if (filtroDivisao && l.divisao !== filtroDivisao) {
+        return false;
+      }
+
+      // Filtros rápidos
+      if (filtroRapido === 'parcelados' && l.totalParcelas <= 1) {
+        return false;
+      }
+      if (filtroRapido === 'mercado' && l.categoria !== 'Mercado') {
+        return false;
+      }
+
+      return true;
+    });
+  }, [
+    todosLancamentosDoMes,
+    visao,
+    usuarioAtual,
+    busca,
+    filtroCategoria,
+    filtroPagador,
+    filtroDivisao,
+    filtroRapido,
+  ]);
+
+  // Ordenação
+  const lancamentosOrdenados = useMemo(() => {
+    const lista = [...lancamentosFiltrados];
+    switch (ordenacao) {
+      case 'recente':
+        return lista.sort((a, b) => b.dataReferencia.localeCompare(a.dataReferencia));
+      case 'antigo':
+        return lista.sort((a, b) => a.dataReferencia.localeCompare(b.dataReferencia));
+      case 'maior_valor':
+        return lista.sort((a, b) => b.valorCentavos - a.valorCentavos);
+      case 'menor_valor':
+        return lista.sort((a, b) => a.valorCentavos - b.valorCentavos);
+      default:
+        return lista;
+    }
+  }, [lancamentosFiltrados, ordenacao]);
+
+  // Paginação
+  const totalPaginas = Math.ceil(lancamentosOrdenados.length / itensPorPagina) || 1;
+  const lancamentosPaginados = lancamentosOrdenados.slice(
+    (pagina - 1) * itensPorPagina,
+    pagina * itensPorPagina
+  );
+
+  const somaPaginaCentavos = lancamentosPaginados.reduce((acc, l) => acc + l.valorCentavos, 0);
+
+  // Parcelas ativas
+  const parcelasAtivasCentavos = todosLancamentosDoMes
+    .filter((l) => l.totalParcelas > 1)
+    .reduce((acc, l) => acc + l.valorCentavos, 0);
+
+  const qtdParceladas = todosLancamentosDoMes.filter((l) => l.totalParcelas > 1).length;
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Top Context Bar: Month, View Mode, Actions */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Navegador */}
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+            <button
+              onClick={() => handleAvancarMes(-1)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
+              title="Mês anterior"
+            >
+              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            </button>
+            <div className="px-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#006948] text-[20px]">
+                calendar_today
+              </span>
+              <span className="text-base font-bold text-slate-900 tracking-tight">
+                {nomeMesFormatado}
+              </span>
+            </div>
+            <button
+              onClick={() => handleAvancarMes(1)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
+              title="Próximo mês"
+            >
+              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </button>
+          </div>
+
+          <span className="px-3 py-1 rounded-full bg-emerald-50 text-[#006948] text-xs font-semibold">
+            {todosLancamentosDoMes.length} lançamentos neste mês
+          </span>
+        </div>
+
+        {/* Toggle Visão & Botão Novo Lançamento */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex p-1 bg-slate-100 rounded-xl">
+            <button
+              onClick={() => {
+                onAlternarVisao('meus');
+                setPagina(1);
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                visao === 'meus'
+                  ? 'bg-white text-[#0051d5] shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
+              <span>Meus Pagamentos</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[#0051d5] text-[10px]">
+                {todosLancamentosDoMes.filter((l) => l.pagoPor === usuarioAtual).length}
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                onAlternarVisao('casal');
+                setPagina(1);
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                visao === 'casal'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#006948]"></span>
+              <span>Casal (Ambos)</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+                {todosLancamentosDoMes.length}
+              </span>
+            </button>
+          </div>
+
+          <button
+            onClick={onAbrirNovaCompra}
+            type="button"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            <span>Novo Lançamento</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Cards de KPIs de Escopo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total no Mês */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider">Total no Mês</span>
+            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#006948]">
+              <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-extrabold text-slate-900 tabular-nums">
+              {formatarBRL(resumoAcerto.totalCasalCentavos)}
+            </span>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {todosLancamentosDoMes.length} lançamentos registrados
+            </p>
+          </div>
+        </div>
+
+        {/* Pago por Vinicius */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
+              <span className="text-xs font-semibold text-[#0051d5]">Pago por Vinicius</span>
+            </div>
+            <span className="text-[11px] font-bold text-slate-500">
+              {resumoAcerto.totalCasalCentavos > 0
+                ? `${Math.round(
+                    (resumoAcerto.totalPagoViniciusCentavos / resumoAcerto.totalCasalCentavos) * 100
+                  )}%`
+                : '0%'}
+            </span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-extrabold text-[#0051d5] tabular-nums">
+              {formatarBRL(resumoAcerto.totalPagoViniciusCentavos)}
+            </span>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {todosLancamentosDoMes.filter((l) => l.pagoPor === 'Vinicius').length} compras
+            </p>
+          </div>
+        </div>
+
+        {/* Pago por Silvia */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#712ae2]"></span>
+              <span className="text-xs font-semibold text-[#712ae2]">Pago por Silvia</span>
+            </div>
+            <span className="text-[11px] font-bold text-slate-500">
+              {resumoAcerto.totalCasalCentavos > 0
+                ? `${Math.round(
+                    (resumoAcerto.totalPagoSilviaCentavos / resumoAcerto.totalCasalCentavos) * 100
+                  )}%`
+                : '0%'}
+            </span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-extrabold text-[#712ae2] tabular-nums">
+              {formatarBRL(resumoAcerto.totalPagoSilviaCentavos)}
+            </span>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {todosLancamentosDoMes.filter((l) => l.pagoPor === 'Silvia').length} compras
+            </p>
+          </div>
+        </div>
+
+        {/* Parcelas Ativas */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider">Parcelas Ativas</span>
+            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-blue-600">
+              <span className="material-symbols-outlined text-[16px]">credit_card</span>
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-extrabold text-slate-900 tabular-nums">
+              {formatarBRL(parcelasAtivasCentavos)}
+            </span>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {qtdParceladas} compras parceladas este mês
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Ribbon de Filtros e Busca */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+          {/* Search bar */}
+          <div className="md:col-span-5 relative flex items-center">
+            <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px] pointer-events-none">
+              search
+            </span>
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => {
+                setBusca(e.target.value);
+                setPagina(1);
+              }}
+              placeholder="Buscar estabelecimento, item ou descrição..."
+              className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+            />
+          </div>
+
+          {/* Categoria */}
+          <div className="md:col-span-3">
+            <select
+              value={filtroCategoria}
+              onChange={(e) => {
+                setFiltroCategoria(e.target.value);
+                setPagina(1);
+              }}
+              className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
+            >
+              <option value="">Todas as Categorias</option>
+              {CATEGORIAS_PADRAO.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icone} {cat.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Pagador */}
+          <div className="md:col-span-2">
+            <select
+              value={filtroPagador}
+              onChange={(e) => {
+                setFiltroPagador(e.target.value);
+                setPagina(1);
+              }}
+              className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
+            >
+              <option value="">Quem Pagou: Todos</option>
+              <option value="Vinicius">Vinicius</option>
+              <option value="Silvia">Silvia</option>
+            </select>
+          </div>
+
+          {/* Divisão */}
+          <div className="md:col-span-2">
+            <select
+              value={filtroDivisao}
+              onChange={(e) => {
+                setFiltroDivisao(e.target.value);
+                setPagina(1);
+              }}
+              className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
+            >
+              <option value="">Divisão: Todas</option>
+              <option value="50/50">50% / 50%</option>
+              <option value="Vinicius">Só Vinicius</option>
+              <option value="Silvia">Só Silvia</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Filtros Rápidos & Ordenação */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-slate-400 font-semibold mr-1">Filtros rápidos:</span>
+            <button
+              onClick={() => {
+                setFiltroRapido('todos');
+                setPagina(1);
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                filtroRapido === 'todos'
+                  ? 'bg-slate-200 text-slate-900 font-bold'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Todos ({todosLancamentosDoMes.length})
+            </button>
+            <button
+              onClick={() => {
+                setFiltroRapido('parcelados');
+                setPagina(1);
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                filtroRapido === 'parcelados'
+                  ? 'bg-slate-200 text-slate-900 font-bold'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Parcelados ({qtdParceladas})
+            </button>
+            <button
+              onClick={() => {
+                setFiltroRapido('mercado');
+                setPagina(1);
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                filtroRapido === 'mercado'
+                  ? 'bg-slate-200 text-slate-900 font-bold'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Supermercado ({todosLancamentosDoMes.filter((l) => l.categoria === 'Mercado').length})
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-slate-500">Ordenar:</span>
+            <select
+              value={ordenacao}
+              onChange={(e) => setOrdenacao(e.target.value as any)}
+              className="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-semibold text-xs border-none cursor-pointer"
+            >
+              <option value="recente">Mais recentes</option>
+              <option value="antigo">Mais antigos</option>
+              <option value="maior_valor">Maior valor</option>
+              <option value="menor_valor">Menor valor</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabela de Lançamentos */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        {lancamentosOrdenados.length === 0 ? (
+          <div className="py-16 text-center text-xs text-slate-400">
+            Nenhum lançamento encontrado para os filtros selecionados.
+          </div>
+        ) : (
+          <div className="w-full overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                  <th className="py-3 px-4 whitespace-nowrap">Data</th>
+                  <th className="py-3 px-4 min-w-[220px]">Estabelecimento / Item</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Categoria</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Quem Pagou</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Divisão</th>
+                  <th className="py-3 px-4 text-right whitespace-nowrap">Valor Total</th>
+                  <th className="py-3 px-4 text-right whitespace-nowrap">Minha Parte</th>
+                  <th className="py-3 px-3 text-center w-20">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {lancamentosPaginados.map((lancamento) => {
+                  const dataFormatada = (() => {
+                    const parts = lancamento.dataReferencia.split('-');
+                    return `${parts[2]}/${parts[1]}`;
+                  })();
+
+                  const isAutor = lancamento.cadastradoPor === usuarioAtual;
+
+                  return (
+                    <tr
+                      key={`${lancamento.compraId}-${lancamento.numeroParcela}`}
+                      className="hover:bg-slate-50/70 transition-colors"
+                    >
+                      <td className="py-3 px-4 font-semibold text-slate-600 whitespace-nowrap">
+                        {dataFormatada}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-slate-900 leading-tight">
+                              {lancamento.nome}
+                            </span>
+                            {lancamento.totalParcelas > 1 && (
+                              <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 text-[10px] font-bold">
+                                Parcela {lancamento.numeroParcela}/{lancamento.totalParcelas}
+                              </span>
+                            )}
+                          </div>
+                          {lancamento.descricao && (
+                            <span className="text-[11px] text-slate-400 truncate max-w-sm">
+                              {lancamento.descricao}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">
+                          {lancamento.categoria}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                            lancamento.pagoPor === 'Vinicius'
+                              ? 'bg-blue-50 text-[#0051d5]'
+                              : 'bg-purple-50 text-[#712ae2]'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              lancamento.pagoPor === 'Vinicius' ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                            }`}
+                          ></span>
+                          <span>{lancamento.pagoPor}</span>
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            lancamento.divisao === '50/50'
+                              ? 'bg-emerald-50 text-[#006948]'
+                              : lancamento.divisao === 'Vinicius'
+                              ? 'bg-blue-50 text-[#0051d5]'
+                              : 'bg-purple-50 text-[#712ae2]'
+                          }`}
+                        >
+                          {lancamento.divisao === '50/50' ? '⚖️ 50/50' : `Só ${lancamento.divisao}`}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
+                        {formatarBRL(lancamento.valorCentavos)}
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-[#006948] tabular-nums whitespace-nowrap">
+                        {formatarBRL(lancamento.minhaParteCentavos)}
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {isAutor ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => onEditarCompra(lancamento.compraId)}
+                              className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Editar compra (Autor)"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">edit</span>
+                            </button>
+                            <button
+                              onClick={() =>
+                                onRemoverCompra(lancamento.compraId, lancamento.numeroParcela)
+                              }
+                              className="w-7 h-7 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Cancelar a partir desta parcela"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">
+                                delete_sweep
+                              </span>
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            className="text-[10px] text-slate-400 italic block"
+                            title={`Registrado por ${lancamento.cadastradoPor}. Apenas o autor pode editar ou remover.`}
+                          >
+                            Por {lancamento.cadastradoPor}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Rodapé e Paginação */}
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <div>
+            Exibindo <strong>{lancamentosPaginados.length}</strong> de{' '}
+            <strong>{lancamentosOrdenados.length}</strong> lançamentos | Soma da página:{' '}
+            <strong className="text-slate-800 tabular-nums">
+              {formatarBRL(somaPaginaCentavos)}
+            </strong>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+              disabled={pagina === 1}
+              className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+            >
+              Anterior
+            </button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((num) => (
+              <button
+                key={num}
+                onClick={() => setPagina(num)}
+                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  pagina === num
+                    ? 'bg-[#006948] text-white shadow-sm'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+            <button
+              onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+              disabled={pagina >= totalPaginas}
+              className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Banner de Harmonia Financeira */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[20px]">favorite</span>
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-slate-900">Transparência sem cobranças</h4>
+            <p className="text-xs text-slate-500">
+              Ambos têm visibilidade instantânea dos lançamentos e do impacto no acerto final.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={onAbrirModalAcerto}
+          type="button"
+          className="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#006948] text-xs font-semibold transition-colors cursor-pointer shrink-0"
+        >
+          Ver Acerto Provisório
+        </button>
+      </div>
+    </div>
+  );
+};
