@@ -26,6 +26,7 @@ import { ModalEspacoCasal } from './components/ModalEspacoCasal';
 import { ModalConfirmacao } from './components/ModalConfirmacao';
 import { AuthScreen } from './components/AuthScreen';
 import { CoupleSetupScreen } from './components/CoupleSetupScreen';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { Footer } from './components/Footer';
 
 export default function App() {
@@ -517,6 +518,9 @@ export default function App() {
         onConfirmar={confirmacao.onConfirmar}
         onCancelar={() => setConfirmacao((prev) => ({ ...prev, aberto: false }))}
       />
+
+      {/* Offline feedback indicator */}
+      <OfflineIndicator />
     </div>
   );
 }

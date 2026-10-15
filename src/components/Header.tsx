@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CoupleSpace, UsuarioId } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
 
 export type AbaNavegacao = 'resumo-mensal' | 'lancamentos' | 'fechamentos-e-acertos' | 'categorias';
 
@@ -156,6 +157,9 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Firestore Conectado</span>
           </div>
+
+          {/* Botão Instalar App no Celular (PWA) */}
+          <PWAInstallButton />
 
           {/* Botão Nova Compra */}
           <button
