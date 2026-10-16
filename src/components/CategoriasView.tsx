@@ -735,7 +735,12 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
               {/* Divisão Sugerida */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Divisão Padrão Recomendada</label>
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-700">Divisão Padrão Recomendada</label>
+                  <span className="text-[11px] font-bold text-[#006948]">
+                    Atual: {divisaoPadrao}
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   {[
                     { id: '50/50', label: '50 / 50' },
@@ -743,15 +748,18 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                     { id: '30/70', label: '30 / 70' },
                     { id: '60/40', label: '60 / 40' },
                     { id: '40/60', label: '40 / 60' },
-                    { id: `100/0`, label: `Só ${p1Nome}` },
-                    { id: `0/100`, label: `Só ${p2Nome}` },
+                    { id: '100/0', label: `100 / 0 (Só ${p1Nome})` },
+                    { id: '0/100', label: `0 / 100 (Só ${p2Nome})` },
                   ].map((opcao) => (
                     <button
                       key={opcao.id}
                       type="button"
                       onClick={() => setDivisaoPadrao(opcao.id)}
                       className={`py-2 px-1 rounded-xl text-center text-xs font-semibold cursor-pointer transition-all ${
-                        divisaoPadrao === opcao.id || divisaoPadrao === opcao.label
+                        divisaoPadrao === opcao.id ||
+                        divisaoPadrao === opcao.label ||
+                        (opcao.id === '100/0' && (divisaoPadrao === `Só ${p1Nome}` || divisaoPadrao === '100/0')) ||
+                        (opcao.id === '0/100' && (divisaoPadrao === `Só ${p2Nome}` || divisaoPadrao === '0/100'))
                           ? 'bg-[#006948] text-white shadow-sm'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
@@ -910,7 +918,12 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Divisão Padrão Recomendada</label>
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-700">Divisão Padrão Recomendada</label>
+                  <span className="text-[11px] font-bold text-[#006948]">
+                    Atual: {divisaoPadrao}
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   {[
                     { id: '50/50', label: '50 / 50' },
@@ -918,15 +931,18 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                     { id: '30/70', label: '30 / 70' },
                     { id: '60/40', label: '60 / 40' },
                     { id: '40/60', label: '40 / 60' },
-                    { id: `100/0`, label: `Só ${p1Nome}` },
-                    { id: `0/100`, label: `Só ${p2Nome}` },
+                    { id: '100/0', label: `100 / 0 (Só ${p1Nome})` },
+                    { id: '0/100', label: `0 / 100 (Só ${p2Nome})` },
                   ].map((opcao) => (
                     <button
                       key={opcao.id}
                       type="button"
                       onClick={() => setDivisaoPadrao(opcao.id)}
                       className={`py-2 px-1 rounded-xl text-center text-xs font-semibold cursor-pointer transition-all ${
-                        divisaoPadrao === opcao.id || divisaoPadrao === opcao.label
+                        divisaoPadrao === opcao.id ||
+                        divisaoPadrao === opcao.label ||
+                        (opcao.id === '100/0' && (divisaoPadrao === `Só ${p1Nome}` || divisaoPadrao === '100/0')) ||
+                        (opcao.id === '0/100' && (divisaoPadrao === `Só ${p2Nome}` || divisaoPadrao === '0/100'))
                           ? 'bg-[#006948] text-white shadow-sm'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}

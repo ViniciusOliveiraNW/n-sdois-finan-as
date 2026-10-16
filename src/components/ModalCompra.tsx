@@ -528,7 +528,10 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                 const ativo =
                   opcao.id === 'custom'
                     ? mostrarPersonalizado
-                    : divisao === opcao.id && !mostrarPersonalizado;
+                    : (divisao === opcao.id ||
+                       (opcao.id === '100/0' && (divisao === '100/0' || divisao === p1Uid || divisao === p1Name)) ||
+                       (opcao.id === '0/100' && (divisao === '0/100' || divisao === p2Uid || divisao === p2Name))) &&
+                      !mostrarPersonalizado;
 
                 return (
                   <button

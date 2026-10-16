@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CoupleSpace, UserProfile } from '../types';
 import { desafiliarEspacoCasal, salvarDefaultSplitCasal } from '../services/firebaseService';
 import { parseDivisaoPercentuais } from '../calculations/acertoMensal';
@@ -24,6 +24,26 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
   const [splitPadrao, setSplitPadrao] = useState(couple?.defaultSplit || '50/50');
   const [salvandoSplit, setSalvandoSplit] = useState(false);
   const [splitSalvo, setSplitSalvo] = useState(false);
+  const [mostrarSlider, setMostrarSlider] = useState(false);
+  const [customP1, setCustomP1] = useState(50);
+
+  const p1Nome = couple?.partner1Name || 'Parceiro 1';
+  const p2Nome = couple?.partner2Name || 'Parceiro 2';
+  const p2Conectado = Boolean(couple?.partner2Uid);
+
+  useEffect(() => {
+    if (couple?.defaultSplit) {
+      setSplitPadrao(couple.defaultSplit);
+      const { percP1 } = parseDivisaoPercentuais(
+        couple.defaultSplit,
+        couple.partner1Uid,
+        couple.partner2Uid,
+        [p1Nome, 'p1'],
+        [p2Nome, 'p2']
+      );
+      setCustomP1(percP1);
+    }
+  }, [couple?.defaultSplit, couple?.partner1Uid, couple?.partner2Uid, p1Nome, p2Nome, aberto]);
 
   if (!aberto || !couple) return null;
 
@@ -50,10 +70,6 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
       alert('Erro ao sair do espaço.');
     }
   };
-
-  const p1Nome = couple.partner1Name;
-  const p2Nome = couple.partner2Name || 'Parceiro(a)';
-  const p2Conectado = Boolean(couple.partner2Uid);
 
   return (
     <div
@@ -178,51 +194,181 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
                 <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
                 <span>Regime de Rateio Padrão do Casal</span>
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006948] font-bold text-[10px]">
-                {splitSalvo ? 'Salvo!' : `Atual: ${splitPadrao}`}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMostrarSlider(!mostrarSlider)}
+                  className="text-[11px] font-semibold text-[#006948] hover:text-[#005137] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[14px]">tune</span>
+                  <span>{mostrarSlider ? 'Ocultar Slider' : 'Ajuste Fino (%)'}</span>
+                </button>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006948] font-bold text-[10px]">
+                  {splitSalvo ? 'Salvo!' : `Atual: ${splitPadrao}`}
+                </span>
+              </div>
             </div>
 
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Define a proporção automática aplicada quando qualquer um dos parceiros cadastrar uma nova compra compartilhada.
+              Define a proporção automática padrão aplicada quando qualquer um dos parceiros cadastrar uma nova despesa compartilhada.
             </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+            {/* Presets Rápidos com 100/0 e 0/100 */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                { id: '50/50', label: '50 / 50' },
-                { id: '70/30', label: `70 / 30` },
-                { id: '30/70', label: `30 / 70` },
-                { id: '60/40', label: `60 / 40` },
-                { id: '40/60', label: `40 / 60` },
-              ].map((opcao) => (
+                { id: '50/50', label: '⚖️ 50 / 50', desc: 'Meio a meio' },
+                { id: '70/30', label: '📊 70 / 30', desc: `70% ${p1Nome}` },
+                { id: '30/70', label: '📊 30 / 70', desc: `70% ${p2Nome}` },
+                { id: '60/40', label: '📊 60 / 40', desc: `60% ${p1Nome}` },
+                { id: '40/60', label: '📊 40 / 60', desc: `60% ${p2Nome}` },
+                { id: '100/0', label: '👤 100 / 0', desc: `100% ${p1Nome}` },
+                { id: '0/100', label: '👤 0 / 100', desc: `100% ${p2Nome}` },
+                { id: 'custom', label: '⚙️ Outro %', desc: 'Ajuste Fino' },
+              ].map((opcao) => {
+                const ativo =
+                  opcao.id === 'custom'
+                    ? mostrarSlider
+                    : splitPadrao === opcao.id && !mostrarSlider;
+
+                return (
+                  <button
+                    key={opcao.id}
+                    type="button"
+                    disabled={salvandoSplit}
+                    onClick={async () => {
+                      if (opcao.id === 'custom') {
+                        setMostrarSlider(true);
+                      } else {
+                        setMostrarSlider(false);
+                        setSplitPadrao(opcao.id);
+                        const { percP1 } = parseDivisaoPercentuais(
+                          opcao.id,
+                          couple.partner1Uid,
+                          couple.partner2Uid,
+                          [p1Nome, 'p1'],
+                          [p2Nome, 'p2']
+                        );
+                        setCustomP1(percP1);
+                        setSalvandoSplit(true);
+                        try {
+                          await salvarDefaultSplitCasal(couple.id, opcao.id);
+                          setSplitSalvo(true);
+                          onEspacoAtualizado();
+                          setTimeout(() => setSplitSalvo(false), 2000);
+                        } catch (e) {
+                          console.error('Erro ao salvar split:', e);
+                        } finally {
+                          setSalvandoSplit(false);
+                        }
+                      }
+                    }}
+                    className={`py-2 px-2.5 rounded-xl border text-left flex flex-col gap-0.5 transition-all cursor-pointer ${
+                      ativo
+                        ? 'bg-emerald-50/80 border-[#006948] ring-1 ring-[#006948]'
+                        : 'bg-white border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-slate-900 leading-tight">
+                      {opcao.label}
+                    </span>
+                    <span className="text-[10px] text-slate-500 truncate leading-tight">
+                      {opcao.desc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Painel de Ajuste Fino / Slider Livre */}
+            {mostrarSlider && (
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#0051d5]">tune</span>
+                    <span>Proporção Livre do Rateio</span>
+                  </span>
+                  <span className="text-[11px] font-mono font-bold text-slate-600">
+                    {customP1}% + {100 - customP1}% = 100%
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-semibold">
+                    <span className="text-[#0051d5]">{p1Nome}: {customP1}%</span>
+                    <span className="text-[#712ae2]">{p2Nome}: {100 - customP1}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={customP1}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      setCustomP1(v);
+                      setSplitPadrao(`${v}/${100 - v}`);
+                    }}
+                    className="w-full accent-[#006948] cursor-pointer"
+                  />
+                  <div className="flex items-center justify-between text-[10px] text-slate-400">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomP1(100);
+                        setSplitPadrao('100/0');
+                      }}
+                      className="hover:text-blue-600 underline cursor-pointer"
+                    >
+                      100% {p1Nome} (100/0)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomP1(50);
+                        setSplitPadrao('50/50');
+                      }}
+                      className="hover:text-emerald-700 underline cursor-pointer"
+                    >
+                      50/50 Meio a meio
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomP1(0);
+                        setSplitPadrao('0/100');
+                      }}
+                      className="hover:text-purple-600 underline cursor-pointer"
+                    >
+                      100% {p2Nome} (0/100)
+                    </button>
+                  </div>
+                </div>
+
                 <button
-                  key={opcao.id}
                   type="button"
                   disabled={salvandoSplit}
                   onClick={async () => {
-                    setSplitPadrao(opcao.id);
+                    const novoSplit = `${customP1}/${100 - customP1}`;
+                    setSplitPadrao(novoSplit);
                     setSalvandoSplit(true);
                     try {
-                      await salvarDefaultSplitCasal(couple.id, opcao.id);
+                      await salvarDefaultSplitCasal(couple.id, novoSplit);
                       setSplitSalvo(true);
                       onEspacoAtualizado();
                       setTimeout(() => setSplitSalvo(false), 2000);
                     } catch (e) {
-                      console.error('Erro ao salvar split:', e);
+                      console.error('Erro ao salvar split personalizado:', e);
                     } finally {
                       setSalvandoSplit(false);
                     }
                   }}
-                  className={`py-2 px-2 rounded-xl text-center font-bold text-xs transition-all cursor-pointer border ${
-                    splitPadrao === opcao.id
-                      ? 'bg-[#006948] text-white border-[#006948] shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
+                  className="w-full py-2 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
-                  {opcao.label}
+                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span>{salvandoSplit ? 'Salvando...' : `Salvar Padrão ${customP1}/${100 - customP1}`}</span>
                 </button>
-              ))}
-            </div>
+              </div>
+            )}
 
             {/* Proportion Bar */}
             {(() => {
@@ -235,20 +381,20 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
               );
 
               return (
-                <div className="flex flex-col gap-1 pt-1">
-                  <div className="w-full bg-slate-200 h-2 rounded-full flex overflow-hidden">
+                <div className="flex flex-col gap-1.5 pt-1">
+                  <div className="w-full bg-slate-200 h-2.5 rounded-full flex overflow-hidden">
                     <div
-                      className="bg-[#0051d5] h-full"
+                      className="bg-[#0051d5] h-full transition-all duration-300"
                       style={{ width: `${percP1}%` }}
                       title={`${p1Nome}: ${percP1}%`}
                     ></div>
                     <div
-                      className="bg-[#712ae2] h-full"
+                      className="bg-[#712ae2] h-full transition-all duration-300"
                       style={{ width: `${percP2}%` }}
                       title={`${p2Nome}: ${percP2}%`}
                     ></div>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
                     <span className="text-[#0051d5] font-bold">{p1Nome}: {percP1}%</span>
                     <span className="text-[#712ae2] font-bold">{p2Nome}: {percP2}%</span>
                   </div>
