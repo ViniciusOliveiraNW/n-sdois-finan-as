@@ -478,6 +478,7 @@ export default function App() {
             resumoAcerto={resumoAcerto}
             fechamentos={fechamentos}
             usuarioAtual={usuarioNome}
+            couple={couple}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
             onFecharMes={handleFecharMes}
             onQuitarResidualRetroativo={handleQuitarResidualRetroativo}

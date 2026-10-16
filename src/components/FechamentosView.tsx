@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FechamentoMensal, ResumoAcerto, UsuarioId } from '../types';
+import { CoupleSpace, FechamentoMensal, ResumoAcerto, UsuarioId } from '../types';
 import { formatarBRL } from '../calculations/acertoMensal';
 
 interface FechamentosViewProps {
@@ -7,6 +7,7 @@ interface FechamentosViewProps {
   resumoAcerto: ResumoAcerto;
   fechamentos: FechamentoMensal[];
   usuarioAtual: UsuarioId;
+  couple?: CoupleSpace | null;
   onAbrirModalAcerto: () => void;
   onFecharMes: () => void;
   onQuitarResidualRetroativo: (fechamentoId: string) => void;
@@ -18,6 +19,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
   resumoAcerto,
   fechamentos,
   usuarioAtual,
+  couple,
   onAbrirModalAcerto,
   onFecharMes,
   onQuitarResidualRetroativo,
@@ -33,17 +35,115 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
     return true;
   });
 
-  const percVinicius =
+  const p1Nome = couple?.partner1Name || resumoAcerto.p1Name || 'Vinicius';
+  const p2Nome = couple?.partner2Name || resumoAcerto.p2Name || 'Silvia';
+
+  const p1PagoCentavos =
+    resumoAcerto.totalPagoP1Centavos ?? resumoAcerto.totalPagoViniciusCentavos ?? 0;
+  const p2PagoCentavos =
+    resumoAcerto.totalPagoP2Centavos ?? resumoAcerto.totalPagoSilviaCentavos ?? 0;
+
+  const percP1 =
     resumoAcerto.totalCasalCentavos > 0
-      ? Number(
-          ((resumoAcerto.totalPagoViniciusCentavos / resumoAcerto.totalCasalCentavos) * 100).toFixed(
-            1
-          )
-        )
+      ? Number(((p1PagoCentavos / resumoAcerto.totalCasalCentavos) * 100).toFixed(1))
       : 50;
 
-  const percSilvia =
-    resumoAcerto.totalCasalCentavos > 0 ? Number((100 - percVinicius).toFixed(1)) : 50;
+  const percP2 =
+    resumoAcerto.totalCasalCentavos > 0 ? Number((100 - percP1).toFixed(1)) : 50;
+
+  const devedorNome = resumoAcerto.devedor !== 'Nenhum' ? resumoAcerto.devedor : p2Nome;
+  const credorNome = resumoAcerto.credor !== 'Nenhum' ? resumoAcerto.credor : p1Nome;
+
+  const isDevedorP1 = devedorNome === p1Nome;
+  const isCredorP1 = credorNome === p1Nome;
+
+  const devedorPagoCentavos = isDevedorP1 ? p1PagoCentavos : p2PagoCentavos;
+  const credorPagoCentavos = isCredorP1 ? p1PagoCentavos : p2PagoCentavos;
+
+  // Ciclo dinâmico baseado no ano selecionado
+  const anoCiclo = mesSelecionado ? mesSelecionado.slice(0, 4) : new Date().getFullYear().toString();
+  const fechamentosDoAno = fechamentos.filter((f) => f.mesReferencia?.startsWith(anoCiclo));
+
+  const totalAcertadoAnoCentavos = fechamentosDoAno.reduce((total, f) => {
+    const pagamentosFeitos = (f.pagamentos || []).reduce((acc, p) => acc + (p.valorCentavos || 0), 0);
+    if (pagamentosFeitos > 0) {
+      return total + pagamentosFeitos;
+    }
+    if (f.status === 'quitado') {
+      return total + Math.abs(f.saldoOriginalCentavos || 0);
+    }
+    return total;
+  }, 0);
+
+  // Distribuição de quem efetuou os pagamentos de acerto no ano
+  let totalPagoP1AcertosCentavos = 0;
+  let totalPagoP2AcertosCentavos = 0;
+
+  fechamentosDoAno.forEach((f) => {
+    const pagamentos = f.pagamentos || [];
+    if (pagamentos.length > 0) {
+      pagamentos.forEach((p) => {
+        const isP1 =
+          p.pagadorUid === couple?.partner1Uid ||
+          p.pagador === p1Nome ||
+          (f.devedorUid && f.devedorUid === couple?.partner1Uid) ||
+          f.devedor === p1Nome;
+        if (isP1) {
+          totalPagoP1AcertosCentavos += p.valorCentavos || 0;
+        } else {
+          totalPagoP2AcertosCentavos += p.valorCentavos || 0;
+        }
+      });
+    } else if (f.status === 'quitado' && f.saldoOriginalCentavos !== 0) {
+      const valor = Math.abs(f.saldoOriginalCentavos || 0);
+      const isP1 =
+        (f.devedorUid && f.devedorUid === couple?.partner1Uid) ||
+        f.devedor === p1Nome;
+      if (isP1) {
+        totalPagoP1AcertosCentavos += valor;
+      } else {
+        totalPagoP2AcertosCentavos += valor;
+      }
+    }
+  });
+
+  const totalPagamentosAmbos = totalPagoP1AcertosCentavos + totalPagoP2AcertosCentavos;
+  const percP1Acertos =
+    totalPagamentosAmbos > 0
+      ? Math.round((totalPagoP1AcertosCentavos / totalPagamentosAmbos) * 100)
+      : 50;
+  const percP2Acertos = totalPagamentosAmbos > 0 ? 100 - percP1Acertos : 50;
+
+  // Cálculo de agilidade de quitação real com base nos pagamentos
+  let somaDiasQuitacao = 0;
+  let qtdPagamentosComData = 0;
+  let pagamentosAte3Dias = 0;
+
+  fechamentosDoAno.forEach((f) => {
+    if (!f.dataFechamento) return;
+    const dFechamento = new Date(f.dataFechamento).getTime();
+
+    (f.pagamentos || []).forEach((p) => {
+      if (!p.dataPagamento) return;
+      const dPagamento = new Date(p.dataPagamento).getTime();
+      const diffDias = Math.max(0, Math.round((dPagamento - dFechamento) / (1000 * 60 * 60 * 24)));
+      somaDiasQuitacao += diffDias;
+      qtdPagamentosComData += 1;
+      if (diffDias <= 3) {
+        pagamentosAte3Dias += 1;
+      }
+    });
+  });
+
+  const mediaDias =
+    qtdPagamentosComData > 0
+      ? (somaDiasQuitacao / qtdPagamentosComData).toFixed(1).replace('.', ',')
+      : null;
+
+  const percAte3Dias =
+    qtdPagamentosComData > 0
+      ? Math.round((pagamentosAte3Dias / qtdPagamentosComData) * 100)
+      : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,7 +162,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
             Histórico transparente dos acertos de contas, comprovantes anexados e conciliação
-            equilibrada entre Vinicius e Silvia.
+            equilibrada entre {p1Nome} e {p2Nome}.
           </p>
         </div>
 
@@ -115,12 +215,20 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
           <div className="lg:col-span-7 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/90 p-5 rounded-2xl border border-slate-200/80 shadow-sm">
             {/* Debtor */}
             <div className="flex flex-col items-center text-center gap-1">
-              <div className="w-14 h-14 rounded-full bg-[#712ae2] text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                S
+              <div
+                className={`w-14 h-14 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-sm ${
+                  isDevedorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                }`}
+              >
+                {devedorNome.charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm font-bold text-slate-900 mt-1">Silvia</span>
-              <span className="px-2 py-0.5 rounded-full bg-purple-50 text-[#712ae2] text-[11px] font-semibold tabular-nums">
-                Pagou {formatarBRL(resumoAcerto.totalPagoSilviaCentavos)}
+              <span className="text-sm font-bold text-slate-900 mt-1">{devedorNome}</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums ${
+                  isDevedorP1 ? 'bg-blue-50 text-[#0051d5]' : 'bg-purple-50 text-[#712ae2]'
+                }`}
+              >
+                Pagou {formatarBRL(devedorPagoCentavos)}
               </span>
             </div>
 
@@ -130,7 +238,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                 <span>
                   {resumoAcerto.valorAcertoCentavos === 0
                     ? 'Balança Nivelada'
-                    : `${resumoAcerto.devedor} deve transferir`}
+                    : `${devedorNome} deve transferir`}
                 </span>
                 <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
               </div>
@@ -147,12 +255,20 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
 
             {/* Creditor */}
             <div className="flex flex-col items-center text-center gap-1">
-              <div className="w-14 h-14 rounded-full bg-[#0051d5] text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                V
+              <div
+                className={`w-14 h-14 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-sm ${
+                  isCredorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                }`}
+              >
+                {credorNome.charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm font-bold text-slate-900 mt-1">Vinicius</span>
-              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0051d5] text-[11px] font-semibold tabular-nums">
-                Pagou {formatarBRL(resumoAcerto.totalPagoViniciusCentavos)}
+              <span className="text-sm font-bold text-slate-900 mt-1">{credorNome}</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums ${
+                  isCredorP1 ? 'bg-blue-50 text-[#0051d5]' : 'bg-purple-50 text-[#712ae2]'
+                }`}
+              >
+                Pagou {formatarBRL(credorPagoCentavos)}
               </span>
             </div>
           </div>
@@ -178,18 +294,18 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex mt-1">
                 <div
                   className="bg-[#0051d5] h-full"
-                  style={{ width: `${percVinicius}%` }}
-                  title={`Vinicius: ${percVinicius}%`}
+                  style={{ width: `${percP1}%` }}
+                  title={`${p1Nome}: ${percP1}%`}
                 ></div>
                 <div
                   className="bg-[#712ae2] h-full"
-                  style={{ width: `${percSilvia}%` }}
-                  title={`Silvia: ${percSilvia}%`}
+                  style={{ width: `${percP2}%` }}
+                  title={`${p2Nome}: ${percP2}%`}
                 ></div>
               </div>
               <div className="flex justify-between text-[11px] text-slate-500 font-medium">
-                <span>Vinicius: {percVinicius}%</span>
-                <span>Silvia: {percSilvia}%</span>
+                <span>{p1Nome}: {percP1}%</span>
+                <span>{p2Nome}: {percP2}%</span>
               </div>
             </div>
 
@@ -343,15 +459,15 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                   {/* Spending summary row */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 rounded-xl text-xs">
                     <div>
-                      <span className="text-slate-400 block mb-0.5">Gastos Vinicius</span>
+                      <span className="text-slate-400 block mb-0.5">Gastos {p1Nome}</span>
                       <span className="font-bold text-[#0051d5] tabular-nums">
-                        {formatarBRL(fechamento.totalPagoViniciusCentavos ?? fechamento.totalPagoP1Centavos ?? 0)}
+                        {formatarBRL(fechamento.totalPagoP1Centavos ?? fechamento.totalPagoViniciusCentavos ?? 0)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block mb-0.5">Gastos Silvia</span>
+                      <span className="text-slate-400 block mb-0.5">Gastos {p2Nome}</span>
                       <span className="font-bold text-[#712ae2] tabular-nums">
-                        {formatarBRL(fechamento.totalPagoSilviaCentavos ?? fechamento.totalPagoP2Centavos ?? 0)}
+                        {formatarBRL(fechamento.totalPagoP2Centavos ?? fechamento.totalPagoSilviaCentavos ?? 0)}
                       </span>
                     </div>
                     <div>
@@ -366,8 +482,14 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                   {fechamento.status === 'quitado' && (
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-7 h-7 rounded-full bg-blue-100 text-[#0051d5] flex items-center justify-center font-bold text-xs">
-                          {fechamento.devedor === 'Vinicius' ? 'V' : 'S'}
+                        <span
+                          className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
+                            fechamento.devedor === p1Nome
+                              ? 'bg-blue-100 text-[#0051d5]'
+                              : 'bg-purple-100 text-[#712ae2]'
+                          }`}
+                        >
+                          {(fechamento.devedor || 'P').charAt(0).toUpperCase()}
                         </span>
                         <div>
                           <span className="font-semibold text-slate-800">
@@ -473,6 +595,17 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                 </article>
               );
             })}
+            {fechamentosFiltrados.length === 0 && (
+              <div className="p-8 rounded-2xl bg-white border border-slate-200 text-center flex flex-col items-center justify-center gap-2 text-slate-500">
+                <span className="material-symbols-outlined text-[32px] text-slate-400">
+                  inventory_2
+                </span>
+                <p className="text-sm font-semibold text-slate-700">Nenhum mês fechado encontrado</p>
+                <p className="text-xs text-slate-400 max-w-sm">
+                  Quando você fechar um mês em "Fechar Mês & Registrar Acerto", o histórico aparecerá aqui.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -480,10 +613,10 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
         <aside className="lg:col-span-4 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">Resumo Geral</h2>
-            <span className="text-xs text-slate-500 font-medium">Ciclo 2024</span>
+            <span className="text-xs text-slate-500 font-medium">Ciclo {anoCiclo}</span>
           </div>
 
-          {/* Metric: Total Acertado em 2024 */}
+          {/* Metric: Total Acertado no Ano */}
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -494,11 +627,12 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
               </div>
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums">
-              R$ 8.420,00
+              {formatarBRL(totalAcertadoAnoCentavos)}
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Volume total transferido entre contas para nivelamento das despesas compartilhadas do
-              casal.
+              {totalAcertadoAnoCentavos > 0
+                ? `Volume total transferido entre contas para nivelamento das despesas compartilhadas do casal no ciclo de ${anoCiclo}.`
+                : `Nenhum acerto compensatório finalizado no ciclo de ${anoCiclo} até o momento.`}
             </p>
 
             {/* Distribution Bar */}
@@ -506,22 +640,34 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
               <div className="flex justify-between text-xs text-slate-500 font-medium">
                 <span>Distribuição de pagadores nos acertos:</span>
               </div>
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
-                <div
-                  className="bg-[#0051d5] h-full"
-                  style={{ width: '52%' }}
-                  title="Vinicius: 52%"
-                ></div>
-                <div
-                  className="bg-[#712ae2] h-full"
-                  style={{ width: '48%' }}
-                  title="Silvia: 48%"
-                ></div>
-              </div>
-              <div className="flex justify-between text-[11px] text-slate-500 font-semibold">
-                <span className="text-[#0051d5]">Vinicius (52%)</span>
-                <span className="text-[#712ae2]">Silvia (48%)</span>
-              </div>
+              {totalPagamentosAmbos > 0 ? (
+                <>
+                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+                    <div
+                      className="bg-[#0051d5] h-full transition-all"
+                      style={{ width: `${percP1Acertos}%` }}
+                      title={`${p1Nome}: ${percP1Acertos}% (${formatarBRL(totalPagoP1AcertosCentavos)})`}
+                    ></div>
+                    <div
+                      className="bg-[#712ae2] h-full transition-all"
+                      style={{ width: `${percP2Acertos}%` }}
+                      title={`${p2Nome}: ${percP2Acertos}% (${formatarBRL(totalPagoP2AcertosCentavos)})`}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-slate-500 font-semibold">
+                    <span className="text-[#0051d5]">
+                      {p1Nome} ({percP1Acertos}%)
+                    </span>
+                    <span className="text-[#712ae2]">
+                      {p2Nome} ({percP2Acertos}%)
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-center text-slate-400 text-[11px]">
+                  Aguardando primeiro fechamento de {anoCiclo} com transferência compensatória.
+                </div>
+              )}
             </div>
           </div>
 
@@ -535,17 +681,39 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                 <span className="material-symbols-outlined text-[18px]">speed</span>
               </div>
             </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-extrabold text-slate-900 tabular-nums">1,8</span>
-              <span className="text-base font-semibold text-slate-500">dias</span>
-            </div>
-            <p className="text-xs text-slate-500">
-              Média de tempo após o fechamento do mês para realização da compensação Pix.
-            </p>
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 text-[#006948] text-xs font-medium mt-1">
-              <span className="material-symbols-outlined text-[16px]">thumb_up</span>
-              <span>91% dos acertos ocorrem nos primeiros 3 dias do mês.</span>
-            </div>
+            {mediaDias !== null ? (
+              <>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-extrabold text-slate-900 tabular-nums">
+                    {mediaDias}
+                  </span>
+                  <span className="text-base font-semibold text-slate-500">dias</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Média de tempo após o fechamento do mês para realização da compensação Pix.
+                </p>
+                {percAte3Dias !== null && (
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 text-[#006948] text-xs font-medium mt-1">
+                    <span className="material-symbols-outlined text-[16px]">thumb_up</span>
+                    <span>{percAte3Dias}% dos acertos ocorreram nos primeiros 3 dias.</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-slate-400 tabular-nums">-</span>
+                  <span className="text-xs text-slate-400 font-medium ml-1">sem histórico</span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Tempo médio calculado automaticamente conforme transferências e comprovantes forem registrados.
+                </p>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 text-slate-500 text-xs font-medium mt-1">
+                  <span className="material-symbols-outlined text-[16px] text-slate-400">info</span>
+                  <span>Mantenha os acertos em dia após o fechamento do mês.</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Harmonia a Dois */}
@@ -567,7 +735,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
               obstáculo."
             </p>
             <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[11px] text-slate-500">
-              <span>Equilíbrio Vinicius & Silvia</span>
+              <span>Equilíbrio {p1Nome} & {p2Nome}</span>
               <span className="text-[#006948] font-semibold">NósDois Finanças</span>
             </div>
           </div>
@@ -612,15 +780,15 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500">Total despesas de Vinicius:</span>
+                <span className="text-slate-500">Total despesas de {p1Nome}:</span>
                 <span className="font-bold text-slate-900 tabular-nums">
-                  {formatarBRL(resumoAcerto.totalPagoViniciusCentavos)}
+                  {formatarBRL(p1PagoCentavos)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Total despesas de Silvia:</span>
+                <span className="text-slate-500">Total despesas de {p2Nome}:</span>
                 <span className="font-bold text-slate-900 tabular-nums">
-                  {formatarBRL(resumoAcerto.totalPagoSilviaCentavos)}
+                  {formatarBRL(p2PagoCentavos)}
                 </span>
               </div>
               <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-sm">
