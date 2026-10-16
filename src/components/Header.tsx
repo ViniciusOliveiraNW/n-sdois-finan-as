@@ -172,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* User Profile Badge */}
-          <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 bg-white rounded-full border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 bg-white rounded-full border border-slate-200 shadow-sm shrink-0 whitespace-nowrap">
             <div className="w-7 h-7 rounded-full bg-[#006948] text-white flex items-center justify-center font-bold text-xs uppercase">
               {usuarioAtual.charAt(0) || 'U'}
             </div>
@@ -197,7 +197,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onLogout}
               type="button"
-              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer shrink-0"
               title="Sair da conta"
             >
               <span className="material-symbols-outlined text-[16px]">logout</span>
