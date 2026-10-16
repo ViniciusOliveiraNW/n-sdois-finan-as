@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { UsuarioId } from '../types';
+import { signInWithRedirect } from 'firebase/auth';
+import { auth, googleProvider } from '../firebase';
 
 interface AuthModalProps {
   aberto: boolean;
@@ -239,7 +241,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* Google Button */}
           <button
             type="button"
-            onClick={handleSimularGoogle}
+            onClick={() => signInWithRedirect(auth, googleProvider)}
             className="w-full h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-semibold text-xs transition-colors flex items-center justify-center gap-2.5 cursor-pointer"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
