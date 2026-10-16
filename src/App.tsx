@@ -9,6 +9,7 @@ import {
   ouvirCompras,
   salvarCompraFirestore,
   cancelarParcelasFirestore,
+  deletarFechamentoFirestore,
   ouvirFechamentos,
   salvarFechamentoFirestore,
 } from './services/firebaseService';
@@ -294,6 +295,21 @@ export default function App() {
     }
   };
 
+  const handleDeletarFechamento = async (fechamentoId: string) => {
+    if (!couple || !confirm('Tem certeza que deseja remover este registro de fechamento? Esta ação é irreversível.')) {
+      return;
+    }
+    try {
+      console.log('Tentando deletar:', couple.id, fechamentoId);
+      await deletarFechamentoFirestore(couple.id, fechamentoId);
+      console.log('Deletado com sucesso');
+    } catch (error) {
+      console.error('Erro ao remover fechamento:', error);
+      alert('Erro ao remover o registro. Tente novamente.');
+    }
+  };
+
+
   const handleRegistrarPagamento = async (
     dadosPagamento: Omit<PagamentoAcerto, 'id'>,
     marcarComoQuitado: boolean
@@ -465,6 +481,7 @@ export default function App() {
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
             onFecharMes={handleFecharMes}
             onQuitarResidualRetroativo={handleQuitarResidualRetroativo}
+            onDeletarFechamento={handleDeletarFechamento}
           />
         )}
 

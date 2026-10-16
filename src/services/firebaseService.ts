@@ -4,6 +4,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   getDocs,
@@ -265,5 +266,17 @@ export async function salvarFechamentoFirestore(
     await setDoc(doc(db, 'couples', coupleId, 'closures', fechamento.id), dadosLimpos);
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+export async function deletarFechamentoFirestore(
+  coupleId: string,
+  fechamentoId: string
+): Promise<void> {
+  const path = `couples/${coupleId}/closures/${fechamentoId}`;
+  try {
+    await deleteDoc(doc(db, 'couples', coupleId, 'closures', fechamentoId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
   }
 }

@@ -10,6 +10,7 @@ interface FechamentosViewProps {
   onAbrirModalAcerto: () => void;
   onFecharMes: () => void;
   onQuitarResidualRetroativo: (fechamentoId: string) => void;
+  onDeletarFechamento: (fechamentoId: string) => void;
 }
 
 export const FechamentosView: React.FC<FechamentosViewProps> = ({
@@ -20,6 +21,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
   onAbrirModalAcerto,
   onFecharMes,
   onQuitarResidualRetroativo,
+  onDeletarFechamento,
 }) => {
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'pendentes' | 'quitados'>('todos');
   const [modalSimulacaoAberto, setModalSimulacaoAberto] = useState(false);
@@ -302,30 +304,40 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                     </div>
 
                     {/* Status Badge */}
-                    <div
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                        fechamento.status === 'quitado'
-                          ? 'bg-emerald-100 text-[#006948]'
-                          : fechamento.status === 'parcial'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-purple-100 text-[#712ae2]'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[15px]">
-                        {fechamento.status === 'quitado'
-                          ? 'check_circle'
-                          : fechamento.status === 'parcial'
-                          ? 'hourglass_top'
-                          : 'difference'}
-                      </span>
-                      <span>
-                        {fechamento.status === 'quitado'
-                          ? 'Totalmente Quitado'
-                          : fechamento.status === 'parcial'
-                          ? 'Acerto Parcial'
-                          : 'Pendência por Edição Retroativa'}
-                      </span>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                            fechamento.status === 'quitado'
+                              ? 'bg-emerald-100 text-[#006948]'
+                              : fechamento.status === 'parcial'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-purple-100 text-[#712ae2]'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[15px]">
+                            {fechamento.status === 'quitado'
+                              ? 'check_circle'
+                              : fechamento.status === 'parcial'
+                              ? 'hourglass_top'
+                              : 'difference'}
+                          </span>
+                          <span>
+                            {fechamento.status === 'quitado'
+                              ? 'Totalmente Quitado'
+                              : fechamento.status === 'parcial'
+                              ? 'Acerto Parcial'
+                              : 'Pendência por Edição Retroativa'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => onDeletarFechamento(fechamento.id)}
+                          type="button"
+                          className="w-8 h-8 rounded-full bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Remover mês fechado"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                        </button>
+                      </div>
                   </div>
 
                   {/* Spending summary row */}

@@ -124,30 +124,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
             </button>
           </div>
 
-          {/* Atalho rápido para meses de teste da mentoria */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-slate-400 font-medium">Testes:</span>
-            <button
-              onClick={() => onMudarMes('2026-09')}
-              className={`px-2 py-0.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                mesSelecionado === '2026-09'
-                  ? 'bg-[#006948] text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Set/2026
-            </button>
-            <button
-              onClick={() => onMudarMes('2024-12')}
-              className={`px-2 py-0.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                mesSelecionado === '2024-12'
-                  ? 'bg-[#006948] text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Dez/2024
-            </button>
-          </div>
+
 
           {/* Badge de Status do Mês */}
           <div

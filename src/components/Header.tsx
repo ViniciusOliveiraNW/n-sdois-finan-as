@@ -77,11 +77,11 @@ export const Header: React.FC<HeaderProps> = ({
                 strokeLinecap="round"
               />
             </svg>
-            <div className="flex flex-col">
-              <span className="font-semibold text-lg tracking-tight text-slate-900 select-none leading-none">
+            <div className="flex flex-col ml-1">
+              <span className="font-semibold text-base sm:text-lg tracking-tight text-slate-900 select-none leading-tight whitespace-nowrap">
                 NósDois <span className="text-[#006948] font-bold">Finanças</span>
               </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-tight mt-0.5">
+              <span className="text-[11px] text-slate-500 font-medium tracking-tight mt-0.5 whitespace-nowrap">
                 {p1Nome} & {p2Nome}
               </span>
             </div>
