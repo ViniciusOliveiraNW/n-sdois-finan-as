@@ -135,22 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right Zone: Convite pendente, Nova Compra, User Profile */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Se aguardando parceiro, exibe código amigável para copiar */}
-          {aguardandoParceiro && couple && (
-            <button
-              type="button"
-              onClick={handleCopiarCodigo}
-              title="Clique para copiar o código de convite do casal"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold transition-all cursor-pointer shadow-sm"
-            >
-              <span className="material-symbols-outlined text-[15px] text-amber-600 animate-pulse">
-                share
-              </span>
-              <span>Código: {couple.inviteCode}</span>
-              <span className="text-[10px] bg-amber-200/70 px-1.5 py-0.2 rounded font-mono">
-                {copiado ? 'Copiado!' : 'Copiar'}
-              </span>
-            </button>
-          )}
+
 
           {/* Sincronizado Firebase */}
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
@@ -172,22 +157,22 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* User Profile Badge */}
-          <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 bg-white rounded-full border border-slate-200 shadow-sm shrink-0 whitespace-nowrap">
-            <div className="w-7 h-7 rounded-full bg-[#006948] text-white flex items-center justify-center font-bold text-xs uppercase">
+          <div className="flex items-center gap-1 sm:gap-1.5 pl-1.5 pr-0.5 py-1 bg-white rounded-full border border-slate-200 shadow-sm max-w-[180px] sm:max-w-none">
+            <div className="w-7 h-7 rounded-full bg-[#006948] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
               {usuarioAtual.charAt(0) || 'U'}
             </div>
-            <div className="hidden sm:flex flex-col text-left leading-tight pr-1">
-              <span className="text-xs font-semibold text-slate-900 truncate max-w-[100px]">
+            <div className="hidden sm:flex flex-col text-left leading-tight pr-1 min-w-0">
+              <span className="text-xs font-semibold text-slate-900 truncate">
                 {usuarioAtual}
               </span>
-              <span className="text-[10px] font-medium text-[#006948]">(Você)</span>
+              <span className="text-[10px] font-medium text-[#006948] truncate">(Você)</span>
             </div>
 
             {/* Botão de Espaço do Casal */}
             <button
               onClick={onAbrirEspacoModal}
               type="button"
-              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer shrink-0"
               title="Ver dados do Espaço do Casal e convite"
             >
               <span className="material-symbols-outlined text-[16px]">groups</span>
