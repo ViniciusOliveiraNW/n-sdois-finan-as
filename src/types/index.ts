@@ -1,15 +1,6 @@
 export type UsuarioId = string;
 
-export type CategoriaId =
-  | 'Mercado'
-  | 'Aluguel'
-  | 'Luz'
-  | 'Água'
-  | 'Padaria'
-  | 'Farmácia'
-  | 'Compras'
-  | 'Emergência'
-  | 'Outros';
+export type CategoriaId = string;
 
 export type DivisaoTipo = '50/50' | string; // '50/50' ou UID/Nome do parceiro correspondente
 
@@ -33,6 +24,8 @@ export interface CoupleSpace {
   partner2Name?: string;
   partner2Email?: string;
   createdAt: string;
+  categories?: CategoriaMeta[];
+  defaultSplit?: string; // ex: '50/50', '70/30', '30/70', '60/40', etc.
 }
 
 export interface Compra {
@@ -153,6 +146,8 @@ export interface ResumoAcerto {
   cotaViniciusEm5050Centavos: number;
   cotaP2Em5050Centavos: number;
   cotaP1Em5050Centavos: number;
+  cotaP1EsperadaCentavos?: number;
+  cotaP2EsperadaCentavos?: number;
   detalhesExclusivosCentavos: {
     p1PagouParaP2: number;
     p2PagouParaP1: number;

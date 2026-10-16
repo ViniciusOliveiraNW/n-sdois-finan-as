@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth } from './firebase';
-import { Compra, CoupleSpace, FechamentoMensal, PagamentoAcerto, UserProfile, UsuarioId } from './types';
+import { CategoriaMeta, Compra, CoupleSpace, FechamentoMensal, PagamentoAcerto, UserProfile, UsuarioId } from './types';
+import { CATEGORIAS_PADRAO } from './data/initialData';
 import {
   getPerfilUsuario,
   salvarPerfilUsuario,
@@ -12,6 +13,7 @@ import {
   deletarFechamentoFirestore,
   ouvirFechamentos,
   salvarFechamentoFirestore,
+  salvarCategoriasCasal,
 } from './services/firebaseService';
 import { gerarLancamentosDoMes } from './calculations/parcelas';
 import { calcularAcertoMensal } from './calculations/acertoMensal';
@@ -40,6 +42,15 @@ export default function App() {
   const [couple, setCouple] = useState<CoupleSpace | null>(null);
   const [compras, setCompras] = useState<Compra[]>([]);
   const [fechamentos, setFechamentos] = useState<FechamentoMensal[]>([]);
+  const [categorias, setCategorias] = useState<CategoriaMeta[]>(() => {
+    try {
+      const salvo = localStorage.getItem('nosdois_categorias');
+      if (salvo) return JSON.parse(salvo);
+    } catch (e) {
+      // ignore
+    }
+    return CATEGORIAS_PADRAO;
+  });
 
   // 3. Mês e Visão
   const [mesSelecionado, setMesSelecionado] = useState<string>(() => {
@@ -117,6 +128,14 @@ export default function App() {
 
     const unsubCouple = ouvirEspacoCasal(coupleId, (coupleData) => {
       setCouple(coupleData);
+      if (coupleData?.categories && Array.isArray(coupleData.categories) && coupleData.categories.length > 0) {
+        setCategorias(coupleData.categories);
+        try {
+          localStorage.setItem('nosdois_categorias', JSON.stringify(coupleData.categories));
+        } catch (e) {
+          // ignore
+        }
+      }
     });
 
     const unsubCompras = ouvirCompras(coupleId, (comprasData) => {
@@ -134,6 +153,22 @@ export default function App() {
     };
   }, [userProfile?.coupleId]);
 
+  const handleSalvarCategorias = async (novasCategorias: CategoriaMeta[]) => {
+    setCategorias(novasCategorias);
+    try {
+      localStorage.setItem('nosdois_categorias', JSON.stringify(novasCategorias));
+    } catch (e) {
+      console.warn('Erro ao salvar categorias no localStorage', e);
+    }
+    if (couple?.id) {
+      try {
+        await salvarCategoriasCasal(couple.id, novasCategorias);
+      } catch (e) {
+        console.error('Erro ao salvar categorias no Firestore:', e);
+      }
+    }
+  };
+
   const recarregarPerfil = async () => {
     if (authUser) {
       const perfil = await getPerfilUsuario(authUser.uid);
@@ -150,8 +185,20 @@ export default function App() {
 
   // Cálculos derivados em tempo real a partir das compras do Firestore
   const todosLancamentosDoMes = useMemo(() => {
-    return gerarLancamentosDoMes(compras, mesSelecionado, authUser?.uid || 'user');
-  }, [compras, mesSelecionado, authUser?.uid]);
+    const p1Uid = couple?.partner1Uid || 'Vinicius';
+    const p1Name = couple?.partner1Name || 'Vinicius';
+    const p2Uid = couple?.partner2Uid || 'Silvia';
+    const p2Name = couple?.partner2Name || 'Silvia';
+    return gerarLancamentosDoMes(
+      compras,
+      mesSelecionado,
+      authUser?.uid || 'user',
+      p1Uid,
+      p2Uid,
+      [p1Name, p1Uid, 'Vinicius', 'p1'],
+      [p2Name, p2Uid, 'Silvia', 'p2']
+    );
+  }, [compras, mesSelecionado, authUser?.uid, couple]);
 
   const lancamentosVisao = useMemo(() => {
     if (visao === 'meus' && authUser) {
@@ -465,6 +512,7 @@ export default function App() {
             todosLancamentosDoMes={todosLancamentosDoMes}
             compras={compras}
             resumoAcerto={resumoAcerto}
+            categorias={categorias}
             onAbrirNovaCompra={handleAbrirNovaCompra}
             onEditarCompra={handleEditarCompra}
             onRemoverCompra={handleRemoverCompra}
@@ -490,6 +538,9 @@ export default function App() {
           <CategoriasView
             mesSelecionado={mesSelecionado}
             lancamentosDoMes={todosLancamentosDoMes}
+            categorias={categorias}
+            couple={couple}
+            onSalvarCategorias={handleSalvarCategorias}
           />
         )}
       </main>
@@ -507,6 +558,7 @@ export default function App() {
         compraEmEdicao={compraEmEdicao}
         usuarioAtual={usuarioNome}
         couple={couple}
+        categorias={categorias}
         onSalvarCompra={handleSalvarCompra}
       />
 

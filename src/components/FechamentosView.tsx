@@ -249,7 +249,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                 <span className="material-symbols-outlined text-[14px] text-[#006948]">
                   verified
                 </span>
-                <span>Divisão 50/50 balanceada</span>
+                <span>Rateio proporcional balanceado</span>
               </div>
             </div>
 
@@ -748,7 +748,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
             </span>
             <ul className="text-xs text-slate-600 flex flex-col gap-1 list-disc list-inside leading-relaxed">
               <li>Fechamento mensal no 1º dia do mês seguinte.</li>
-              <li>Divisão padrão 50/50 em contas conjuntas.</li>
+              <li>Divisão padrão configurável (50/50, 70/30, 30/70, etc.) em contas conjuntas.</li>
               <li>Compras exclusivas pagas pelo outro entram 100% no acerto.</li>
               <li>Edições retroativas geram saldos residuais auditados.</li>
             </ul>

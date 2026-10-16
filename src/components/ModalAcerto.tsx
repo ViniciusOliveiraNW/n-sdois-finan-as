@@ -151,7 +151,7 @@ export const ModalAcerto: React.FC<ModalAcertoProps> = ({
               </span>
               <span className="text-xs text-[#006948] font-semibold flex items-center gap-1">
                 <span className="material-symbols-outlined text-[16px]">verified</span>
-                Cálculo Automatizado 50/50
+                Rateio Dinâmico Automatizado
               </span>
             </div>
 
@@ -166,16 +166,16 @@ export const ModalAcerto: React.FC<ModalAcertoProps> = ({
                     <span className="text-xs font-bold text-slate-900">Total Pago por {resumoAcerto.p1Name || 'Vinicius'}</span>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#0051d5] text-[10px] font-bold">
-                    50/50
+                    Pago
                   </span>
                 </div>
                 <div className="text-base font-bold text-slate-900 tabular-nums">
                   {formatarBRL(resumoAcerto.totalPagoP1Centavos)}
                 </div>
                 <div className="p-2 rounded-lg bg-white border border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
-                  <span>Cota devida por {resumoAcerto.p2Name || 'Silvia'} (50%):</span>
+                  <span>Cota proporcional de {resumoAcerto.p2Name || 'Silvia'}:</span>
                   <span className="font-bold text-[#0051d5] tabular-nums">
-                    {formatarBRL(resumoAcerto.cotaP2Em5050Centavos)}
+                    {formatarBRL(resumoAcerto.cotaP2EsperadaCentavos ?? resumoAcerto.cotaP2Em5050Centavos)}
                   </span>
                 </div>
               </div>
@@ -190,16 +190,16 @@ export const ModalAcerto: React.FC<ModalAcertoProps> = ({
                     <span className="text-xs font-bold text-slate-900">Total Pago por {resumoAcerto.p2Name || 'Silvia'}</span>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-purple-100 text-[#712ae2] text-[10px] font-bold">
-                    50/50
+                    Pago
                   </span>
                 </div>
                 <div className="text-base font-bold text-slate-900 tabular-nums">
                   {formatarBRL(resumoAcerto.totalPagoP2Centavos)}
                 </div>
                 <div className="p-2 rounded-lg bg-white border border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
-                  <span>Cota devida por {resumoAcerto.p1Name || 'Vinicius'} (50%):</span>
+                  <span>Cota proporcional de {resumoAcerto.p1Name || 'Vinicius'}:</span>
                   <span className="font-bold text-[#712ae2] tabular-nums">
-                    {formatarBRL(resumoAcerto.cotaP1Em5050Centavos)}
+                    {formatarBRL(resumoAcerto.cotaP1EsperadaCentavos ?? resumoAcerto.cotaP1Em5050Centavos)}
                   </span>
                 </div>
               </div>

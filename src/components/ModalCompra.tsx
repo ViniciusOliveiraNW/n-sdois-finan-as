@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { CategoriaId, Compra, CoupleSpace, DivisaoTipo, UsuarioId } from '../types';
+import { CategoriaId, CategoriaMeta, Compra, CoupleSpace, DivisaoTipo, UsuarioId } from '../types';
 import { CATEGORIAS_PADRAO } from '../data/initialData';
 import { calcularValoresParcelas, calcularMesesParcelas } from '../calculations/parcelas';
-import { formatarBRL } from '../calculations/acertoMensal';
+import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
 
 interface ModalCompraProps {
   aberto: boolean;
@@ -10,6 +10,7 @@ interface ModalCompraProps {
   compraEmEdicao: Compra | null;
   usuarioAtual: UsuarioId;
   couple?: CoupleSpace | null;
+  categorias?: CategoriaMeta[];
   onSalvarCompra: (compra: Compra) => void;
 }
 
@@ -19,8 +20,10 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   compraEmEdicao,
   usuarioAtual,
   couple,
+  categorias,
   onSalvarCompra,
 }) => {
+  const listaCategorias = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
   const p1Name = couple?.partner1Name || 'Vinicius';
   const p1Uid = couple?.partner1Uid || 'Vinicius';
   const p2Name = couple?.partner2Name || 'Silvia';
@@ -36,6 +39,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   const [numeroDeParcelas, setNumeroDeParcelas] = useState(1);
   const [pagoPor, setPagoPor] = useState<string>(p1Name);
   const [divisao, setDivisao] = useState<DivisaoTipo>('50/50');
+  const [mostrarPersonalizado, setMostrarPersonalizado] = useState(false);
+  const [customP1, setCustomP1] = useState(50);
   const [descricao, setDescricao] = useState('');
   const [erro, setErro] = useState<string | null>(null);
 
@@ -54,6 +59,16 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       setTipoCobranca(parcelas > 1 ? 'parcelado' : 'a_vista');
       setPagoPor(compraEmEdicao.pagoPorNome || compraEmEdicao.pagoPor || p1Name);
       setDivisao(compraEmEdicao.divisao);
+      const { percP1 } = parseDivisaoPercentuais(
+        compraEmEdicao.divisao,
+        p1Uid,
+        p2Uid,
+        [p1Name, 'p1'],
+        [p2Name, 'p2']
+      );
+      setCustomP1(percP1);
+      const presetsPadroes = ['50/50', '70/30', '30/70', '60/40', '40/60', '100/0', '0/100', p1Uid, p2Uid];
+      setMostrarPersonalizado(!presetsPadroes.includes(compraEmEdicao.divisao));
       setDescricao(compraEmEdicao.descricao || '');
     } else {
       setNome('');
@@ -66,11 +81,15 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       const defaultPayer =
         usuarioAtual === p2Uid || usuarioAtual === p2Name ? p2Name : p1Name;
       setPagoPor(defaultPayer);
-      setDivisao('50/50');
+      const splitPadrao = couple?.defaultSplit || '50/50';
+      setDivisao(splitPadrao);
+      const { percP1 } = parseDivisaoPercentuais(splitPadrao, p1Uid, p2Uid, [p1Name, 'p1'], [p2Name, 'p2']);
+      setCustomP1(percP1);
+      setMostrarPersonalizado(false);
       setDescricao('');
     }
     setErro(null);
-  }, [compraEmEdicao, aberto, usuarioAtual, p1Name, p2Name, p1Uid, p2Uid]);
+  }, [compraEmEdicao, aberto, usuarioAtual, p1Name, p2Name, p1Uid, p2Uid, couple?.defaultSplit]);
 
   if (!aberto) return null;
 
@@ -270,7 +289,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                 onChange={(e) => setCategoria(e.target.value as CategoriaId)}
                 className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
               >
-                {CATEGORIAS_PADRAO.map((cat) => (
+                {listaCategorias.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.icone} {cat.nome}
                   </option>
@@ -476,130 +495,259 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             </div>
           </div>
 
-          {/* Row 5: Divisão da Compra */}
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
-              <span>Como será dividida esta compra?</span>
-              <span className="text-red-500">*</span>
-            </span>
-
-            <div className="space-y-2">
-              {/* 50/50 */}
-              <label
-                className={`p-3 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
-                  divisao === '50/50'
-                    ? 'bg-emerald-50/40 border-[#006948] ring-1 ring-[#006948]'
-                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                }`}
+          {/* Row 5: Divisão da Compra Dinâmica */}
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
+                <span>Regime de Divisão desta Compra</span>
+                <span className="text-red-500">*</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setMostrarPersonalizado(!mostrarPersonalizado)}
+                className="text-[11px] font-semibold text-[#006948] hover:text-[#005137] hover:underline flex items-center gap-1 cursor-pointer"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="divisao"
-                      value="50/50"
-                      checked={divisao === '50/50'}
-                      onChange={() => setDivisao('50/50')}
-                      className="text-[#006948] focus:ring-[#006948]"
-                    />
-                    <span className="text-xs font-bold text-slate-900">
-                      ⚖️ 50% / 50% (Compartilhada pelo casal)
+                <span className="material-symbols-outlined text-[14px]">tune</span>
+                <span>{mostrarPersonalizado ? 'Ocultar Personalizado' : 'Ajuste Fino (%)'}</span>
+              </button>
+            </div>
+
+            {/* Presets Rápidos */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { id: '50/50', label: '⚖️ 50 / 50', desc: 'Meio a meio' },
+                { id: '70/30', label: `📊 70 / 30`, desc: `70% ${p1Name}` },
+                { id: '30/70', label: `📊 30 / 70`, desc: `70% ${p2Name}` },
+                { id: '60/40', label: `📊 60 / 40`, desc: `60% ${p1Name}` },
+                { id: '40/60', label: `📊 40 / 60`, desc: `60% ${p2Name}` },
+                { id: '100/0', label: `👤 100 / 0`, desc: `Só ${p1Name}` },
+                { id: '0/100', label: `👤 0 / 100`, desc: `Só ${p2Name}` },
+                { id: 'custom', label: '⚙️ Outro %', desc: 'Customizado' },
+              ].map((opcao) => {
+                const ativo =
+                  opcao.id === 'custom'
+                    ? mostrarPersonalizado
+                    : divisao === opcao.id && !mostrarPersonalizado;
+
+                return (
+                  <button
+                    key={opcao.id}
+                    type="button"
+                    onClick={() => {
+                      if (opcao.id === 'custom') {
+                        setMostrarPersonalizado(true);
+                      } else {
+                        setMostrarPersonalizado(false);
+                        setDivisao(opcao.id);
+                        const { percP1 } = parseDivisaoPercentuais(
+                          opcao.id,
+                          p1Uid,
+                          p2Uid,
+                          [p1Name, 'p1'],
+                          [p2Name, 'p2']
+                        );
+                        setCustomP1(percP1);
+                      }
+                    }}
+                    className={`py-2 px-2.5 rounded-xl border text-left flex flex-col gap-0.5 transition-all cursor-pointer ${
+                      ativo
+                        ? 'bg-emerald-50/70 border-[#006948] ring-1 ring-[#006948]'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-slate-900 leading-tight">
+                      {opcao.label}
                     </span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006948] text-[10px] font-bold">
-                    Recomendado
+                    <span className="text-[10px] text-slate-500 truncate leading-tight">
+                      {opcao.desc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Painel de Rateio Personalizado (Slider + Inputs) */}
+            {mostrarPersonalizado && (
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-blue-600">sliders</span>
+                    <span>Definir Porcentagens Livres do Casal</span>
+                  </span>
+                  <span className="text-[11px] font-mono font-bold text-slate-600">
+                    {customP1}% + {100 - customP1}% = 100%
                   </span>
                 </div>
-                {valorCentavosLimpo > 0 && divisao === '50/50' && (
-                  <div className="pl-6 text-[11px] text-slate-600 flex flex-col gap-1">
-                    <div className="flex items-center justify-between">
-                      <span>Cota {p1Name}: {formatarBRL(Math.floor(valorCentavosLimpo / 2))}</span>
-                      <span>Cota {p2Name}: {formatarBRL(Math.floor(valorCentavosLimpo / 2))}</span>
-                    </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full flex overflow-hidden">
-                      <div className="bg-[#0051d5] h-full w-1/2"></div>
-                      <div className="bg-[#712ae2] h-full w-1/2"></div>
-                    </div>
-                    <span className="text-[#006948] font-medium mt-0.5">
-                      {pagoPor === p1Name || pagoPor === p1Uid
-                        ? `${p2Name} ficará devendo ${formatarBRL(
-                            Math.floor(valorCentavosLimpo / 2)
-                          )} para ${p1Name} no acerto.`
-                        : `${p1Name} ficará devendo ${formatarBRL(
-                            Math.floor(valorCentavosLimpo / 2)
-                          )} para ${p2Name} no acerto.`}
-                    </span>
-                  </div>
-                )}
-              </label>
 
-              {/* Somente P1 */}
-              <label
-                className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
-                  divisao === p1Uid || divisao === p1Name || divisao === 'Vinicius'
-                    ? 'bg-blue-50/50 border-[#0051d5]'
-                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                <div className="flex items-center gap-2">
+                {/* Slider */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                    <span className="text-[#0051d5]">{p1Name}: {customP1}%</span>
+                    <span className="text-[#712ae2]">{p2Name}: {100 - customP1}%</span>
+                  </div>
                   <input
-                    type="radio"
-                    name="divisao"
-                    value={p1Uid}
-                    checked={divisao === p1Uid || divisao === p1Name || divisao === 'Vinicius'}
-                    onChange={() => setDivisao(p1Uid)}
-                    className="text-[#0051d5] focus:ring-[#0051d5]"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={customP1}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      setCustomP1(v);
+                      setDivisao(`${v}/${100 - v}`);
+                    }}
+                    className="w-full accent-[#006948] cursor-pointer"
                   />
-                  <div>
-                    <span className="text-xs font-bold text-slate-900">
-                      👤 Somente {p1Name} (Despesa individual dele(a))
-                    </span>
-                    <p className="text-[11px] text-slate-500">
-                      {pagoPor === p1Name || pagoPor === p1Uid
-                        ? `${p1Name} pagou para si mesmo(a). Não cria dívida no acerto.`
-                        : `${p2Name} pagou por ${p1Name}. ${p1Name} ficará devendo 100% a ${p2Name}.`}
-                    </p>
+                </div>
+
+                {/* Number Inputs diretos */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#0051d5] shrink-0"></span>
+                    <span className="text-[11px] font-semibold text-slate-600 truncate flex-1">{p1Name}:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={customP1}
+                      onChange={(e) => {
+                        let v = parseInt(e.target.value, 10);
+                        if (isNaN(v)) v = 0;
+                        v = Math.max(0, Math.min(100, v));
+                        setCustomP1(v);
+                        setDivisao(`${v}/${100 - v}`);
+                      }}
+                      className="w-12 text-right font-bold text-xs text-slate-900 border-none focus:outline-none"
+                    />
+                    <span className="text-xs text-slate-400 font-bold">%</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#712ae2] shrink-0"></span>
+                    <span className="text-[11px] font-semibold text-slate-600 truncate flex-1">{p2Name}:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={100 - customP1}
+                      onChange={(e) => {
+                        let v = parseInt(e.target.value, 10);
+                        if (isNaN(v)) v = 0;
+                        v = Math.max(0, Math.min(100, v));
+                        setCustomP1(100 - v);
+                        setDivisao(`${100 - v}/${v}`);
+                      }}
+                      className="w-12 text-right font-bold text-xs text-slate-900 border-none focus:outline-none"
+                    />
+                    <span className="text-xs text-slate-400 font-bold">%</span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#0051d5] text-[10px] font-bold">
-                  100% {p1Name}
-                </span>
-              </label>
+              </div>
+            )}
 
-              {/* Somente P2 */}
-              <label
-                className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
-                  divisao === p2Uid || divisao === p2Name || divisao === 'Silvia'
-                    ? 'bg-purple-50/50 border-[#712ae2]'
-                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="divisao"
-                    value={p2Uid}
-                    checked={divisao === p2Uid || divisao === p2Name || divisao === 'Silvia'}
-                    onChange={() => setDivisao(p2Uid)}
-                    className="text-[#712ae2] focus:ring-[#712ae2]"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-slate-900">
-                      👤 Somente {p2Name} (Despesa individual dele(a))
+            {/* Simulação em Tempo Real da Divisão */}
+            {(() => {
+              const { percP1, percP2 } = parseDivisaoPercentuais(
+                divisao,
+                p1Uid,
+                p2Uid,
+                [p1Name, 'p1'],
+                [p2Name, 'p2']
+              );
+              const cotaP1 = Math.round((valorCentavosLimpo * percP1) / 100);
+              const cotaP2 = valorCentavosLimpo - cotaP1;
+              const ehPagadorP1 = pagoPor === p1Name || pagoPor === p1Uid;
+
+              return (
+                <div className="p-3.5 rounded-xl bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 border border-slate-200 flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[15px] text-[#006948]">calculate</span>
+                      <span>Impacto da Divisão no Acerto ({percP1}% / {percP2}%)</span>
                     </span>
-                    <p className="text-[11px] text-slate-500">
-                      {pagoPor === p2Name || pagoPor === p2Uid
-                        ? `${p2Name} pagou para si mesmo(a). Não cria dívida no acerto.`
-                        : `${p1Name} pagou por ${p2Name}. ${p2Name} ficará devendo 100% a ${p1Name}.`}
-                    </p>
+                    <span className="font-bold text-[#006948]">
+                      Total: {formatarBRL(valorCentavosLimpo)}
+                    </span>
+                  </div>
+
+                  {/* Barra de Proporção Bi-Color */}
+                  <div className="w-full bg-slate-200 h-2 rounded-full flex overflow-hidden">
+                    <div
+                      className="bg-[#0051d5] h-full transition-all duration-300"
+                      style={{ width: `${percP1}%` }}
+                      title={`${p1Name}: ${percP1}%`}
+                    ></div>
+                    <div
+                      className="bg-[#712ae2] h-full transition-all duration-300"
+                      style={{ width: `${percP2}%` }}
+                      title={`${p2Name}: ${percP2}%`}
+                    ></div>
+                  </div>
+
+                  {/* Cotas Monetárias */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                    <div className="p-2 rounded-lg bg-blue-50/60 border border-blue-100 flex flex-col">
+                      <span className="text-[#0051d5] font-semibold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#0051d5]"></span>
+                        <span>Cota {p1Name} ({percP1}%)</span>
+                      </span>
+                      <strong className="text-slate-900 text-xs font-bold mt-0.5">
+                        {formatarBRL(cotaP1)}
+                      </strong>
+                    </div>
+
+                    <div className="p-2 rounded-lg bg-purple-50/60 border border-purple-100 flex flex-col">
+                      <span className="text-[#712ae2] font-semibold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#712ae2]"></span>
+                        <span>Cota {p2Name} ({percP2}%)</span>
+                      </span>
+                      <strong className="text-slate-900 text-xs font-bold mt-0.5">
+                        {formatarBRL(cotaP2)}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Explicação da Dívida e Ressarcimento */}
+                  <div className="text-[11px] text-slate-600 bg-slate-100/70 p-2 rounded-lg flex items-start gap-1.5 mt-0.5">
+                    <span className="material-symbols-outlined text-[15px] text-[#006948] shrink-0 mt-0.5">
+                      info
+                    </span>
+                    <span>
+                      {ehPagadorP1 ? (
+                        percP2 === 0 ? (
+                          <span>
+                            <strong>{p1Name}</strong> pagou 100% para si mesmo(a). Despesa individual que <strong>não cria débito</strong> no fechamento mensal.
+                          </span>
+                        ) : percP1 === 0 ? (
+                          <span>
+                            <strong>{p1Name}</strong> pagou 100% por <strong>{p2Name}</strong>. <strong>{p2Name}</strong> ficará devendo <strong>{formatarBRL(valorCentavosLimpo)}</strong> no acerto.
+                          </span>
+                        ) : (
+                          <span>
+                            Como <strong>{p1Name}</strong> pagou a conta inteira, <strong>{p2Name}</strong> ficará devendo sua cota de <strong>{formatarBRL(cotaP2)}</strong> ({percP2}%) no fechamento do mês.
+                          </span>
+                        )
+                      ) : (
+                        percP1 === 0 ? (
+                          <span>
+                            <strong>{p2Name}</strong> pagou 100% para si mesmo(a). Despesa individual que <strong>não cria débito</strong> no fechamento mensal.
+                          </span>
+                        ) : percP2 === 0 ? (
+                          <span>
+                            <strong>{p2Name}</strong> pagou 100% por <strong>{p1Name}</strong>. <strong>{p1Name}</strong> ficará devendo <strong>{formatarBRL(valorCentavosLimpo)}</strong> no acerto.
+                          </span>
+                        ) : (
+                          <span>
+                            Como <strong>{p2Name}</strong> pagou a conta inteira, <strong>{p1Name}</strong> ficará devendo sua cota de <strong>{formatarBRL(cotaP1)}</strong> ({percP1}%) no fechamento do mês.
+                          </span>
+                        )
+                      )}
+                    </span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-purple-100 text-[#712ae2] text-[10px] font-bold">
-                  100% {p2Name}
-                </span>
-              </label>
-            </div>
+              );
+            })()}
           </div>
 
           {/* Row 6: Descrição Opcional */}

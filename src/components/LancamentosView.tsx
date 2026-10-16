@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { CategoriaId, Compra, DivisaoTipo, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
-import { formatarBRL } from '../calculations/acertoMensal';
+import { CategoriaId, CategoriaMeta, Compra, DivisaoTipo, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
+import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
 import { CATEGORIAS_PADRAO } from '../data/initialData';
 
 interface LancamentosViewProps {
@@ -12,6 +12,7 @@ interface LancamentosViewProps {
   todosLancamentosDoMes: LancamentoMensal[];
   compras: Compra[];
   resumoAcerto: ResumoAcerto;
+  categorias?: CategoriaMeta[];
   onAbrirNovaCompra: () => void;
   onEditarCompra: (compraId: string) => void;
   onRemoverCompra: (compraId: string, numeroParcela: number) => void;
@@ -25,12 +26,20 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   onAlternarVisao,
   usuarioAtual,
   todosLancamentosDoMes,
+  compras,
   resumoAcerto,
+  categorias,
   onAbrirNovaCompra,
   onEditarCompra,
   onRemoverCompra,
   onAbrirModalAcerto,
 }) => {
+  const listaCategorias = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
+  const p1Name = resumoAcerto.p1Name || 'Vinicius';
+  const p2Name = resumoAcerto.p2Name || 'Silvia';
+  const p1Uid = resumoAcerto.p1Uid || 'Vinicius';
+  const p2Uid = resumoAcerto.p2Uid || 'Silvia';
+
   const [busca, setBusca] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
   const [filtroPagador, setFiltroPagador] = useState<string>('');
@@ -93,9 +102,24 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         return false;
       }
 
-      // Divisão
-      if (filtroDivisao && l.divisao !== filtroDivisao) {
-        return false;
+      // Divisão Dinâmica
+      if (filtroDivisao) {
+        const { percP1, percP2 } = parseDivisaoPercentuais(
+          l.divisao,
+          p1Uid,
+          p2Uid,
+          [p1Name, 'p1'],
+          [p2Name, 'p2']
+        );
+        if (filtroDivisao === '50/50') {
+          if (l.divisao !== '50/50' && (percP1 !== 50 || percP2 !== 50)) return false;
+        } else if (filtroDivisao === 'rateio_dinamico') {
+          if ((percP1 === 50 && percP2 === 50) || percP1 === 100 || percP2 === 100) return false;
+        } else if (filtroDivisao === 'p1') {
+          if (percP1 !== 100) return false;
+        } else if (filtroDivisao === 'p2') {
+          if (percP2 !== 100) return false;
+        }
       }
 
       // Filtros rápidos
@@ -358,7 +382,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
             >
               <option value="">Todas as Categorias</option>
-              {CATEGORIAS_PADRAO.map((cat) => (
+              {listaCategorias.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.icone} {cat.nome}
                 </option>
@@ -393,9 +417,10 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
             >
               <option value="">Divisão: Todas</option>
-              <option value="50/50">50% / 50%</option>
-              <option value="Vinicius">Só Vinicius</option>
-              <option value="Silvia">Só Silvia</option>
+              <option value="50/50">⚖️ 50% / 50%</option>
+              <option value="rateio_dinamico">📊 Rateio Dinâmico (70/30, 30/70...)</option>
+              <option value="p1">👤 Só {p1Name} (100%)</option>
+              <option value="p2">👤 Só {p2Name} (100%)</option>
             </select>
           </div>
         </div>
@@ -540,17 +565,41 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         </span>
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            lancamento.divisao === '50/50'
-                              ? 'bg-emerald-50 text-[#006948]'
-                              : lancamento.divisao === 'Vinicius'
-                              ? 'bg-blue-50 text-[#0051d5]'
-                              : 'bg-purple-50 text-[#712ae2]'
-                          }`}
-                        >
-                          {lancamento.divisao === '50/50' ? '⚖️ 50/50' : `Só ${lancamento.divisao}`}
-                        </span>
+                        {(() => {
+                          const { percP1, percP2 } = parseDivisaoPercentuais(
+                            lancamento.divisao,
+                            p1Uid,
+                            p2Uid,
+                            [p1Name, 'p1'],
+                            [p2Name, 'p2']
+                          );
+                          if (lancamento.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#006948]">
+                                ⚖️ 50/50
+                              </span>
+                            );
+                          }
+                          if (percP1 === 100 && percP2 === 0) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0051d5]">
+                                👤 Só {p1Name}
+                              </span>
+                            );
+                          }
+                          if (percP1 === 0 && percP2 === 100) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#712ae2]">
+                                👤 Só {p2Name}
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60">
+                              📊 {percP1}/{percP2}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.valorCentavos)}

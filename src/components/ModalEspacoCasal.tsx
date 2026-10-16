@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CoupleSpace, UserProfile } from '../types';
-import { desafiliarEspacoCasal } from '../services/firebaseService';
+import { desafiliarEspacoCasal, salvarDefaultSplitCasal } from '../services/firebaseService';
+import { parseDivisaoPercentuais } from '../calculations/acertoMensal';
 
 interface ModalEspacoCasalProps {
   aberto: boolean;
@@ -20,6 +21,9 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
   const [copiado, setCopiado] = useState(false);
   const [copiadoMsg, setCopiadoMsg] = useState(false);
   const [confirmandoSaida, setConfirmandoSaida] = useState(false);
+  const [splitPadrao, setSplitPadrao] = useState(couple?.defaultSplit || '50/50');
+  const [salvandoSplit, setSalvandoSplit] = useState(false);
+  const [splitSalvo, setSplitSalvo] = useState(false);
 
   if (!aberto || !couple) return null;
 
@@ -165,6 +169,92 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
                 ></span>
               </div>
             </div>
+          </div>
+
+          {/* Regime de Gastos Padrão do Casal */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
+                <span>Regime de Rateio Padrão do Casal</span>
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006948] font-bold text-[10px]">
+                {splitSalvo ? 'Salvo!' : `Atual: ${splitPadrao}`}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Define a proporção automática aplicada quando qualquer um dos parceiros cadastrar uma nova compra compartilhada.
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+              {[
+                { id: '50/50', label: '50 / 50' },
+                { id: '70/30', label: `70 / 30` },
+                { id: '30/70', label: `30 / 70` },
+                { id: '60/40', label: `60 / 40` },
+                { id: '40/60', label: `40 / 60` },
+              ].map((opcao) => (
+                <button
+                  key={opcao.id}
+                  type="button"
+                  disabled={salvandoSplit}
+                  onClick={async () => {
+                    setSplitPadrao(opcao.id);
+                    setSalvandoSplit(true);
+                    try {
+                      await salvarDefaultSplitCasal(couple.id, opcao.id);
+                      setSplitSalvo(true);
+                      onEspacoAtualizado();
+                      setTimeout(() => setSplitSalvo(false), 2000);
+                    } catch (e) {
+                      console.error('Erro ao salvar split:', e);
+                    } finally {
+                      setSalvandoSplit(false);
+                    }
+                  }}
+                  className={`py-2 px-2 rounded-xl text-center font-bold text-xs transition-all cursor-pointer border ${
+                    splitPadrao === opcao.id
+                      ? 'bg-[#006948] text-white border-[#006948] shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {opcao.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Proportion Bar */}
+            {(() => {
+              const { percP1, percP2 } = parseDivisaoPercentuais(
+                splitPadrao,
+                couple.partner1Uid,
+                couple.partner2Uid,
+                [p1Nome, 'p1'],
+                [p2Nome, 'p2']
+              );
+
+              return (
+                <div className="flex flex-col gap-1 pt-1">
+                  <div className="w-full bg-slate-200 h-2 rounded-full flex overflow-hidden">
+                    <div
+                      className="bg-[#0051d5] h-full"
+                      style={{ width: `${percP1}%` }}
+                      title={`${p1Nome}: ${percP1}%`}
+                    ></div>
+                    <div
+                      className="bg-[#712ae2] h-full"
+                      style={{ width: `${percP2}%` }}
+                      title={`${p2Nome}: ${percP2}%`}
+                    ></div>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                    <span className="text-[#0051d5] font-bold">{p1Nome}: {percP1}%</span>
+                    <span className="text-[#712ae2] font-bold">{p2Nome}: {percP2}%</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Zona de Perigo: Desconectar */}

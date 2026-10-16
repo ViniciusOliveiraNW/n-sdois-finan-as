@@ -16,6 +16,7 @@ const CORES_CATEGORIA: Record<string, string> = {
   Padaria: 'bg-amber-600',
   Compras: 'bg-indigo-600',
   Emergência: 'bg-rose-600',
+  'Reserva de Emergência': 'bg-rose-600',
   Outros: 'bg-slate-500',
 };
 

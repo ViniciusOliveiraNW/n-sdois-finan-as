@@ -1,4 +1,5 @@
 import { Compra, LancamentoMensal } from '../types';
+import { parseDivisaoPercentuais } from './acertoMensal';
 
 export function isInteiroPositivo(valor: number): boolean {
   return Number.isInteger(valor) && valor > 0;
@@ -129,21 +130,36 @@ export function gerarParcelas(
 export function calcularMinhaParteCentavos(
   valorCentavos: number,
   divisao: Compra['divisao'],
-  usuarioUid: string
+  usuarioUid: string,
+  p1Identifier: string = 'Vinicius',
+  p2Identifier: string = 'Silvia',
+  extraP1Identifiers: string[] = [],
+  extraP2Identifiers: string[] = []
 ): number {
-  if (divisao === '50/50') {
-    return Math.floor(valorCentavos / 2);
-  }
-  if (divisao === usuarioUid) {
-    return valorCentavos;
-  }
-  return 0;
+  const { percP1, percP2 } = parseDivisaoPercentuais(
+    divisao,
+    p1Identifier,
+    p2Identifier,
+    extraP1Identifiers,
+    extraP2Identifiers
+  );
+  const souP1 =
+    usuarioUid === p1Identifier ||
+    usuarioUid === 'p1' ||
+    usuarioUid.toLowerCase() === 'vinicius' ||
+    extraP1Identifiers.some((id) => id && id.toLowerCase() === usuarioUid.toLowerCase());
+  const meuPerc = souP1 ? percP1 : percP2;
+  return Math.round((valorCentavos * meuPerc) / 100);
 }
 
 export function gerarLancamentosDoMes(
   compras: Compra[],
   mesSelecionado: string,
-  usuarioUid: string
+  usuarioUid: string,
+  p1Identifier: string = 'Vinicius',
+  p2Identifier: string = 'Silvia',
+  extraP1Identifiers: string[] = [],
+  extraP2Identifiers: string[] = []
 ): LancamentoMensal[] {
   const lancamentos: LancamentoMensal[] = [];
 
@@ -169,7 +185,11 @@ export function gerarLancamentosDoMes(
     const minhaParteCentavos = calcularMinhaParteCentavos(
       parcelaDoMes.valorCentavos,
       compra.divisao,
-      usuarioUid
+      usuarioUid,
+      p1Identifier,
+      p2Identifier,
+      extraP1Identifiers,
+      extraP2Identifiers
     );
 
     const pagoPorNome = compra.pagoPorNome || compra.pagoPor || 'Você';

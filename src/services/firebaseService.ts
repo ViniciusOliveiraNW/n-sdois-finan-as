@@ -11,7 +11,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { Compra, CoupleSpace, FechamentoMensal, UserProfile } from '../types';
+import { CategoriaMeta, Compra, CoupleSpace, FechamentoMensal, UserProfile } from '../types';
 
 // Perfil do Usuário
 export async function getPerfilUsuario(uid: string): Promise<UserProfile | null> {
@@ -278,5 +278,36 @@ export async function deletarFechamentoFirestore(
     await deleteDoc(doc(db, 'couples', coupleId, 'closures', fechamentoId));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, path);
+  }
+}
+
+// Categorias do casal
+export async function salvarCategoriasCasal(
+  coupleId: string,
+  categories: CategoriaMeta[]
+): Promise<void> {
+  const path = `couples/${coupleId}`;
+  try {
+    const dadosLimpos = JSON.parse(JSON.stringify(categories));
+    await updateDoc(doc(db, 'couples', coupleId), {
+      categories: dadosLimpos,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+// Regime de divisão padrão do casal
+export async function salvarDefaultSplitCasal(
+  coupleId: string,
+  defaultSplit: string
+): Promise<void> {
+  const path = `couples/${coupleId}`;
+  try {
+    await updateDoc(doc(db, 'couples', coupleId), {
+      defaultSplit,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
   }
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Compra, FechamentoMensal, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
-import { formatarBRL } from '../calculations/acertoMensal';
+import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
 import { ResultadoRanking } from '../calculations/rankingCategorias';
 import { RankingCategoriasView } from './RankingCategoriasView';
 import { HeatmapCalendario } from './HeatmapCalendario';
@@ -66,21 +66,58 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
     return `${mesNome.charAt(0).toUpperCase() + mesNome.slice(1)} ${ano}`;
   })();
 
-  // Estatísticas de 50/50 vs Individuais
-  const gastos5050Centavos = todosLancamentosDoMes
-    .filter((l) => l.divisao === '50/50')
-    .reduce((acc, l) => acc + l.valorCentavos, 0);
-
-  const gastosIndividuaisCentavos = todosLancamentosDoMes
-    .filter((l) => l.divisao !== '50/50')
-    .reduce((acc, l) => acc + l.valorCentavos, 0);
-
-  const totalGeralCentavos = resumoAcerto.totalCasalCentavos;
-  const perc5050 = totalGeralCentavos > 0
-    ? Number(((gastos5050Centavos / totalGeralCentavos) * 100).toFixed(1))
-    : 0;
+  // Estatísticas de Regimes Dinâmicos (50/50, 70/30, 30/70, 100/0, etc.)
   const p1Name = resumoAcerto.p1Name || 'Vinicius';
   const p2Name = resumoAcerto.p2Name || 'Silvia';
+  const p1Uid = resumoAcerto.p1Uid || 'Vinicius';
+  const p2Uid = resumoAcerto.p2Uid || 'Silvia';
+
+  let gastosCompartilhadosCentavos = 0;
+  let gastosIndividuaisCentavos = 0;
+  const regimesUsados: Record<string, { label: string; valorCentavos: number; count: number }> = {};
+
+  for (const l of todosLancamentosDoMes) {
+    const { percP1, percP2 } = parseDivisaoPercentuais(
+      l.divisao,
+      p1Uid,
+      p2Uid,
+      [p1Name, 'p1'],
+      [p2Name, 'p2']
+    );
+
+    let chave = l.divisao;
+    let label = l.divisao;
+    if (l.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
+      chave = '50/50';
+      label = '50/50';
+    } else if (percP1 === 100 && percP2 === 0) {
+      chave = '100/0';
+      label = `Só ${p1Name}`;
+    } else if (percP1 === 0 && percP2 === 100) {
+      chave = '0/100';
+      label = `Só ${p2Name}`;
+    } else {
+      chave = `${percP1}/${percP2}`;
+      label = `${percP1}/${percP2}`;
+    }
+
+    if (!regimesUsados[chave]) {
+      regimesUsados[chave] = { label, valorCentavos: 0, count: 0 };
+    }
+    regimesUsados[chave].valorCentavos += l.valorCentavos;
+    regimesUsados[chave].count += 1;
+
+    if (percP1 > 0 && percP2 > 0) {
+      gastosCompartilhadosCentavos += l.valorCentavos;
+    } else {
+      gastosIndividuaisCentavos += l.valorCentavos;
+    }
+  }
+
+  const totalGeralCentavos = resumoAcerto.totalCasalCentavos;
+  const percCompartilhado = totalGeralCentavos > 0
+    ? Number(((gastosCompartilhadosCentavos / totalGeralCentavos) * 100).toFixed(1))
+    : 0;
 
   const percVinicius = totalGeralCentavos > 0
     ? Number(((resumoAcerto.totalPagoP1Centavos / totalGeralCentavos) * 100).toFixed(1))
@@ -400,7 +437,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
           </div>
         </div>
 
-        {/* Regime de Gastos: 50/50 vs Individuais */}
+        {/* Regime de Gastos: Compartilhado vs Individuais & Rateios */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold uppercase tracking-wider">Regime de Gastos</span>
@@ -410,24 +447,34 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
           </div>
           <div className="mt-3">
             <div className="flex items-center justify-between text-xs font-bold text-slate-900 mb-1">
-              <span>50/50: {formatarBRL(gastos5050Centavos)}</span>
-              <span className="text-slate-400 font-normal">{perc5050}%</span>
+              <span>Rateio Compartilhado: {formatarBRL(gastosCompartilhadosCentavos)}</span>
+              <span className="text-slate-400 font-normal">{percCompartilhado}%</span>
             </div>
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
               <div
-                className="bg-[#006948] h-full"
-                style={{ width: `${perc5050}%` }}
-                title="50/50 compartilhado"
+                className="bg-[#006948] h-full transition-all duration-300"
+                style={{ width: `${percCompartilhado}%` }}
+                title={`Rateios compartilhados: ${percCompartilhado}%`}
               ></div>
               <div
-                className="bg-slate-400 h-full"
-                style={{ width: `${100 - perc5050}%` }}
-                title="Gastos individuais"
+                className="bg-slate-400 h-full transition-all duration-300"
+                style={{ width: `${100 - percCompartilhado}%` }}
+                title={`Gastos individuais: ${100 - percCompartilhado}%`}
               ></div>
             </div>
-            <span className="text-[10px] text-slate-500 mt-1 block">
-              Individuais somam {formatarBRL(gastosIndividuaisCentavos)}
-            </span>
+            <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
+              <span>Individuais: {formatarBRL(gastosIndividuaisCentavos)}</span>
+              <div className="flex items-center gap-1 flex-wrap justify-end">
+                {Object.keys(regimesUsados).slice(0, 3).map((k) => (
+                  <span
+                    key={k}
+                    className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[9px]"
+                  >
+                    {regimesUsados[k].label}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -552,17 +599,41 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                         </span>
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            lancamento.divisao === '50/50'
-                              ? 'bg-emerald-50 text-[#006948]'
-                              : lancamento.divisao === 'Vinicius'
-                              ? 'bg-blue-50 text-[#0051d5]'
-                              : 'bg-purple-50 text-[#712ae2]'
-                          }`}
-                        >
-                          {lancamento.divisao === '50/50' ? '⚖️ 50/50' : `Só ${lancamento.divisao}`}
-                        </span>
+                        {(() => {
+                          const { percP1, percP2 } = parseDivisaoPercentuais(
+                            lancamento.divisao,
+                            p1Uid,
+                            p2Uid,
+                            [p1Name, 'p1'],
+                            [p2Name, 'p2']
+                          );
+                          if (lancamento.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#006948]">
+                                ⚖️ 50/50
+                              </span>
+                            );
+                          }
+                          if (percP1 === 100 && percP2 === 0) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0051d5]">
+                                👤 Só {p1Name}
+                              </span>
+                            );
+                          }
+                          if (percP1 === 0 && percP2 === 100) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#712ae2]">
+                                👤 Só {p2Name}
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60">
+                              📊 {percP1}/{percP2}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.valorCentavos)}
