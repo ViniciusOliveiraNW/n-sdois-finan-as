@@ -51,6 +51,21 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   const [pagina, setPagina] = useState(1);
   const itensPorPagina = 8;
 
+  // Alternância entre visualização do mês e todas as compras cadastradas
+  const [modoExibicao, setModoExibicao] = useState<'mes' | 'todas_compras'>('mes');
+
+  // Mapeia meses que possuem compras
+  const mesesComCompras = useMemo(() => {
+    const setMeses = new Set<string>();
+    compras.forEach((c) => {
+      if (c.dataPrimeiroPagamento) {
+        const parts = c.dataPrimeiroPagamento.split('-');
+        if (parts[0] && parts[1]) setMeses.add(`${parts[0]}-${parts[1]}`);
+      }
+    });
+    return Array.from(setMeses).sort().reverse();
+  }, [compras]);
+
   // Navegação de mês
   const handleAvancarMes = (offset: number) => {
     const [anoStr, mesStr] = mesSelecionado.split('-');
@@ -160,14 +175,59 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
     }
   }, [lancamentosFiltrados, ordenacao]);
 
+  // Lista de compras completas filtradas (Modo Todas as Compras)
+  const comprasFiltradas = useMemo(() => {
+    return compras.filter((c) => {
+      if (visao === 'meus' && c.pagoPor !== usuarioAtual) {
+        return false;
+      }
+      if (busca.trim()) {
+        const termo = busca.toLowerCase();
+        const bateNome = c.nome.toLowerCase().includes(termo);
+        const bateDesc = c.descricao?.toLowerCase().includes(termo) ?? false;
+        const bateCat = c.categoria.toLowerCase().includes(termo);
+        if (!bateNome && !bateDesc && !bateCat) return false;
+      }
+      if (filtroCategoria && c.categoria !== filtroCategoria) return false;
+      if (filtroPagador && c.pagoPor !== filtroPagador) return false;
+      if (filtroRapido === 'parcelados' && c.numeroDeParcelas <= 1) return false;
+      if (filtroRapido === 'mercado' && c.categoria !== 'Mercado') return false;
+      return true;
+    });
+  }, [compras, visao, usuarioAtual, busca, filtroCategoria, filtroPagador, filtroRapido]);
+
+  const comprasOrdenadas = useMemo(() => {
+    const lista = [...comprasFiltradas];
+    switch (ordenacao) {
+      case 'recente':
+        return lista.sort((a, b) => (b.dataPrimeiroPagamento || '').localeCompare(a.dataPrimeiroPagamento || ''));
+      case 'antigo':
+        return lista.sort((a, b) => (a.dataPrimeiroPagamento || '').localeCompare(b.dataPrimeiroPagamento || ''));
+      case 'maior_valor':
+        return lista.sort((a, b) => (b.valorCentavos ?? b.valor * 100) - (a.valorCentavos ?? a.valor * 100));
+      case 'menor_valor':
+        return lista.sort((a, b) => (a.valorCentavos ?? a.valor * 100) - (b.valorCentavos ?? b.valor * 100));
+      default:
+        return lista;
+    }
+  }, [comprasFiltradas, ordenacao]);
+
   // Paginação
-  const totalPaginas = Math.ceil(lancamentosOrdenados.length / itensPorPagina) || 1;
+  const listaAtiva = modoExibicao === 'mes' ? lancamentosOrdenados : comprasOrdenadas;
+  const totalPaginas = Math.ceil(listaAtiva.length / itensPorPagina) || 1;
   const lancamentosPaginados = lancamentosOrdenados.slice(
     (pagina - 1) * itensPorPagina,
     pagina * itensPorPagina
   );
+  const comprasPaginadas = comprasOrdenadas.slice(
+    (pagina - 1) * itensPorPagina,
+    pagina * itensPorPagina
+  );
 
-  const somaPaginaCentavos = lancamentosPaginados.reduce((acc, l) => acc + l.valorCentavos, 0);
+  const somaPaginaCentavos =
+    modoExibicao === 'mes'
+      ? lancamentosPaginados.reduce((acc, l) => acc + l.valorCentavos, 0)
+      : comprasPaginadas.reduce((acc, c) => acc + (c.valorCentavos ?? Math.round(c.valor * 100)), 0);
 
   // Parcelas ativas
   const parcelasAtivasCentavos = todosLancamentosDoMes
@@ -181,7 +241,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       {/* Top Context Bar: Month, View Mode, Actions */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Navegador */}
+          {/* Navegador de Mês (ativo no modo mês) */}
           <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
             <button
               onClick={() => handleAvancarMes(-1)}
@@ -207,9 +267,39 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             </button>
           </div>
 
-          <span className="px-3 py-1 rounded-full bg-emerald-50 text-[#006948] text-xs font-semibold">
-            {todosLancamentosDoMes.length} lançamentos neste mês
-          </span>
+          {/* Alternância: Lançamentos do Mês vs Todas as Compras */}
+          <div className="inline-flex p-1 bg-slate-100 rounded-xl">
+            <button
+              type="button"
+              onClick={() => {
+                setModoExibicao('mes');
+                setPagina(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                modoExibicao === 'mes'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">calendar_month</span>
+              <span>Lançamentos ({todosLancamentosDoMes.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setModoExibicao('todas_compras');
+                setPagina(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                modoExibicao === 'todas_compras'
+                  ? 'bg-white text-[#006948] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">list_alt</span>
+              <span>Todas as Compras ({compras.length})</span>
+            </button>
+          </div>
         </div>
 
         {/* Toggle Visão & Botão Novo Lançamento */}
@@ -486,12 +576,219 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         </div>
       </div>
 
-      {/* Tabela de Lançamentos */}
+      {/* Tabela de Lançamentos ou Todas as Compras */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-        {lancamentosOrdenados.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-400">
-            Nenhum lançamento encontrado para os filtros selecionados.
-          </div>
+        {modoExibicao === 'todas_compras' ? (
+          comprasOrdenadas.length === 0 ? (
+            <div className="py-16 text-center text-xs text-slate-400">
+              Nenhuma compra cadastrada encontrada para os filtros ativos.
+            </div>
+          ) : (
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                    <th className="py-3 px-4 whitespace-nowrap">1º Pagamento</th>
+                    <th className="py-3 px-4 min-w-[220px]">Estabelecimento / Item</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Categoria</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Quem Pagou</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Regime Divisão</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">Parcelas</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Valor Total</th>
+                    <th className="py-3 px-3 text-center w-20">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {comprasPaginadas.map((compra) => {
+                    const totalCentavos =
+                      compra.valorCentavos ?? Math.round((compra.valor || 0) * 100);
+                    const isAutor =
+                      compra.cadastradoPorUid === usuarioAtual ||
+                      compra.cadastradoPor === usuarioAtual;
+
+                    return (
+                      <tr key={compra.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4 font-semibold text-slate-600 whitespace-nowrap">
+                          {compra.dataPrimeiroPagamento || '—'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-900 leading-tight">
+                              {compra.nome}
+                            </span>
+                            {compra.descricao && (
+                              <span className="text-[11px] text-slate-400 truncate max-w-sm">
+                                {compra.descricao}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">
+                            {compra.categoria}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                              (compra.pagoPorNome || compra.pagoPor) === 'Vinicius'
+                                ? 'bg-blue-50 text-[#0051d5]'
+                                : 'bg-purple-50 text-[#712ae2]'
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                (compra.pagoPorNome || compra.pagoPor) === 'Vinicius'
+                                  ? 'bg-[#0051d5]'
+                                  : 'bg-[#712ae2]'
+                              }`}
+                            ></span>
+                            <span>{compra.pagoPorNome || compra.pagoPor}</span>
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {(() => {
+                            const { percP1, percP2 } = parseDivisaoPercentuais(
+                              compra.divisao,
+                              p1Uid,
+                              p2Uid,
+                              [p1Name, 'p1'],
+                              [p2Name, 'p2']
+                            );
+                            if (compra.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#006948]">
+                                  ⚖️ 50/50
+                                </span>
+                              );
+                            }
+                            if (percP1 === 100 && percP2 === 0) {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0051d5]">
+                                  👤 Só {p1Name}
+                                </span>
+                              );
+                            }
+                            if (percP1 === 0 && percP2 === 100) {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#712ae2]">
+                                  👤 Só {p2Name}
+                                </span>
+                              );
+                            }
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60">
+                                📊 {percP1}/{percP2}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="py-3 px-4 text-center whitespace-nowrap">
+                          {compra.numeroDeParcelas > 1 ? (
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-bold text-[11px]">
+                              {compra.numeroDeParcelas} parcelas
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">À vista (1x)</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
+                          {formatarBRL(totalCentavos)}
+                        </td>
+                        <td className="py-3 px-3 text-center whitespace-nowrap">
+                          {isAutor ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => onEditarCompra(compra.id)}
+                                className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Editar compra"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                              </button>
+                              <button
+                                onClick={() => onRemoverCompra(compra.id, 1)}
+                                className="w-7 h-7 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Cancelar compra"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  delete
+                                </span>
+                              </button>
+                            </div>
+                          ) : (
+                            <span
+                              className="text-[10px] text-slate-400 italic block"
+                              title={`Registrado por ${compra.cadastradoPorNome || compra.cadastradoPor}.`}
+                            >
+                              Por {compra.cadastradoPorNome || compra.cadastradoPor}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : lancamentosOrdenados.length === 0 ? (
+          compras.length > 0 ? (
+            <div className="py-14 px-4 text-center flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[26px]">event_busy</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <h3 className="font-bold text-slate-900 text-sm">
+                  Nenhuma parcela encontrada para {nomeMesFormatado}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">
+                  Seu espaço possui <strong>{compras.length} compras cadastradas</strong> no total vinculadas à sua conta! Elas estão concentradas em outros meses.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                {mesesComCompras.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onMudarMes(mesesComCompras[0])}
+                    className="px-3.5 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">calendar_month</span>
+                    <span>Navegar para {mesesComCompras[0]}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setModoExibicao('todas_compras')}
+                  className="px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">list_alt</span>
+                  <span>Ver Todas as {compras.length} Compras Cadastradas</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-14 px-4 text-center flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[26px]">shopping_cart</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <h3 className="font-bold text-slate-900 text-sm">
+                  Nenhuma compra encontrada neste espaço
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">
+                  Se as compras estavam em outro espaço vinculado ao seu e-mail, abra o <strong>Espaço do Casal</strong> no cabeçalho para restaurar ou alternar de espaço.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onAbrirNovaCompra}
+                className="mt-1 px-4 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                <span>Cadastrar Nova Compra</span>
+              </button>
+            </div>
+          )
         ) : (
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left text-xs">

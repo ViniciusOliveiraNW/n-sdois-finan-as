@@ -26,6 +26,7 @@ export interface CoupleSpace {
   createdAt: string;
   categories?: CategoriaMeta[];
   defaultSplit?: string; // ex: '50/50', '70/30', '30/70', '60/40', etc.
+  createdBy?: string;
 }
 
 export interface Compra {

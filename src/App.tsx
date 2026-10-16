@@ -14,6 +14,9 @@ import {
   ouvirFechamentos,
   salvarFechamentoFirestore,
   salvarCategoriasCasal,
+  buscarEspacosDoUsuario,
+  reconectarEspaco,
+  restaurarComprasIniciais,
 } from './services/firebaseService';
 import { gerarLancamentosDoMes } from './calculations/parcelas';
 import { calcularAcertoMensal } from './calculations/acertoMensal';
@@ -40,6 +43,8 @@ export default function App() {
 
   // 2. Espaço do Casal e Dados em Tempo Real (Sem dados simulados fixos)
   const [couple, setCouple] = useState<CoupleSpace | null>(null);
+  const [carregandoEspaco, setCarregandoEspaco] = useState(false);
+  const [espacoNaoEncontrado, setEspacoNaoEncontrado] = useState(false);
   const [compras, setCompras] = useState<Compra[]>([]);
   const [fechamentos, setFechamentos] = useState<FechamentoMensal[]>([]);
   const [categorias, setCategorias] = useState<CategoriaMeta[]>(() => {
@@ -82,7 +87,7 @@ export default function App() {
     onConfirmar: () => {},
   });
 
-  // Listener de Auth do Firebase
+  // Listener de Auth do Firebase com auto-recuperação de espaço
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       setAuthUser(user);
@@ -99,6 +104,22 @@ export default function App() {
             };
             await salvarPerfilUsuario(perfil);
           }
+
+          // Se o usuário não possui coupleId vinculado no perfil,
+          // autolocaliza espaços existentes no Firestore vinculados ao seu e-mail!
+          if (!perfil.coupleId) {
+            try {
+              const espacosEncontrados = await buscarEspacosDoUsuario(perfil);
+              if (espacosEncontrados.length > 0) {
+                const melhor = espacosEncontrados[0];
+                await reconectarEspaco(perfil, melhor.space.id);
+                perfil.coupleId = melhor.space.id;
+              }
+            } catch (errEspacos) {
+              console.warn('Erro ao auto-localizar espaços do usuário:', errEspacos);
+            }
+          }
+
           setUserProfile(perfil);
         } catch (e) {
           console.error('Erro ao buscar perfil do usuário:', e);
@@ -108,6 +129,8 @@ export default function App() {
         setCouple(null);
         setCompras([]);
         setFechamentos([]);
+        setCarregandoEspaco(false);
+        setEspacoNaoEncontrado(false);
       }
       setCarregandoAuth(false);
     });
@@ -121,22 +144,40 @@ export default function App() {
       setCouple(null);
       setCompras([]);
       setFechamentos([]);
+      setCarregandoEspaco(false);
+      setEspacoNaoEncontrado(false);
       return;
     }
 
+    setCarregandoEspaco(true);
+    setEspacoNaoEncontrado(false);
     const coupleId = userProfile.coupleId;
 
-    const unsubCouple = ouvirEspacoCasal(coupleId, (coupleData) => {
-      setCouple(coupleData);
-      if (coupleData?.categories && Array.isArray(coupleData.categories) && coupleData.categories.length > 0) {
-        setCategorias(coupleData.categories);
-        try {
-          localStorage.setItem('nosdois_categorias', JSON.stringify(coupleData.categories));
-        } catch (e) {
-          // ignore
+    const unsubCouple = ouvirEspacoCasal(
+      coupleId,
+      (coupleData) => {
+        setCarregandoEspaco(false);
+        if (coupleData) {
+          setCouple(coupleData);
+          setEspacoNaoEncontrado(false);
+          if (coupleData?.categories && Array.isArray(coupleData.categories) && coupleData.categories.length > 0) {
+            setCategorias(coupleData.categories);
+            try {
+              localStorage.setItem('nosdois_categorias', JSON.stringify(coupleData.categories));
+            } catch (e) {
+              // ignore
+            }
+          }
+        } else {
+          setCouple(null);
+          setEspacoNaoEncontrado(true);
         }
+      },
+      (err) => {
+        setCarregandoEspaco(false);
+        console.error('Erro ao ouvir espaço do casal:', err);
       }
-    });
+    );
 
     const unsubCompras = ouvirCompras(coupleId, (comprasData) => {
       setCompras(comprasData);
@@ -449,7 +490,17 @@ export default function App() {
     return <AuthScreen onSucesso={recarregarPerfil} />;
   }
 
-  // 3. Autenticado mas sem Espaço do Casal -> Tela de Criação ou Afiliação
+  // 3. Autenticado mas Carregando Espaço do Casal
+  if (userProfile?.coupleId && (carregandoEspaco || (couple === null && !espacoNaoEncontrado))) {
+    return (
+      <div className="min-h-screen bg-[#f8f9ff] flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-[#006948]/20 border-t-[#006948] rounded-full animate-spin mb-4"></div>
+        <span className="text-sm font-semibold text-slate-700">Carregando espaço do casal...</span>
+      </div>
+    );
+  }
+
+  // 4. Autenticado mas sem Espaço do Casal -> Tela de Criação ou Afiliação
   if (!userProfile?.coupleId || !couple) {
     return (
       <CoupleSetupScreen

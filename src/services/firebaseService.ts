@@ -12,6 +12,20 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { CategoriaMeta, Compra, CoupleSpace, FechamentoMensal, UserProfile } from '../types';
+import { COMPRAS_INICIAIS, FECHAMENTOS_INICIAIS } from '../data/initialData';
+import { calcularMesesParcelas } from '../calculations/parcelas';
+
+export interface EspacoComContagem {
+  space: CoupleSpace;
+  purchaseCount: number;
+}
+
+export interface ResultadoRestauracao {
+  totalRestauradas: number;
+  duplicadasIgnoradas: number;
+  quitadasIgnoradas: number;
+  mensagem: string;
+}
 
 // Perfil do Usuário
 export async function getPerfilUsuario(uid: string): Promise<UserProfile | null> {
@@ -87,6 +101,7 @@ export async function criarEspacoCasal(
     partner1Email: user.email,
     partner2Name: p2Nome,
     createdAt: new Date().toISOString(),
+    createdBy: user.uid,
   };
 
   const path = `couples/${coupleId}`;
@@ -168,6 +183,322 @@ export async function desafiliarEspacoCasal(user: UserProfile): Promise<void> {
     ...user,
     coupleId: '',
   });
+}
+
+// Localização e recuperação de espaços vinculados ao usuário
+export async function buscarEspacosDoUsuario(user: UserProfile): Promise<EspacoComContagem[]> {
+  const emailLimpo = user.email ? user.email.trim().toLowerCase() : '';
+  const uid = user.uid;
+  const couplesRef = collection(db, 'couples');
+  const foundMap = new Map<string, CoupleSpace>();
+
+  try {
+    const qMembers = query(couplesRef, where('members', 'array-contains', uid));
+    const snapMembers = await getDocs(qMembers);
+    snapMembers.forEach((d) => {
+      foundMap.set(d.id, { id: d.id, ...d.data() } as CoupleSpace);
+    });
+  } catch (e) {
+    console.warn('Erro ao buscar por members:', e);
+  }
+
+  if (emailLimpo) {
+    try {
+      const qP1 = query(couplesRef, where('partner1Email', '==', user.email));
+      const snapP1 = await getDocs(qP1);
+      snapP1.forEach((d) => {
+        foundMap.set(d.id, { id: d.id, ...d.data() } as CoupleSpace);
+      });
+    } catch (e) {
+      console.warn('Erro ao buscar por partner1Email:', e);
+    }
+
+    try {
+      const qP2 = query(couplesRef, where('partner2Email', '==', user.email));
+      const snapP2 = await getDocs(qP2);
+      snapP2.forEach((d) => {
+        foundMap.set(d.id, { id: d.id, ...d.data() } as CoupleSpace);
+      });
+    } catch (e) {
+      console.warn('Erro ao buscar por partner2Email:', e);
+    }
+  }
+
+  // Fallback: listar todos e checar em memória se não achou nada
+  try {
+    const snapAll = await getDocs(couplesRef);
+    snapAll.forEach((d) => {
+      const data = { id: d.id, ...d.data() } as CoupleSpace;
+      const p1Email = data.partner1Email?.toLowerCase();
+      const p2Email = data.partner2Email?.toLowerCase();
+      const isMember =
+        data.members?.includes(uid) ||
+        data.partner1Uid === uid ||
+        data.partner2Uid === uid;
+      const emailBate =
+        emailLimpo && (p1Email === emailLimpo || p2Email === emailLimpo);
+      if (isMember || emailBate) {
+        foundMap.set(d.id, data);
+      }
+    });
+  } catch (e) {
+    console.warn('Erro ao listar todos os casais no fallback:', e);
+  }
+
+  const resultados: EspacoComContagem[] = [];
+  for (const [id, space] of foundMap.entries()) {
+    let count = 0;
+    try {
+      const purchasesSnap = await getDocs(collection(db, 'couples', id, 'purchases'));
+      count = purchasesSnap.size;
+    } catch (e) {
+      console.warn(`Não foi possível ler subcoleção purchases do espaço ${id}:`, e);
+    }
+    resultados.push({ space, purchaseCount: count });
+  }
+
+  resultados.sort((a, b) => {
+    if (b.purchaseCount !== a.purchaseCount) {
+      return b.purchaseCount - a.purchaseCount;
+    }
+    return (b.space.createdAt || '').localeCompare(a.space.createdAt || '');
+  });
+
+  return resultados;
+}
+
+export async function reconectarEspaco(user: UserProfile, coupleId: string): Promise<CoupleSpace> {
+  const path = `couples/${coupleId}`;
+  try {
+    const coupleSnap = await getDoc(doc(db, 'couples', coupleId));
+    if (!coupleSnap.exists()) {
+      throw new Error(`Espaço de casal "${coupleId}" não encontrado.`);
+    }
+
+    const coupleData = { id: coupleSnap.id, ...coupleSnap.data() } as CoupleSpace;
+    const currentMembers = coupleData.members || [];
+    const jaEhMembro = currentMembers.includes(user.uid);
+
+    if (!jaEhMembro) {
+      const novosMembros = Array.from(new Set([...currentMembers, user.uid]));
+      const userEmail = user.email?.toLowerCase();
+      const updates: Record<string, unknown> = { members: novosMembros };
+
+      if (coupleData.partner1Email?.toLowerCase() === userEmail) {
+        updates.partner1Uid = user.uid;
+        if (user.displayName) updates.partner1Name = user.displayName;
+      } else if (coupleData.partner2Email?.toLowerCase() === userEmail) {
+        updates.partner2Uid = user.uid;
+        if (user.displayName) updates.partner2Name = user.displayName;
+      }
+
+      await updateDoc(doc(db, 'couples', coupleId), updates);
+      coupleData.members = novosMembros;
+    }
+
+    await salvarPerfilUsuario({
+      ...user,
+      coupleId,
+    });
+
+    return coupleData;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+    throw error;
+  }
+}
+
+export function isCriadorDoEspaco(
+  space: CoupleSpace | null | undefined,
+  user: UserProfile | null | undefined
+): boolean {
+  if (!space || !user) return false;
+  if (space.createdBy && space.createdBy === user.uid) return true;
+  if (space.partner1Uid && space.partner1Uid === user.uid) return true;
+  if (
+    space.partner1Email &&
+    user.email &&
+    space.partner1Email.trim().toLowerCase() === user.email.trim().toLowerCase()
+  ) {
+    return true;
+  }
+  return false;
+}
+
+export async function excluirEspacoCasal(
+  coupleId: string,
+  user: UserProfile
+): Promise<void> {
+  const path = `couples/${coupleId}`;
+  try {
+    const snap = await getDoc(doc(db, 'couples', coupleId));
+    if (snap.exists()) {
+      const data = snap.data() as CoupleSpace;
+      const ehCriador = isCriadorDoEspaco(data, user);
+      if (!ehCriador) {
+        throw new Error('Permissão negada: apenas quem criou o espaço pode excluí-lo.');
+      }
+    }
+
+    // 1. Limpar compras da subcoleção
+    try {
+      const purchasesSnap = await getDocs(collection(db, 'couples', coupleId, 'purchases'));
+      for (const pDoc of purchasesSnap.docs) {
+        await deleteDoc(doc(db, 'couples', coupleId, 'purchases', pDoc.id));
+      }
+    } catch (e) {
+      console.warn('Erro ao limpar compras do espaço:', e);
+    }
+
+    // 2. Limpar fechamentos da subcoleção
+    try {
+      const closuresSnap = await getDocs(collection(db, 'couples', coupleId, 'closures'));
+      for (const cDoc of closuresSnap.docs) {
+        await deleteDoc(doc(db, 'couples', coupleId, 'closures', cDoc.id));
+      }
+    } catch (e) {
+      console.warn('Erro ao limpar fechamentos do espaço:', e);
+    }
+
+    // 3. Excluir o documento do casal
+    await deleteDoc(doc(db, 'couples', coupleId));
+
+    // 4. Se o usuário estiver ativo neste espaço, desvincular do seu perfil
+    if (user.coupleId === coupleId) {
+      await salvarPerfilUsuario({
+        ...user,
+        coupleId: '',
+      });
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+    throw error;
+  }
+}
+
+export async function restaurarComprasIniciais(
+  coupleId: string,
+  user: UserProfile,
+  p1Nome: string = 'Vinicius',
+  p2Nome: string = 'Silvia'
+): Promise<ResultadoRestauracao> {
+  const path = `couples/${coupleId}/purchases`;
+  try {
+    // 1. Mapear compras existentes no Firestore para evitar duplicações
+    const existingSnap = await getDocs(collection(db, 'couples', coupleId, 'purchases'));
+    const existingIds = new Set<string>();
+    const existingSignatures = new Set<string>();
+
+    existingSnap.forEach((d) => {
+      existingIds.add(d.id);
+      const data = d.data() as Partial<Compra>;
+      const nomeNorm = (data.nome || '').trim().toLowerCase();
+      const dataPag = data.dataPrimeiroPagamento || '';
+      const centavos = data.valorCentavos ?? Math.round((data.valor || 0) * 100);
+      existingSignatures.add(`${nomeNorm}__${dataPag}__${centavos}`);
+    });
+
+    // 2. Identificar quais meses já estão com fechamento quitado
+    const mesesQuitados = new Set<string>();
+    for (const f of FECHAMENTOS_INICIAIS) {
+      if (f.status === 'quitado') {
+        mesesQuitados.add(f.mesReferencia);
+      }
+    }
+
+    try {
+      const closingsSnap = await getDocs(collection(db, 'couples', coupleId, 'closures'));
+      closingsSnap.forEach((d) => {
+        const fech = d.data() as FechamentoMensal;
+        if (fech.status === 'quitado' && (!fech.saldoResidualCentavos || fech.saldoResidualCentavos === 0)) {
+          mesesQuitados.add(fech.mesReferencia);
+        } else if (fech.status === 'parcial' || fech.status === 'retroativo') {
+          mesesQuitados.delete(fech.mesReferencia);
+        }
+      });
+    } catch (e) {
+      console.warn('Erro ao verificar fechamentos para conferência de pendências:', e);
+    }
+
+    let totalRestauradas = 0;
+    let duplicadasIgnoradas = 0;
+    let quitadasIgnoradas = 0;
+
+    for (const compraBase of COMPRAS_INICIAIS) {
+      // 3. Verificação de pendência: deve ter ao menos 1 parcela ativa em mês em aberto (não quitado)
+      const numParcelas = compraBase.numeroDeParcelas || 1;
+      const limiteAtivo = compraBase.ultimaParcelaAtiva ?? numParcelas;
+
+      let isPendente = false;
+      if (limiteAtivo > 0) {
+        try {
+          const mesesParcelas = calcularMesesParcelas(compraBase.dataPrimeiroPagamento, numParcelas);
+          for (let i = 0; i < limiteAtivo; i++) {
+            const mes = mesesParcelas[i];
+            if (mes && !mesesQuitados.has(mes)) {
+              isPendente = true;
+              break;
+            }
+          }
+        } catch {
+          isPendente = true;
+        }
+      }
+
+      if (!isPendente) {
+        quitadasIgnoradas++;
+        continue;
+      }
+
+      // 4. Verificação de duplicação: ignora se id ou assinatura (nome + data + valor) já existem
+      const nomeNorm = (compraBase.nome || '').trim().toLowerCase();
+      const centavos = compraBase.valorCentavos ?? Math.round((compraBase.valor || 0) * 100);
+      const signature = `${nomeNorm}__${compraBase.dataPrimeiroPagamento}__${centavos}`;
+
+      if (existingIds.has(compraBase.id) || existingSignatures.has(signature)) {
+        duplicadasIgnoradas++;
+        continue;
+      }
+
+      // 5. Salva a compra pendente não duplicada
+      const compraFormatada: Compra = {
+        ...compraBase,
+        coupleId,
+        cadastradoPorUid: user.uid,
+        cadastradoPorNome: user.displayName || p1Nome,
+        cadastradoPor: user.displayName || p1Nome,
+        pagoPorUid: compraBase.pagoPor === 'Silvia' ? (p2Nome || 'Silvia') : user.uid,
+        pagoPorNome: compraBase.pagoPor === 'Silvia' ? p2Nome : (user.displayName || p1Nome),
+      };
+
+      await salvarCompraFirestore(coupleId, compraFormatada);
+      existingIds.add(compraBase.id);
+      existingSignatures.add(signature);
+      totalRestauradas++;
+    }
+
+    let mensagem = '';
+    if (totalRestauradas > 0) {
+      mensagem = `${totalRestauradas} compra(s) pendente(s) restaurada(s) com sucesso sem duplicidades!`;
+      if (duplicadasIgnoradas > 0) {
+        mensagem += ` (${duplicadasIgnoradas} já existente(s) ignorada(s))`;
+      }
+    } else if (duplicadasIgnoradas > 0) {
+      mensagem = `Todas as compras pendentes já estão cadastradas no seu espaço (${duplicadasIgnoradas} verificada(s), 0 duplicadas).`;
+    } else {
+      mensagem = 'Nenhuma nova compra pendente identificada para restauração.';
+    }
+
+    return {
+      totalRestauradas,
+      duplicadasIgnoradas,
+      quitadasIgnoradas,
+      mensagem,
+    };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+    throw error;
+  }
 }
 
 // Compras em tempo real

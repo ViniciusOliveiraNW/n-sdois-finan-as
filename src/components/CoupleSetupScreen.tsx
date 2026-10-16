@@ -1,6 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types';
-import { criarEspacoCasal, afiliarComCodigo } from '../services/firebaseService';
+import {
+  criarEspacoCasal,
+  afiliarComCodigo,
+  buscarEspacosDoUsuario,
+  reconectarEspaco,
+  restaurarComprasIniciais,
+  excluirEspacoCasal,
+  isCriadorDoEspaco,
+  EspacoComContagem,
+} from '../services/firebaseService';
 import { auth } from '../firebase';
 
 interface CoupleSetupScreenProps {
@@ -14,13 +23,57 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
   // Criação
   const [meuNomeCriar, setMeuNomeCriar] = useState(user.displayName || 'Vinicius');
   const [nomeParceiro, setNomeParceiro] = useState('Silvia');
+  const [importarIniciais, setImportarIniciais] = useState(true);
 
   // Afiliação
   const [codigoConvite, setCodigoConvite] = useState('');
   const [meuNomeAfiliar, setMeuNomeAfiliar] = useState(user.displayName || 'Silvia');
 
+  // Espaços Existentes Encontrados
+  const [espacosEncontrados, setEspacosEncontrados] = useState<EspacoComContagem[]>([]);
+  const [buscandoEspacos, setBuscandoEspacos] = useState(true);
+  const [reconectandoId, setReconectandoId] = useState<string | null>(null);
+  const [excluindoId, setExcluindoId] = useState<string | null>(null);
+
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Busca espaços já existentes vinculados ao e-mail/UID
+  useEffect(() => {
+    let ativo = true;
+    async function carregarEspacos() {
+      setBuscandoEspacos(true);
+      try {
+        const encontrados = await buscarEspacosDoUsuario(user);
+        if (ativo) {
+          setEspacosEncontrados(encontrados);
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar espaços anteriores:', err);
+      } finally {
+        if (ativo) setBuscandoEspacos(false);
+      }
+    }
+    carregarEspacos();
+    return () => {
+      ativo = false;
+    };
+  }, [user]);
+
+  const handleReconectar = async (spaceId: string) => {
+    setReconectandoId(spaceId);
+    setErro(null);
+    try {
+      await reconectarEspaco(user, spaceId);
+      onConcluido();
+    } catch (err: unknown) {
+      console.error('Erro ao reconectar ao espaço:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setErro(msg || 'Erro ao reconectar a este espaço financeiro.');
+    } finally {
+      setReconectandoId(null);
+    }
+  };
 
   const handleCriar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +90,14 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
     setErro(null);
 
     try {
-      await criarEspacoCasal(user, meuNomeCriar.trim(), nomeParceiro.trim());
+      const space = await criarEspacoCasal(user, meuNomeCriar.trim(), nomeParceiro.trim());
+      if (importarIniciais) {
+        try {
+          await restaurarComprasIniciais(space.id, user, meuNomeCriar.trim(), nomeParceiro.trim());
+        } catch (e) {
+          console.warn('Compras iniciais não puderam ser importadas:', e);
+        }
+      }
       onConcluido();
     } catch (err: unknown) {
       console.error('Erro ao criar espaço:', err);
@@ -91,12 +151,83 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
             Conecte o seu Casal
           </h2>
           <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
-            Olá, <strong className="text-slate-800">{user.displayName || user.email}</strong>! Para começar, crie um novo espaço ou entre no espaço já criado pelo seu parceiro.
+            Olá, <strong className="text-slate-800">{user.displayName || user.email}</strong>!
           </p>
         </div>
 
-        {/* Mode Selector */}
+        {/* Content Body */}
         <div className="p-7 sm:p-8 flex flex-col gap-6">
+          {/* Card de Espaços Existentes Encontrados (Recuperação Automática de Compras) */}
+          {buscandoEspacos ? (
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center gap-2 text-xs text-slate-500">
+              <span className="w-3.5 h-3.5 border-2 border-[#006948]/30 border-t-[#006948] rounded-full animate-spin"></span>
+              <span>Localizando compras e espaços anteriores vinculados ao seu e-mail...</span>
+            </div>
+          ) : espacosEncontrados.length > 0 ? (
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white border-2 border-emerald-300/80 shadow-sm flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-[#006948] text-white flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">cloud_done</span>
+                </span>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                    Espaço Anterior Encontrado!
+                  </h3>
+                  <p className="text-[11px] text-slate-600">
+                    Localizamos seu espaço financeiro vinculado a <strong>{user.email}</strong>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {espacosEncontrados.map((item) => {
+                  const p1 = item.space.partner1Name || 'Vinicius';
+                  const p2 = item.space.partner2Name || 'Silvia';
+                  const isCurrentConnecting = reconectandoId === item.space.id;
+
+                  return (
+                    <div
+                      key={item.space.id}
+                      className="p-3 bg-white rounded-xl border border-emerald-200/90 shadow-xs flex items-center justify-between gap-3 hover:border-emerald-400 transition-all"
+                    >
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-slate-900 truncate">
+                          {p1} & {p2}
+                        </span>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                          <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-700">
+                            Código: {item.space.inviteCode}
+                          </span>
+                          <span className="font-semibold text-emerald-700 flex items-center gap-0.5">
+                            <span className="material-symbols-outlined text-[13px]">shopping_cart</span>
+                            <span>{item.purchaseCount} compras salvas</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleReconectar(item.space.id)}
+                        disabled={reconectandoId !== null}
+                        className="px-3.5 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98] cursor-pointer shrink-0 disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        {isCurrentConnecting ? (
+                          <span className="w-3.5 h-3.5 border-2 border-white/60 border-t-white rounded-full animate-spin"></span>
+                        ) : (
+                          <>
+                            <span className="material-symbols-outlined text-[15px]">sync</span>
+                            <span>Reconectar</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Mode Selector */}
           <div className="p-1 bg-slate-100 rounded-xl flex gap-1">
             <button
               type="button"
@@ -184,6 +315,19 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
                     required
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <input
+                  type="checkbox"
+                  id="chk-importar-iniciais"
+                  checked={importarIniciais}
+                  onChange={(e) => setImportarIniciais(e.target.checked)}
+                  className="rounded text-[#006948] focus:ring-[#006948] h-4 w-4 cursor-pointer"
+                />
+                <label htmlFor="chk-importar-iniciais" className="text-[11px] text-slate-700 font-medium cursor-pointer">
+                  Importar as compras padrão do casal (14 compras: Supermercado, Aluguel, Farmácia, etc.)
+                </label>
               </div>
 
               <button

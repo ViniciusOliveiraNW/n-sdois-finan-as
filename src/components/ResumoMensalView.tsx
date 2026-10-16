@@ -264,9 +264,17 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex flex-wrap items-center gap-x-2.5 gap-y-1">
                 {!resumoAcerto.temLancamentos ? (
-                  <span className="text-slate-500 font-medium text-xl">
-                    Nenhum lançamento registrado neste mês.
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-slate-500 font-medium text-xl">
+                      Nenhum lançamento registrado neste mês.
+                    </span>
+                    {compras.length > 0 && (
+                      <span className="text-xs text-amber-700 font-semibold flex items-center gap-1 mt-0.5">
+                        <span className="material-symbols-outlined text-[15px]">info</span>
+                        <span>Seu espaço possui {compras.length} compras cadastradas em outros meses.</span>
+                      </span>
+                    )}
+                  </div>
                 ) : resumoAcerto.valorAcertoCentavos === 0 ? (
                   <span className="text-[#006948]">
                     As contas estão perfeitamente equilibradas (R$ 0,00).
@@ -523,9 +531,29 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
         </div>
 
         {lancamentosVisao.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-400">
-            Nenhum lançamento registrado para os filtros ativos em {nomeMesFormatado}.
-          </div>
+          compras.length > 0 ? (
+            <div className="py-10 px-4 text-center flex flex-col items-center gap-2.5">
+              <span className="material-symbols-outlined text-amber-600 text-[24px]">event_busy</span>
+              <div className="text-xs text-slate-700 font-semibold">
+                Nenhum lançamento com parcela em {nomeMesFormatado}.
+              </div>
+              <p className="text-[11px] text-slate-500 max-w-sm">
+                Existem <strong>{compras.length} compras cadastradas</strong> no total neste espaço em outros meses.
+              </p>
+              <button
+                type="button"
+                onClick={onIrParaLancamentos}
+                className="mt-1 px-3.5 py-1.5 rounded-xl bg-[#006948] hover:bg-[#005137] text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[15px]">list_alt</span>
+                <span>Ver Todas as Compras na Aba Lançamentos</span>
+              </button>
+            </div>
+          ) : (
+            <div className="py-12 text-center text-xs text-slate-400">
+              Nenhum lançamento registrado para os filtros ativos em {nomeMesFormatado}.
+            </div>
+          )
         ) : (
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left text-xs">
