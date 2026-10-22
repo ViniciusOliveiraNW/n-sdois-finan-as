@@ -1,14 +1,23 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #f8f9ff;
     color: #0b1c30;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  html.dark body {
+    background-color: #0b1320;
+    color: #f1f5f9;
   }
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+

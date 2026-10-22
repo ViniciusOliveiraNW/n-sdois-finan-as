@@ -135,23 +135,23 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] flex flex-col justify-center items-center p-4 sm:p-6 text-[#0b1c30]">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+    <div className="min-h-screen bg-[#f8f9ff] dark:bg-[#0b1320] flex flex-col justify-center items-center p-4 sm:p-6 text-[#0b1c30] dark:text-slate-100 transition-colors">
+      <div className="w-full max-w-lg bg-white dark:bg-[#161f2e] rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-colors">
         {/* Header */}
-        <div className="p-7 sm:p-8 bg-gradient-to-b from-slate-50 to-white border-b border-slate-100 flex flex-col items-center text-center">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-[#006948] flex items-center justify-center shadow-sm mb-3">
+        <div className="p-7 sm:p-8 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/60 dark:to-[#161f2e] border-b border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 flex items-center justify-center shadow-sm mb-3">
             <span className="material-symbols-outlined text-[28px]">favorite</span>
           </div>
 
-          <span className="px-3 py-0.5 rounded-full bg-emerald-100 text-[#006948] text-[11px] font-bold uppercase tracking-wider mb-1">
+          <span className="px-3 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 text-[11px] font-bold uppercase tracking-wider mb-1">
             Espaço Compartilhado
           </span>
 
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Conecte o seu Casal
           </h2>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
-            Olá, <strong className="text-slate-800">{user.displayName || user.email}</strong>!
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm leading-relaxed">
+            Olá, <strong className="text-slate-800 dark:text-slate-200">{user.displayName || user.email}</strong>!
           </p>
         </div>
 
@@ -159,22 +159,22 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
         <div className="p-7 sm:p-8 flex flex-col gap-6">
           {/* Card de Espaços Existentes Encontrados (Recuperação Automática de Compras) */}
           {buscandoEspacos ? (
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center gap-2 text-xs text-slate-500">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="w-3.5 h-3.5 border-2 border-[#006948]/30 border-t-[#006948] rounded-full animate-spin"></span>
               <span>Localizando compras e espaços anteriores vinculados ao seu e-mail...</span>
             </div>
           ) : espacosEncontrados.length > 0 ? (
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white border-2 border-emerald-300/80 shadow-sm flex flex-col gap-3">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-slate-900 border-2 border-emerald-300/80 dark:border-emerald-700/60 shadow-sm flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <span className="w-8 h-8 rounded-xl bg-[#006948] text-white flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-[18px]">cloud_done</span>
                 </span>
                 <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                     Espaço Anterior Encontrado!
                   </h3>
-                  <p className="text-[11px] text-slate-600">
-                    Localizamos seu espaço financeiro vinculado a <strong>{user.email}</strong>.
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                    Localizamos seu espaço financeiro vinculado a <strong className="text-slate-800 dark:text-slate-100">{user.email}</strong>.
                   </p>
                 </div>
               </div>
@@ -188,17 +188,17 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
                   return (
                     <div
                       key={item.space.id}
-                      className="p-3 bg-white rounded-xl border border-emerald-200/90 shadow-xs flex items-center justify-between gap-3 hover:border-emerald-400 transition-all"
+                      className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-emerald-200/90 dark:border-emerald-800/80 shadow-xs flex items-center justify-between gap-3 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all"
                     >
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-slate-900 truncate">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                           {p1} & {p2}
                         </span>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                          <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-700">
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          <span className="font-mono bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-bold text-slate-700 dark:text-slate-200">
                             Código: {item.space.inviteCode}
                           </span>
-                          <span className="font-semibold text-emerald-700 flex items-center gap-0.5">
+                          <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-0.5">
                             <span className="material-symbols-outlined text-[13px]">shopping_cart</span>
                             <span>{item.purchaseCount} compras salvas</span>
                           </span>
@@ -228,7 +228,7 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
           ) : null}
 
           {/* Mode Selector */}
-          <div className="p-1 bg-slate-100 rounded-xl flex gap-1">
+          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl flex gap-1">
             <button
               type="button"
               onClick={() => {
@@ -237,8 +237,8 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
               }}
               className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 modo === 'criar'
-                  ? 'bg-white text-[#006948] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-[#006948] dark:text-emerald-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="material-symbols-outlined text-[16px]">add_circle</span>
@@ -252,8 +252,8 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
               }}
               className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 modo === 'afiliar'
-                  ? 'bg-white text-[#006948] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-[#006948] dark:text-emerald-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="material-symbols-outlined text-[16px]">link</span>
@@ -264,7 +264,7 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
           {erro && (
             <div
               role="alert"
-              className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2"
+              className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">error</span>
               <span>{erro}</span>
@@ -274,17 +274,17 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
           {/* Form: Criar Novo Espaço */}
           {modo === 'criar' && (
             <form onSubmit={handleCriar} className="flex flex-col gap-4 text-xs">
-              <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-2.5">
-                <span className="material-symbols-outlined text-[18px] text-[#006948] shrink-0 mt-0.5">
+              <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-[18px] text-[#006948] dark:text-emerald-400 shrink-0 mt-0.5">
                   info
                 </span>
-                <p className="text-[11px] text-slate-700 leading-relaxed">
+                <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
                   Ao criar o espaço, um <strong>código de 6 letras</strong> exclusivo será gerado. Você poderá enviá-lo ao seu parceiro para que ambos visualizem e lancem contas em sincronia!
                 </p>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Como você quer ser chamado(a)?</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Como você quer ser chamado(a)?</label>
                 <div className="relative flex items-center">
                   <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
                     badge
@@ -294,14 +294,14 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
                     value={meuNomeCriar}
                     onChange={(e) => setMeuNomeCriar(e.target.value)}
                     placeholder="Ex: Vinicius"
-                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                     required
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Nome do(a) seu(sua) parceiro(a)</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Nome do(a) seu(sua) parceiro(a)</label>
                 <div className="relative flex items-center">
                   <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
                     favorite
@@ -311,13 +311,13 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
                     value={nomeParceiro}
                     onChange={(e) => setNomeParceiro(e.target.value)}
                     placeholder="Ex: Silvia"
-                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                     required
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                 <input
                   type="checkbox"
                   id="chk-importar-iniciais"
@@ -325,7 +325,7 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
                   onChange={(e) => setImportarIniciais(e.target.checked)}
                   className="rounded text-[#006948] focus:ring-[#006948] h-4 w-4 cursor-pointer"
                 />
-                <label htmlFor="chk-importar-iniciais" className="text-[11px] text-slate-700 font-medium cursor-pointer">
+                <label htmlFor="chk-importar-iniciais" className="text-[11px] text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
                   Importar as compras padrão do casal (14 compras: Supermercado, Aluguel, Farmácia, etc.)
                 </label>
               </div>
@@ -350,17 +350,17 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
           {/* Form: Afiliar-se com Código */}
           {modo === 'afiliar' && (
             <form onSubmit={handleAfiliar} className="flex flex-col gap-4 text-xs">
-              <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-start gap-2.5">
-                <span className="material-symbols-outlined text-[18px] text-[#0051d5] shrink-0 mt-0.5">
+              <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-[18px] text-[#0051d5] dark:text-blue-400 shrink-0 mt-0.5">
                   vpn_key
                 </span>
-                <p className="text-[11px] text-slate-700 leading-relaxed">
+                <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
                   Digite o código de convite de 6 caracteres gerado pelo seu parceiro(a) para se conectar instantaneamente ao mesmo espaço financeiro.
                 </p>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Código de Convite do Casal</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Código de Convite do Casal</label>
                 <div className="relative flex items-center">
                   <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
                     key
@@ -371,14 +371,14 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
                     onChange={(e) => setCodigoConvite(e.target.value.toUpperCase())}
                     placeholder="Ex: ABC123"
                     maxLength={10}
-                    className="w-full h-11 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-mono font-bold text-base tracking-widest uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="w-full h-11 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono font-bold text-base tracking-widest uppercase focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                     required
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Seu Nome ou Apelido</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Seu Nome ou Apelido</label>
                 <div className="relative flex items-center">
                   <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
                     person
@@ -388,7 +388,7 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
                     value={meuNomeAfiliar}
                     onChange={(e) => setMeuNomeAfiliar(e.target.value)}
                     placeholder="Ex: Silvia"
-                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                     required
                   />
                 </div>
@@ -412,12 +412,12 @@ export const CoupleSetupScreen: React.FC<CoupleSetupScreenProps> = ({ user, onCo
           )}
 
           {/* Footer: Sair da Conta */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Conectado como {user.email}</span>
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Conectado como <strong className="text-slate-700 dark:text-slate-300">{user.email}</strong></span>
             <button
               type="button"
               onClick={() => auth.signOut()}
-              className="text-red-600 hover:text-red-700 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
             >
               <span className="material-symbols-outlined text-[15px]">logout</span>
               <span>Sair da Conta</span>

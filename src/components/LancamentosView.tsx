@@ -3,6 +3,7 @@ import { CategoriaId, CategoriaMeta, Compra, DivisaoTipo, LancamentoMensal, Resu
 import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
 import { CATEGORIAS_PADRAO } from '../data/initialData';
 import { CategoryIconOrImage } from './CategoryIconOrImage';
+import { SeletorMesFlutuante } from './SeletorMesFlutuante';
 
 interface LancamentosViewProps {
   mesSelecionado: string;
@@ -242,36 +243,20 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   return (
     <div className="flex flex-col gap-5">
       {/* Top Context Bar: Month, View Mode, Actions */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-[#161f2e] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <div className="flex flex-wrap items-center gap-3">
           {/* Navegador de Mês (ativo no modo mês) */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
-            <button
-              onClick={() => handleAvancarMes(-1)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
-              title="Mês anterior"
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-            </button>
-            <div className="px-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#006948] text-[20px]">
-                calendar_today
-              </span>
-              <span className="text-base font-bold text-slate-900 tracking-tight">
-                {nomeMesFormatado}
-              </span>
-            </div>
-            <button
-              onClick={() => handleAvancarMes(1)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
-              title="Próximo mês"
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-            </button>
-          </div>
+          <SeletorMesFlutuante
+            mesSelecionado={mesSelecionado}
+            onMudarMes={(m) => {
+              onMudarMes(m);
+              setPagina(1);
+            }}
+            variante="casal"
+          />
 
           {/* Alternância: Lançamentos do Mês vs Todas as Compras */}
-          <div className="inline-flex p-1 bg-slate-100 rounded-xl">
+          <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-transparent dark:border-slate-700/60">
             <button
               type="button"
               onClick={() => {
@@ -280,8 +265,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 modoExibicao === 'mes'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">calendar_month</span>
@@ -295,8 +280,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 modoExibicao === 'todas_compras'
-                  ? 'bg-white text-[#006948] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-[#006948] dark:text-emerald-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">list_alt</span>
@@ -307,7 +292,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
 
         {/* Toggle Visão & Botão Novo Lançamento */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex p-1 bg-slate-100 rounded-xl">
+          <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-transparent dark:border-slate-700/60">
             <button
               onClick={() => {
                 onAlternarVisao('meus');
@@ -315,13 +300,13 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 visao === 'meus'
-                  ? 'bg-white text-[#0051d5] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-[#0051d5] dark:text-blue-300 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
               <span>Meus Pagamentos</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[#0051d5] text-[10px]">
+              <span className="px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-950/80 text-[#0051d5] dark:text-blue-300 text-[10px]">
                 {todosLancamentosDoMes.filter((l) => l.pagoPor === usuarioAtual).length}
               </span>
             </button>
@@ -332,13 +317,13 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 visao === 'casal'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#006948]"></span>
               <span>Casal (Ambos)</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px]">
                 {todosLancamentosDoMes.length}
               </span>
             </button>
@@ -348,7 +333,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             <button
               onClick={onIrParaMinhasDespesas}
               type="button"
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs"
               title="Acessar cofre individual protegido e confidencial"
             >
               <span className="material-symbols-outlined text-[16px]">lock</span>
@@ -370,31 +355,31 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       {/* 4 Cards de KPIs de Escopo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total no Mês */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Total no Mês</span>
-            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#006948]">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[#006948] dark:text-emerald-400">
               <span className="material-symbols-outlined text-[16px]">receipt_long</span>
             </div>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-extrabold text-slate-900 tabular-nums">
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
               {formatarBRL(resumoAcerto.totalCasalCentavos)}
             </span>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
               {todosLancamentosDoMes.length} lançamentos registrados
             </p>
           </div>
         </div>
 
         {/* Pago por Vinicius */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
-              <span className="text-xs font-semibold text-[#0051d5]">Pago por Vinicius</span>
+              <span className="text-xs font-semibold text-[#0051d5] dark:text-blue-400">Pago por Vinicius</span>
             </div>
-            <span className="text-[11px] font-bold text-slate-500">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
               {resumoAcerto.totalCasalCentavos > 0
                 ? `${Math.round(
                     (resumoAcerto.totalPagoViniciusCentavos / resumoAcerto.totalCasalCentavos) * 100
@@ -403,23 +388,23 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-extrabold text-[#0051d5] tabular-nums">
+            <span className="text-2xl font-extrabold text-[#0051d5] dark:text-blue-400 tabular-nums">
               {formatarBRL(resumoAcerto.totalPagoViniciusCentavos)}
             </span>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
               {todosLancamentosDoMes.filter((l) => l.pagoPor === 'Vinicius').length} compras
             </p>
           </div>
         </div>
 
         {/* Pago por Silvia */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#712ae2]"></span>
-              <span className="text-xs font-semibold text-[#712ae2]">Pago por Silvia</span>
+              <span className="text-xs font-semibold text-[#712ae2] dark:text-purple-400">Pago por Silvia</span>
             </div>
-            <span className="text-[11px] font-bold text-slate-500">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
               {resumoAcerto.totalCasalCentavos > 0
                 ? `${Math.round(
                     (resumoAcerto.totalPagoSilviaCentavos / resumoAcerto.totalCasalCentavos) * 100
@@ -428,28 +413,28 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-extrabold text-[#712ae2] tabular-nums">
+            <span className="text-2xl font-extrabold text-[#712ae2] dark:text-purple-400 tabular-nums">
               {formatarBRL(resumoAcerto.totalPagoSilviaCentavos)}
             </span>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
               {todosLancamentosDoMes.filter((l) => l.pagoPor === 'Silvia').length} compras
             </p>
           </div>
         </div>
 
         {/* Parcelas Ativas */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Parcelas Ativas</span>
-            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-blue-600">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-blue-600 dark:text-blue-400">
               <span className="material-symbols-outlined text-[16px]">credit_card</span>
             </div>
           </div>
           <div className="mt-2">
-            <span className="text-2xl font-extrabold text-slate-900 tabular-nums">
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
               {formatarBRL(parcelasAtivasCentavos)}
             </span>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
               {qtdParceladas} compras parceladas este mês
             </p>
           </div>
@@ -457,11 +442,11 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       </div>
 
       {/* Ribbon de Filtros e Busca */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+      <div className="bg-white dark:bg-[#161f2e] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-3 transition-colors">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           {/* Search bar */}
           <div className="md:col-span-5 relative flex items-center">
-            <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px] pointer-events-none">
+            <span className="material-symbols-outlined absolute left-3 text-slate-400 dark:text-slate-500 text-[18px] pointer-events-none">
               search
             </span>
             <input
@@ -472,7 +457,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 setPagina(1);
               }}
               placeholder="Buscar estabelecimento, item ou descrição..."
-              className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+              className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:bg-white dark:focus:bg-[#111a28] focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
             />
           </div>
 
@@ -484,7 +469,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 setFiltroCategoria(e.target.value);
                 setPagina(1);
               }}
-              className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
+              className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-[#111a28] focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
             >
               <option value="">Todas as Categorias</option>
               {listaCategorias.map((cat) => (
@@ -503,7 +488,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 setFiltroPagador(e.target.value);
                 setPagina(1);
               }}
-              className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
+              className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-[#111a28] focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
             >
               <option value="">Quem Pagou: Todos</option>
               <option value="Vinicius">Vinicius</option>
@@ -519,7 +504,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 setFiltroDivisao(e.target.value);
                 setPagina(1);
               }}
-              className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
+              className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-[#111a28] focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
             >
               <option value="">Divisão: Todas</option>
               <option value="50/50">⚖️ 50% / 50%</option>
@@ -531,9 +516,9 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         </div>
 
         {/* Filtros Rápidos & Ordenação */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-slate-400 font-semibold mr-1">Filtros rápidos:</span>
+            <span className="text-slate-400 dark:text-slate-500 font-semibold mr-1">Filtros rápidos:</span>
             <button
               onClick={() => {
                 setFiltroRapido('todos');
@@ -541,8 +526,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                 filtroRapido === 'todos'
-                  ? 'bg-slate-200 text-slate-900 font-bold'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               Todos ({todosLancamentosDoMes.length})
@@ -554,8 +539,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                 filtroRapido === 'parcelados'
-                  ? 'bg-slate-200 text-slate-900 font-bold'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               Parcelados ({qtdParceladas})
@@ -567,8 +552,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                 filtroRapido === 'mercado'
-                  ? 'bg-slate-200 text-slate-900 font-bold'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               Supermercado ({todosLancamentosDoMes.filter((l) => l.categoria === 'Mercado').length})
@@ -576,11 +561,11 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">Ordenar:</span>
+            <span className="text-slate-500 dark:text-slate-400">Ordenar:</span>
             <select
               value={ordenacao}
               onChange={(e) => setOrdenacao(e.target.value as any)}
-              className="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-semibold text-xs border-none cursor-pointer"
+              className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs border border-transparent dark:border-slate-700 cursor-pointer"
             >
               <option value="recente">Mais recentes</option>
               <option value="antigo">Mais antigos</option>
@@ -592,17 +577,17 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       </div>
 
       {/* Tabela de Lançamentos ou Todas as Compras */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-[#161f2e] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
         {modoExibicao === 'todas_compras' ? (
           comprasOrdenadas.length === 0 ? (
-            <div className="py-16 text-center text-xs text-slate-400">
+            <div className="py-16 text-center text-xs text-slate-400 dark:text-slate-500">
               Nenhuma compra cadastrada encontrada para os filtros ativos.
             </div>
           ) : (
             <div className="w-full overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                  <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
                     <th className="py-3 px-4 whitespace-nowrap">1º Pagamento</th>
                     <th className="py-3 px-4 min-w-[220px]">Estabelecimento / Item</th>
                     <th className="py-3 px-4 whitespace-nowrap">Categoria</th>
@@ -613,7 +598,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                     <th className="py-3 px-3 text-center w-20">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {comprasPaginadas.map((compra) => {
                     const totalCentavos =
                       compra.valorCentavos ?? Math.round((compra.valor || 0) * 100);
@@ -622,17 +607,17 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                       compra.cadastradoPor === usuarioAtual;
 
                     return (
-                      <tr key={compra.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3 px-4 font-semibold text-slate-600 whitespace-nowrap">
+                      <tr key={compra.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
                           {compra.dataPrimeiroPagamento || '—'}
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex flex-col">
-                            <span className="font-semibold text-slate-900 leading-tight">
+                            <span className="font-semibold text-slate-900 dark:text-white leading-tight">
                               {compra.nome}
                             </span>
                             {compra.descricao && (
-                              <span className="text-[11px] text-slate-400 truncate max-w-sm">
+                              <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-sm">
                                 {compra.descricao}
                               </span>
                             )}
@@ -644,7 +629,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                               (c) => c.id === compra.categoria || c.nome === compra.categoria
                             );
                             return (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200/50">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/50 dark:border-slate-700/50">
                                 <CategoryIconOrImage
                                   icone={catObj?.icone}
                                   imagemUrl={catObj?.imagemUrl}
@@ -661,8 +646,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           <span
                             className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                               (compra.pagoPorNome || compra.pagoPor) === 'Vinicius'
-                                ? 'bg-blue-50 text-[#0051d5]'
-                                : 'bg-purple-50 text-[#712ae2]'
+                                ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
+                                : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
                             }`}
                           >
                             <span
@@ -686,27 +671,27 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                             );
                             if (compra.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
                               return (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#006948]">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400">
                                   ⚖️ 50/50
                                 </span>
                               );
                             }
                             if (percP1 === 100 && percP2 === 0) {
                               return (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0051d5]">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400">
                                   👤 Só {p1Name}
                                 </span>
                               );
                             }
                             if (percP1 === 0 && percP2 === 100) {
                               return (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#712ae2]">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400">
                                   👤 Só {p2Name}
                                 </span>
                               );
                             }
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50">
                                 📊 {percP1}/{percP2}
                               </span>
                             );
@@ -714,14 +699,14 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         </td>
                         <td className="py-3 px-4 text-center whitespace-nowrap">
                           {compra.numeroDeParcelas > 1 ? (
-                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-bold text-[11px]">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[11px]">
                               {compra.numeroDeParcelas} parcelas
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-[11px]">À vista (1x)</span>
+                            <span className="text-slate-400 dark:text-slate-500 text-[11px]">À vista (1x)</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
+                        <td className="py-3 px-4 text-right font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
                           {formatarBRL(totalCentavos)}
                         </td>
                         <td className="py-3 px-3 text-center whitespace-nowrap">
@@ -729,14 +714,14 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                             <div className="flex items-center justify-center gap-1">
                               <button
                                 onClick={() => onEditarCompra(compra.id)}
-                                className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                                className="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                 title="Editar compra"
                               >
                                 <span className="material-symbols-outlined text-[16px]">edit</span>
                               </button>
                               <button
                                 onClick={() => onRemoverCompra(compra.id, 1)}
-                                className="w-7 h-7 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                                className="w-7 h-7 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer"
                                 title="Cancelar compra"
                               >
                                 <span className="material-symbols-outlined text-[16px]">
@@ -746,7 +731,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                             </div>
                           ) : (
                             <span
-                              className="text-[10px] text-slate-400 italic block"
+                              className="text-[10px] text-slate-400 dark:text-slate-500 italic block"
                               title={`Registrado por ${compra.cadastradoPorNome || compra.cadastradoPor}.`}
                             >
                               Por {compra.cadastradoPorNome || compra.cadastradoPor}
@@ -763,14 +748,14 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         ) : lancamentosOrdenados.length === 0 ? (
           compras.length > 0 ? (
             <div className="py-14 px-4 text-center flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[26px]">event_busy</span>
               </div>
               <div className="flex flex-col items-center">
-                <h3 className="font-bold text-slate-900 text-sm">
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                   Nenhuma parcela encontrada para {nomeMesFormatado}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md leading-relaxed">
                   Seu espaço possui <strong>{compras.length} compras cadastradas</strong> no total vinculadas à sua conta! Elas estão concentradas em outros meses.
                 </p>
               </div>
@@ -788,7 +773,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setModoExibicao('todas_compras')}
-                  className="px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-800 dark:text-slate-200 font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
                 >
                   <span className="material-symbols-outlined text-[16px]">list_alt</span>
                   <span>Ver Todas as {compras.length} Compras Cadastradas</span>
@@ -797,14 +782,14 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             </div>
           ) : (
             <div className="py-14 px-4 text-center flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[26px]">shopping_cart</span>
               </div>
               <div className="flex flex-col items-center">
-                <h3 className="font-bold text-slate-900 text-sm">
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                   Nenhuma compra encontrada neste espaço
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md leading-relaxed">
                   Se as compras estavam em outro espaço vinculado ao seu e-mail, abra o <strong>Espaço do Casal</strong> no cabeçalho para restaurar ou alternar de espaço.
                 </p>
               </div>
@@ -822,7 +807,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
                   <th className="py-3 px-4 whitespace-nowrap">Data</th>
                   <th className="py-3 px-4 min-w-[220px]">Estabelecimento / Item</th>
                   <th className="py-3 px-4 whitespace-nowrap">Categoria</th>
@@ -833,7 +818,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                   <th className="py-3 px-3 text-center w-20">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {lancamentosPaginados.map((lancamento) => {
                   const dataFormatada = (() => {
                     const parts = lancamento.dataReferencia.split('-');
@@ -845,25 +830,25 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                   return (
                     <tr
                       key={`${lancamento.compraId}-${lancamento.numeroParcela}`}
-                      className="hover:bg-slate-50/70 transition-colors"
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                     >
-                      <td className="py-3 px-4 font-semibold text-slate-600 whitespace-nowrap">
+                      <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
                         {dataFormatada}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-slate-900 leading-tight">
+                            <span className="font-semibold text-slate-900 dark:text-white leading-tight">
                               {lancamento.nome}
                             </span>
                             {lancamento.totalParcelas > 1 && (
-                              <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 text-[10px] font-bold">
+                              <span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                                 Parcela {lancamento.numeroParcela}/{lancamento.totalParcelas}
                               </span>
                             )}
                           </div>
                           {lancamento.descricao && (
-                            <span className="text-[11px] text-slate-400 truncate max-w-sm">
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-sm">
                               {lancamento.descricao}
                             </span>
                           )}
@@ -875,7 +860,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                             (c) => c.id === lancamento.categoria || c.nome === lancamento.categoria
                           );
                           return (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200/50">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/50 dark:border-slate-700/50">
                               <CategoryIconOrImage
                                 icone={catObj?.icone}
                                 imagemUrl={catObj?.imagemUrl}
@@ -892,8 +877,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                             lancamento.pagoPor === 'Vinicius'
-                              ? 'bg-blue-50 text-[#0051d5]'
-                              : 'bg-purple-50 text-[#712ae2]'
+                              ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
+                              : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
                           }`}
                         >
                           <span
@@ -915,36 +900,36 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           );
                           if (lancamento.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#006948]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400">
                                 ⚖️ 50/50
                               </span>
                             );
                           }
                           if (percP1 === 100 && percP2 === 0) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0051d5]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400">
                                 👤 Só {p1Name}
                               </span>
                             );
                           }
                           if (percP1 === 0 && percP2 === 100) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#712ae2]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400">
                                 👤 Só {p2Name}
                               </span>
                             );
                           }
                           return (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50">
                               📊 {percP1}/{percP2}
                             </span>
                           );
                         })()}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
+                      <td className="py-3 px-4 text-right font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.valorCentavos)}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-[#006948] tabular-nums whitespace-nowrap">
+                      <td className="py-3 px-4 text-right font-bold text-[#006948] dark:text-emerald-400 tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.minhaParteCentavos)}
                       </td>
                       <td className="py-3 px-3 text-center whitespace-nowrap">
@@ -952,7 +937,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => onEditarCompra(lancamento.compraId)}
-                              className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                               title="Editar compra (Autor)"
                             >
                               <span className="material-symbols-outlined text-[16px]">edit</span>
@@ -961,7 +946,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                               onClick={() =>
                                 onRemoverCompra(lancamento.compraId, lancamento.numeroParcela)
                               }
-                              className="w-7 h-7 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-7 h-7 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer"
                               title="Cancelar a partir desta parcela"
                             >
                               <span className="material-symbols-outlined text-[16px]">
@@ -971,7 +956,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           </div>
                         ) : (
                           <span
-                            className="text-[10px] text-slate-400 italic block"
+                            className="text-[10px] text-slate-400 dark:text-slate-500 italic block"
                             title={`Registrado por ${lancamento.cadastradoPor}. Apenas o autor pode editar ou remover.`}
                           >
                             Por {lancamento.cadastradoPor}
@@ -987,11 +972,11 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         )}
 
         {/* Rodapé e Paginação */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div>
             Exibindo <strong>{lancamentosPaginados.length}</strong> de{' '}
             <strong>{lancamentosOrdenados.length}</strong> lançamentos | Soma da página:{' '}
-            <strong className="text-slate-800 tabular-nums">
+            <strong className="text-slate-800 dark:text-slate-200 tabular-nums">
               {formatarBRL(somaPaginaCentavos)}
             </strong>
           </div>
@@ -1000,7 +985,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             <button
               onClick={() => setPagina((p) => Math.max(1, p - 1))}
               disabled={pagina === 1}
-              className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+              className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 cursor-pointer"
             >
               Anterior
             </button>
@@ -1011,7 +996,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   pagina === num
                     ? 'bg-[#006948] text-white shadow-sm'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 {num}
@@ -1020,7 +1005,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             <button
               onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
               disabled={pagina >= totalPaginas}
-              className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+              className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 cursor-pointer"
             >
               Próxima
             </button>
@@ -1029,14 +1014,14 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       </div>
 
       {/* Banner de Harmonia Financeira */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#161f2e] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-[20px]">favorite</span>
           </div>
           <div>
-            <h4 className="text-xs font-bold text-slate-900">Transparência sem cobranças</h4>
-            <p className="text-xs text-slate-500">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">Transparência sem cobranças</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Ambos têm visibilidade instantânea dos lançamentos e do impacto no acerto final.
             </p>
           </div>
@@ -1044,7 +1029,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         <button
           onClick={onAbrirModalAcerto}
           type="button"
-          className="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#006948] text-xs font-semibold transition-colors cursor-pointer shrink-0"
+          className="px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-[#006948] dark:text-emerald-300 text-xs font-semibold transition-colors cursor-pointer shrink-0"
         >
           Ver Acerto Provisório
         </button>

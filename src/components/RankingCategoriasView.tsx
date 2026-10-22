@@ -59,27 +59,29 @@ export const RankingCategoriasView: React.FC<RankingCategoriasViewProps> = ({
   const isBlue = corTema === 'blue';
 
   return (
-    <div className="flex flex-col justify-between bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full">
+    <div className="flex flex-col justify-between bg-white dark:bg-[#161f2e] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm h-full">
       <div>
         <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-2.5">
             <div
               className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                isBlue ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-[#006948]'
+                isBlue
+                  ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                  : 'bg-slate-100 dark:bg-slate-800 text-[#006948] dark:text-emerald-400'
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">category</span>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 leading-tight">{titulo}</h3>
-              <span className="text-[11px] text-slate-500">{subtitulo}</span>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{titulo}</h3>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">{subtitulo}</span>
             </div>
           </div>
           {onVerTodasCategorias && (
             <button
               onClick={onVerTodasCategorias}
               className={`hover:underline text-xs font-semibold flex items-center gap-1 cursor-pointer ${
-                isBlue ? 'text-blue-600' : 'text-[#006948]'
+                isBlue ? 'text-blue-600 dark:text-blue-400' : 'text-[#006948] dark:text-emerald-400'
               }`}
             >
               <span>Gerenciar</span>
@@ -89,7 +91,7 @@ export const RankingCategoriasView: React.FC<RankingCategoriasViewProps> = ({
         </div>
 
         {ranking.items.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400">
+          <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
             Nenhum lançamento no período para calcular o ranking.
           </div>
         ) : (
@@ -101,7 +103,7 @@ export const RankingCategoriasView: React.FC<RankingCategoriasViewProps> = ({
               return (
                 <div key={item.categoria} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2 text-slate-800 font-medium">
+                    <span className="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-medium">
                       {(() => {
                         const catObj = categorias?.find(
                           (c) => c.id === item.categoria || c.nome === item.categoria
@@ -119,15 +121,15 @@ export const RankingCategoriasView: React.FC<RankingCategoriasViewProps> = ({
                       <span>{item.categoria}</span>
                     </span>
                     <div className="flex items-center gap-2 tabular-nums">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-slate-900 dark:text-white">
                         {formatarBRL(item.totalCentavos)}
                       </span>
-                      <span className="text-[11px] text-slate-400 w-10 text-right">
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 w-10 text-right">
                         {item.percentual}%
                       </span>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${cor} transition-all duration-500`}
                       style={{ width: `${Math.min(100, item.percentual)}%` }}
@@ -141,14 +143,16 @@ export const RankingCategoriasView: React.FC<RankingCategoriasViewProps> = ({
       </div>
 
       {ranking.items.length > 0 && (
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-slate-500 text-xs">
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
           <span>
             Top 5 somam{' '}
-            <strong className="text-slate-700">{ranking.coberturaTop5Percentual}%</strong> das
+            <strong className="text-slate-700 dark:text-slate-300">{ranking.coberturaTop5Percentual}%</strong> das
             despesas.
           </span>
           <span
-            className={`font-bold tabular-nums ${isBlue ? 'text-blue-600' : 'text-[#006948]'}`}
+            className={`font-bold tabular-nums ${
+              isBlue ? 'text-blue-600 dark:text-blue-400' : 'text-[#006948] dark:text-emerald-400'
+            }`}
           >
             {formatarBRL(ranking.totalTop5Centavos)}
           </span>

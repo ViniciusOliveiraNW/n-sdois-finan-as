@@ -178,27 +178,27 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
     >
-      <div className="bg-white w-full max-w-[540px] rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200">
+      <div className="bg-white dark:bg-[#161f2e] w-full max-w-[540px] rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200 dark:border-slate-800">
         {/* Header */}
-        <div className="px-6 py-5 bg-gradient-to-r from-slate-50 to-emerald-50/50 border-b border-slate-200/80 flex items-center justify-between">
+        <div className="px-6 py-5 bg-gradient-to-r from-slate-50 to-emerald-50/50 dark:from-slate-800/80 dark:to-emerald-950/30 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#006948] text-white flex items-center justify-center shadow-sm">
               <span className="material-symbols-outlined text-[22px]">favorite</span>
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                 Espaço do Casal • {p1Nome} & {p2Nome}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Sincronização em tempo real via Firebase Firestore
               </p>
             </div>
           </div>
           <button
             onClick={onFechar}
-            className="w-8 h-8 rounded-full bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
             title="Fechar"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
@@ -208,25 +208,25 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
         {/* Content */}
         <div className="p-6 flex flex-col gap-5 text-xs">
           {/* Card Código de Convite */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 via-white to-slate-50 border border-emerald-200 flex flex-col gap-3">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 via-white to-slate-50 dark:from-emerald-950/30 dark:via-[#161f2e] dark:to-slate-900/60 border border-emerald-200 dark:border-emerald-800/60 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-[#006948] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-[11px] font-bold text-[#006948] dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[16px]">vpn_key</span>
                 <span>Código de Parceria do Casal</span>
               </span>
               {p2Conectado ? (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006948] font-bold text-[10px]">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-300 font-bold text-[10px]">
                   Ambos Conectados
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px] animate-pulse">
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold text-[10px] animate-pulse">
                   Aguardando Parceiro(a)
                 </span>
               )}
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-white border border-slate-200 rounded-xl py-2 px-4 text-center font-mono font-extrabold text-xl tracking-widest text-slate-900 shadow-sm select-all">
+              <div className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-4 text-center font-mono font-extrabold text-xl tracking-widest text-slate-900 dark:text-white shadow-sm select-all">
                 {couple.inviteCode}
               </div>
               <button
@@ -241,14 +241,14 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
               </button>
             </div>
 
-            <p className="text-[11px] text-slate-600 leading-relaxed">
-              Compartilhe este código com <strong>{p2Nome}</strong>. Ao acessar o NósDois Finanças e escolher &ldquo;Tenho um Código&rdquo;, vocês ficarão permanentemente conectados.
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              Compartilhe este código com <strong className="text-slate-900 dark:text-white">{p2Nome}</strong>. Ao acessar o NósDois Finanças e escolher &ldquo;Tenho um Código&rdquo;, vocês ficarão permanentemente conectados.
             </p>
 
             <button
               type="button"
               onClick={handleCopiarMensagem}
-              className="w-full py-2 px-3 rounded-lg bg-emerald-100/70 hover:bg-emerald-100 text-[#006948] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full py-2 px-3 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-[#006948] dark:text-emerald-300 font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">send</span>
               <span>{copiadoMsg ? 'Convite Copiado!' : 'Copiar Convite Formatado para WhatsApp'}</span>
@@ -258,12 +258,12 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
           {/* Lista de Membros */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-700">Membros do Espaço:</span>
+              <span className="font-bold text-slate-700 dark:text-slate-300">Membros do Espaço:</span>
               {onAbrirPerfilModal && (
                 <button
                   type="button"
                   onClick={onAbrirPerfilModal}
-                  className="text-[11px] font-semibold text-[#006948] hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] font-semibold text-[#006948] dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[14px]">photo_camera</span>
                   <span>Alterar Minha Foto CDN</span>
@@ -272,7 +272,7 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {/* Parceiro 1 */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center gap-3">
                 {couple.partner1PhotoURL || (user.uid === couple.partner1Uid && user.photoURL) ? (
                   <img
                     src={couple.partner1PhotoURL || user.photoURL}
@@ -300,12 +300,12 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
               </div>
 
               {/* Parceiro 2 */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center gap-3">
                 {couple.partner2PhotoURL || (user.uid === couple.partner2Uid && user.photoURL) ? (
                   <img
                     src={couple.partner2PhotoURL || user.photoURL}
                     alt={p2Nome}
-                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
+                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700"
                     onError={(e) => {
                       (e.currentTarget as HTMLElement).style.display = 'none';
                     }}
@@ -317,12 +317,12 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
                 )}
                 <div className="flex flex-col flex-1 min-w-0">
                   <div className="flex items-center gap-1">
-                    <span className="font-bold text-slate-900 truncate">{p2Nome}</span>
+                    <span className="font-bold text-slate-900 dark:text-white truncate">{p2Nome}</span>
                     {user.uid === couple.partner2Uid && (
-                      <span className="text-[10px] text-[#006948] font-bold">(Você)</span>
+                      <span className="text-[10px] text-[#006948] dark:text-emerald-400 font-bold">(Você)</span>
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-500 truncate">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                     {p2Conectado ? couple.partner2Email || 'Afiliado(a)' : 'Aguardando convite...'}
                   </span>
                 </div>
@@ -335,28 +335,28 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
           </div>
 
           {/* Regime de Gastos Padrão do Casal */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">pie_chart</span>
                 <span>Regime de Rateio Padrão do Casal</span>
               </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setMostrarSlider(!mostrarSlider)}
-                  className="text-[11px] font-semibold text-[#006948] hover:text-[#005137] hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] font-semibold text-[#006948] dark:text-emerald-400 hover:text-[#005137] hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[14px]">tune</span>
                   <span>{mostrarSlider ? 'Ocultar Slider' : 'Ajuste Fino (%)'}</span>
                 </button>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006948] font-bold text-[10px]">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-300 font-bold text-[10px]">
                   {splitSalvo ? 'Salvo!' : `Atual: ${splitPadrao}`}
                 </span>
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-500 leading-relaxed">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               Define a proporção automática padrão aplicada quando qualquer um dos parceiros cadastrar uma nova despesa compartilhada.
             </p>
 
@@ -411,14 +411,14 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
                     }}
                     className={`py-2 px-2.5 rounded-xl border text-left flex flex-col gap-0.5 transition-all cursor-pointer ${
                       ativo
-                        ? 'bg-emerald-50/80 border-[#006948] ring-1 ring-[#006948]'
-                        : 'bg-white border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                        ? 'bg-emerald-50/80 dark:bg-emerald-950/60 border-[#006948] dark:border-emerald-500 ring-1 ring-[#006948]'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/60 hover:border-slate-300'
                     }`}
                   >
-                    <span className="text-xs font-bold text-slate-900 leading-tight">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
                       {opcao.label}
                     </span>
-                    <span className="text-[10px] text-slate-500 truncate leading-tight">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate leading-tight">
                       {opcao.desc}
                     </span>
                   </button>
@@ -428,13 +428,13 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
 
             {/* Painel de Ajuste Fino / Slider Livre */}
             {mostrarSlider && (
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col gap-2.5">
+              <div className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-[#0051d5]">tune</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#0051d5] dark:text-blue-400">tune</span>
                     <span>Proporção Livre do Rateio</span>
                   </span>
-                  <span className="text-[11px] font-mono font-bold text-slate-600">
+                  <span className="text-[11px] font-mono font-bold text-slate-600 dark:text-slate-400">
                     {customP1}% + {100 - customP1}% = 100%
                   </span>
                 </div>

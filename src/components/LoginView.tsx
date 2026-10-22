@@ -63,29 +63,29 @@ export const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] flex flex-col justify-center items-center p-4 sm:p-6">
+    <div className="min-h-screen bg-[#f8f9ff] dark:bg-[#0b1320] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors">
       <div className="w-full max-w-md flex flex-col items-center">
         {/* Header */}
         <header className="flex flex-col items-center text-center mb-6">
           <div className="w-16 h-16 rounded-full bg-[#006948] text-white flex items-center justify-center shadow-lg mb-3">
             <span className="material-symbols-outlined text-[32px]">favorite</span>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-[#006948] mb-2 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 mb-2 text-xs font-bold uppercase tracking-wider border border-transparent dark:border-emerald-800/40">
             <span className="material-symbols-outlined text-[14px]">volunteer_activism</span>
             <span>Finanças em Harmonia</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1">
             NósDois Finanças
           </h1>
-          <p className="text-xs text-slate-500 max-w-sm">
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
             Acesse sua conta do casal e mantenha a clareza financeira a dois com serenidade e parceria.
           </p>
         </header>
 
         {/* Card de Autenticação */}
-        <div className="w-full bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 mb-8">
+        <div className="w-full bg-white dark:bg-[#161f2e] rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 mb-8">
           {/* Tabs */}
-          <div className="p-1 bg-slate-100 rounded-xl flex mb-5">
+          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl flex mb-5 border border-transparent dark:border-slate-700">
             <button
               type="button"
               onClick={() => {
@@ -94,8 +94,8 @@ export const LoginView: React.FC = () => {
               }}
               className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 modo === 'login'
-                  ? 'bg-white text-[#006948] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-[#006948] dark:text-emerald-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">login</span>
@@ -109,8 +109,8 @@ export const LoginView: React.FC = () => {
               }}
               className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 modo === 'signup'
-                  ? 'bg-white text-[#006948] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-[#006948] dark:text-emerald-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">group_add</span>
@@ -119,7 +119,7 @@ export const LoginView: React.FC = () => {
           </div>
 
           {erro && (
-            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs mb-4 flex items-start gap-2">
+            <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs mb-4 flex items-start gap-2">
               <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">error</span>
               <span className="leading-relaxed">{erro}</span>
             </div>
@@ -130,7 +130,7 @@ export const LoginView: React.FC = () => {
             type="button"
             onClick={handleGoogleLogin}
             disabled={carregando}
-            className="w-full h-11 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs transition-colors flex items-center justify-center gap-2.5 shadow-sm cursor-pointer mb-4"
+            className="w-full h-11 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-colors flex items-center justify-center gap-2.5 shadow-sm cursor-pointer mb-4"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -153,54 +153,54 @@ export const LoginView: React.FC = () => {
             <span>Continuar com Google (Recomendado)</span>
           </button>
 
-          <div className="flex items-center my-4 text-slate-400 text-[11px]">
-            <div className="flex-1 h-px bg-slate-200"></div>
+          <div className="flex items-center my-4 text-slate-400 dark:text-slate-500 text-[11px]">
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
             <span className="px-3">ou entre com e-mail</span>
-            <div className="flex-1 h-px bg-slate-200"></div>
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
           </div>
 
           <form onSubmit={handleEmailAuth} className="flex flex-col gap-3.5 text-xs">
             {modo === 'signup' && (
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Seu Nome</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Seu Nome</label>
                 <input
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Ex: Vinicius ou Silvia"
-                  className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white"
+                  className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:bg-white dark:focus:bg-slate-800"
                   required
                 />
               </div>
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="font-semibold text-slate-700">E-mail</label>
+              <label className="font-semibold text-slate-700 dark:text-slate-300">E-mail</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu.email@exemplo.com"
-                className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white"
+                className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:bg-white dark:focus:bg-slate-800"
                 required
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="font-semibold text-slate-700">Senha</label>
+              <label className="font-semibold text-slate-700 dark:text-slate-300">Senha</label>
               <div className="relative flex items-center">
                 <input
                   type={mostrarSenha ? 'text' : 'password'}
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="Mínimo de 6 caracteres"
-                  className="w-full h-10 pl-3 pr-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white"
+                  className="w-full h-10 pl-3 pr-10 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:bg-white dark:focus:bg-slate-800"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setMostrarSenha(!mostrarSenha)}
-                  className="absolute right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[18px]">
                     {mostrarSenha ? 'visibility_off' : 'visibility'}
@@ -228,38 +228,38 @@ export const LoginView: React.FC = () => {
 
         {/* 3 Benefícios do Casal */}
         <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 text-xs">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-start">
-            <span className="material-symbols-outlined text-[#006948] text-[20px] mb-1">
+          <div className="bg-white dark:bg-[#161f2e] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-start">
+            <span className="material-symbols-outlined text-[#006948] dark:text-emerald-400 text-[20px] mb-1">
               splitscreen
             </span>
-            <strong className="text-slate-800">Visão Individual & Casal</strong>
-            <p className="text-slate-500 text-[11px] mt-0.5">
+            <strong className="text-slate-800 dark:text-white">Visão Individual & Casal</strong>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
               Clareza total do que cada um pagou e do impacto conjunto.
             </p>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-start">
-            <span className="material-symbols-outlined text-[#006948] text-[20px] mb-1">
+          <div className="bg-white dark:bg-[#161f2e] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-start">
+            <span className="material-symbols-outlined text-[#006948] dark:text-emerald-400 text-[20px] mb-1">
               balance
             </span>
-            <strong className="text-slate-800">Divisão Justa 50/50</strong>
-            <p className="text-slate-500 text-[11px] mt-0.5">
+            <strong className="text-slate-800 dark:text-white">Divisão Justa 50/50</strong>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
               Cálculo automatizado em centavos inteiros sem atrito.
             </p>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-start">
-            <span className="material-symbols-outlined text-[#006948] text-[20px] mb-1">
+          <div className="bg-white dark:bg-[#161f2e] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-start">
+            <span className="material-symbols-outlined text-[#006948] dark:text-emerald-400 text-[20px] mb-1">
               cloud_sync
             </span>
-            <strong className="text-slate-800">Sincronizado na Nuvem</strong>
-            <p className="text-slate-500 text-[11px] mt-0.5">
+            <strong className="text-slate-800 dark:text-white">Sincronizado na Nuvem</strong>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
               Firebase Firestore em tempo real no celular e no computador.
             </p>
           </div>
         </div>
 
-        <footer className="text-center text-[11px] text-slate-400">
+        <footer className="text-center text-[11px] text-slate-400 dark:text-slate-500">
           NósDois Finanças • Conectando quem constrói o futuro junto.
         </footer>
       </div>

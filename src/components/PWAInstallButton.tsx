@@ -41,7 +41,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         <button
           type="button"
           onClick={() => setMostrarGuiaIOS(true)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#006948] text-xs font-bold transition-all cursor-pointer ${className}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 text-[#006948] dark:text-emerald-300 text-xs font-bold transition-all cursor-pointer ${className}`}
           title="Como instalar no iPhone ou iPad"
         >
           <span className="material-symbols-outlined text-[16px]">add_to_home_screen</span>
@@ -54,25 +54,25 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             aria-modal="true"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
           >
-            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 text-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#161f2e] p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4 text-xs transition-colors">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-[#006948] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 flex items-center justify-center">
                     <span className="material-symbols-outlined text-[18px]">phone_iphone</span>
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900">Instalar no iPhone / iPad</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Instalar no iPhone / iPad</h3>
                 </div>
                 <button
                   onClick={() => setMostrarGuiaIOS(false)}
-                  className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>
               </div>
 
-              <div className="flex flex-col gap-3 text-slate-700 leading-relaxed">
+              <div className="flex flex-col gap-3 text-slate-700 dark:text-slate-300 leading-relaxed">
                 <p>Para usar o **NósDois Finanças** em tela cheia como um aplicativo no seu iOS:</p>
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col gap-2.5">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2.5">
                   <div className="flex items-start gap-2">
                     <span className="w-5 h-5 rounded-full bg-[#006948] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                       1
@@ -98,7 +98,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                     </span>
                   </div>
                 </div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   O ícone do casal aparecerá diretamente na sua tela de início, abrindo sem barra de navegador.
                 </p>
               </div>
@@ -123,10 +123,10 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
       <button
         type="button"
         onClick={() => setMostrarGuiaGeral(true)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer ${className}`}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer ${className}`}
         title="Instalar no Celular"
       >
-        <span className="material-symbols-outlined text-[16px] text-[#006948]">devices</span>
+        <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">devices</span>
         <span>App no Celular</span>
       </button>
 
@@ -136,39 +136,39 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 text-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#161f2e] p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4 text-xs transition-colors">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-[#006948] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 flex items-center justify-center">
                   <span className="material-symbols-outlined text-[18px]">smartphone</span>
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Como usar no Celular</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Como usar no Celular</h3>
               </div>
               <button
                 onClick={() => setMostrarGuiaGeral(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">close</span>
               </button>
             </div>
 
-            <div className="flex flex-col gap-3 text-slate-700 leading-relaxed">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col gap-2">
-                <strong className="text-slate-900 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[15px] text-[#006948]">android</span>
+            <div className="flex flex-col gap-3 text-slate-700 dark:text-slate-300 leading-relaxed">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+                <strong className="text-slate-900 dark:text-white flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[15px] text-[#006948] dark:text-emerald-400">android</span>
                   No Android (Chrome / Edge):
                 </strong>
-                <p className="text-[11px] text-slate-600">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">
                   Abra o link do NósDois no Chrome do celular, toque nos <strong>3 pontinhos</strong> no canto superior direito e escolha <strong>&ldquo;Instalar aplicativo&rdquo;</strong> ou <strong>&ldquo;Adicionar à tela inicial&rdquo;</strong>.
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col gap-2">
-                <strong className="text-slate-900 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[15px] text-[#006948]">phone_iphone</span>
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+                <strong className="text-slate-900 dark:text-white flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[15px] text-[#006948] dark:text-emerald-400">phone_iphone</span>
                   No iPhone / iPad (Safari):
                 </strong>
-                <p className="text-[11px] text-slate-600">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">
                   Abra no Safari, toque no botão <strong>Compartilhar</strong> (quadrado com seta para cima) e selecione <strong>&ldquo;Adicionar à Tela de Início&rdquo;</strong>.
                 </p>
               </div>

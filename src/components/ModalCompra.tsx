@@ -236,11 +236,11 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-compra-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
     >
-      <div className="bg-white w-full max-w-[680px] rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200">
+      <div className="bg-white dark:bg-[#161f2e] w-full max-w-[680px] rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200 dark:border-slate-800">
         {/* Header */}
-        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/70 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#006948] text-white flex items-center justify-center shadow-sm">
               <span className="material-symbols-outlined text-[22px]">
@@ -249,14 +249,14 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="modal-compra-title" className="text-lg font-bold text-slate-900">
+                <h2 id="modal-compra-title" className="text-lg font-bold text-slate-900 dark:text-white">
                   {compraEmEdicao ? 'Editar Lançamento' : 'Novo Lançamento'}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006948] text-[11px] font-semibold">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 text-[11px] font-semibold border border-transparent dark:border-emerald-800/40">
                   NósDois Finanças
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {compraEmEdicao
                   ? `Criado originalmente por ${compraEmEdicao.cadastradoPorNome || compraEmEdicao.cadastradoPor}`
                   : 'Registre uma despesa e defina a divisão justa entre o casal'}
@@ -266,7 +266,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           <button
             onClick={onFechar}
             type="button"
-            className="w-8 h-8 rounded-full bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer border border-slate-200 dark:border-slate-700"
             title="Fechar"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
@@ -278,7 +278,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           {erro && (
             <div
               role="alert"
-              className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2"
+              className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">error</span>
               <span>{erro}</span>
@@ -288,8 +288,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           {/* Row 1: Estabelecimento & Valor */}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div className="sm:col-span-7 flex flex-col gap-1.5">
-              <label htmlFor="compra-nome" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">storefront</span>
+              <label htmlFor="compra-nome" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">storefront</span>
                 <span>Estabelecimento ou Item</span>
                 <span className="text-red-500">*</span>
               </label>
@@ -299,26 +299,26 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Ex: Supermercado, Farmácia, Luz, Jantar..."
-                className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 transition-all"
+                className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 transition-all"
                 required
               />
             </div>
 
             <div className="sm:col-span-5 flex flex-col gap-1.5">
-              <label htmlFor="compra-valor" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">attach_money</span>
+              <label htmlFor="compra-valor" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">attach_money</span>
                 <span>Valor Total (R$)</span>
                 <span className="text-red-500">*</span>
               </label>
               <div className="relative flex items-center">
-                <span className="absolute left-3 text-slate-400 font-semibold text-xs">R$</span>
+                <span className="absolute left-3 text-slate-400 dark:text-slate-500 font-semibold text-xs">R$</span>
                 <input
                   id="compra-valor"
                   type="text"
                   value={valorInput}
                   onChange={(e) => setValorInput(e.target.value)}
                   placeholder="0,00"
-                  className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-bold text-sm tabular-nums focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 transition-all"
+                  className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-bold text-sm tabular-nums focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 transition-all"
                   required
                 />
               </div>
@@ -328,16 +328,16 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           {/* Row 2: Categoria & Data */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="compra-cat" className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+              <label htmlFor="compra-cat" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px] text-[#006948]">category</span>
+                  <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">category</span>
                   <span>Categoria</span>
                   <span className="text-red-500">*</span>
                 </span>
                 {(() => {
                   const catAtual = listaCategorias.find((c) => c.id === categoria);
                   return catAtual?.imagemUrl ? (
-                    <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-semibold border border-emerald-200">
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.2 rounded font-semibold border border-emerald-200 dark:border-emerald-800">
                       Foto CDN
                     </span>
                   ) : null;
@@ -360,10 +360,10 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                   id="compra-cat"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value as CategoriaId)}
-                  className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
+                  className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
                 >
                   {listaCategorias.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
+                    <option key={cat.id} value={cat.id} className="dark:bg-slate-800">
                       {cat.icone} {cat.nome} {cat.imagemUrl ? '• (CDN)' : ''}
                     </option>
                   ))}
@@ -372,8 +372,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="compra-data" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">calendar_today</span>
+              <label htmlFor="compra-data" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">calendar_today</span>
                 <span>Data do 1º Pagamento</span>
                 <span className="text-red-500">*</span>
               </label>
@@ -382,20 +382,20 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                 type="date"
                 value={dataPrimeiroPagamento}
                 onChange={(e) => setDataPrimeiroPagamento(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
+                className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
                 required
               />
             </div>
           </div>
 
           {/* Row 3: Tipo de Cobrança & Parcelas */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-[#006948]">credit_card</span>
-                <span className="text-xs font-semibold text-slate-900">Tipo de Cobrança</span>
+                <span className="material-symbols-outlined text-[18px] text-[#006948] dark:text-emerald-400">credit_card</span>
+                <span className="text-xs font-semibold text-slate-900 dark:text-white">Tipo de Cobrança</span>
               </div>
-              <div className="inline-flex p-1 bg-white rounded-lg border border-slate-200">
+              <div className="inline-flex p-1 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => {
@@ -404,8 +404,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                   }}
                   className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     tipoCobranca === 'a_vista'
-                      ? 'bg-slate-100 text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
                   À vista (1x)
@@ -418,8 +418,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                   }}
                   className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     tipoCobranca === 'parcelado'
-                      ? 'bg-slate-100 text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
                   Parcelado
@@ -428,19 +428,19 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             </div>
 
             {tipoCobranca === 'parcelado' && (
-              <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <label htmlFor="num-parcelas" className="text-xs text-slate-600 font-medium">
+                  <label htmlFor="num-parcelas" className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                     Número de Parcelas:
                   </label>
                   <select
                     id="num-parcelas"
                     value={numeroDeParcelas}
                     onChange={(e) => setNumeroDeParcelas(parseInt(e.target.value, 10))}
-                    className="h-9 px-3 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs font-semibold cursor-pointer"
+                    className="h-9 px-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-semibold cursor-pointer"
                   >
                     {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((num) => (
-                      <option key={num} value={num}>
+                      <option key={num} value={num} className="dark:bg-slate-800">
                         {num}x ({num} meses)
                       </option>
                     ))}
@@ -449,10 +449,10 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
 
                 {parcelasSimuladas && (
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-[#006948] text-xs font-bold tabular-nums">
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 border border-transparent dark:border-emerald-800/40 text-xs font-bold tabular-nums">
                       {numeroDeParcelas}x de {formatarBRL(parcelasSimuladas.valores[0])}
                     </span>
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
                       {parcelasSimuladas.meses[0]} até{' '}
                       {parcelasSimuladas.meses[parcelasSimuladas.meses.length - 1]}
                     </span>
@@ -462,12 +462,12 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             )}
 
             {tipoCobranca === 'parcelado' && (
-              <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-start gap-2">
-                <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0 mt-0.5">
+              <div className="p-2.5 rounded-lg bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex items-start gap-2">
+                <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
                   info
                 </span>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  <strong className="text-slate-800">Regra de centavos:</strong> quando o valor não
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <strong className="text-slate-800 dark:text-white">Regra de centavos:</strong> quando o valor não
                   divide igualmente, a última parcela absorve a diferença (ex: R$ 100 em 3x =
                   33,33 + 33,33 + 33,34).
                 </p>
@@ -476,17 +476,17 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           </div>
 
           {/* Seção: Espaço Individual & Confidencial (Cofre Privado) */}
-          <div className={`p-4 rounded-xl border transition-all ${privada ? 'bg-blue-50/80 border-blue-200 ring-1 ring-blue-300' : 'bg-slate-50 border-slate-200'}`}>
+          <div className={`p-4 rounded-xl border transition-all ${privada ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60 ring-1 ring-blue-300 dark:ring-blue-700/50' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${privada ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600'}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${privada ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
                   <span className="material-symbols-outlined text-[18px]">lock</span>
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-900 block">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white block">
                     Lançamento Individual (Cofre Privado)
                   </span>
-                  <span className="text-[11px] text-slate-500 block">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                     Não entra no fechamento do casal, não divide 50/50 e é visível apenas por você.
                   </span>
                 </div>
@@ -530,40 +530,40 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                   }}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
 
             {privada && (
-              <div className="mt-3 pt-3 border-t border-blue-100 space-y-3">
+              <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-900/50 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <label className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-blue-200/80 cursor-pointer hover:bg-blue-50/50">
+                  <label className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-blue-200/80 dark:border-blue-900/50 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-700/50">
                     <input
                       type="checkbox"
                       checked={segredoCasal}
                       onChange={(e) => setSegredoCasal(e.target.checked)}
                       className="rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
                     />
-                    <span className="text-xs font-semibold text-slate-800">
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                       Segredo do Casal 🤫 (Surpresa)
                     </span>
                   </label>
 
-                  <label className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-blue-200/80 cursor-pointer hover:bg-blue-50/50">
+                  <label className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-blue-200/80 dark:border-blue-900/50 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-700/50">
                     <input
                       type="checkbox"
                       checked={assinatura}
                       onChange={(e) => setAssinatura(e.target.checked)}
                       className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
-                    <span className="text-xs font-semibold text-slate-800">
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                       Assinatura Periódica
                     </span>
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Forma de Pagamento ou Contexto
                   </label>
                   <input
@@ -571,7 +571,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                     value={formaPagamentoNome}
                     onChange={(e) => setFormaPagamentoNome(e.target.value)}
                     placeholder="Ex: Cartão Nubank Vinicius, Amazon Kindle Store, VR / Cartão Refeição"
-                    className="w-full px-3 py-1.5 text-xs bg-white border border-blue-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-900/60 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
                   />
                 </div>
               </div>
@@ -581,15 +581,15 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           {/* Row 4: Quem Pagou */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">
                   account_balance_wallet
                 </span>
                 <span>Quem pagou a compra?</span>
                 <span className="text-red-500">*</span>
               </span>
               {privada && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-100/90 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-100/90 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-transparent dark:border-blue-800/40">
                   <span className="material-symbols-outlined text-[13px]">lock</span>
                   <span>Restrito a você ({meuNome})</span>
                 </span>
@@ -597,8 +597,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             </div>
 
             {privada && (
-              <div className="p-2.5 rounded-xl bg-blue-50/90 border border-blue-200 text-blue-900 text-xs flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600 text-[18px] shrink-0">info</span>
+              <div className="p-2.5 rounded-xl bg-blue-50/90 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-900 dark:text-blue-200 text-xs flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px] shrink-0">info</span>
                 <span>
                   Lançamento confidencial do seu cofre pessoal: <strong>o pagador é fixado obrigatoriamente em você ({meuNome})</strong> para garantir que nenhuma despesa particular seja cobrada do parceiro.
                 </span>
@@ -616,10 +616,10 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                   <label
                     className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                       bloqueado
-                        ? 'opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed select-none pointer-events-none'
+                        ? 'opacity-40 bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed select-none pointer-events-none'
                         : selecionado
-                        ? 'bg-blue-50/70 border-[#0051d5] shadow-sm cursor-pointer'
-                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 cursor-pointer'
+                        ? 'bg-blue-50/70 dark:bg-blue-950/40 border-[#0051d5] dark:border-blue-500 shadow-sm cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/60 cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -639,15 +639,15 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-900">{p1Name}</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">{p1Name}</span>
                           {souEuP1 && (
-                            <span className="text-[10px] text-[#0051d5] font-semibold">(Você)</span>
+                            <span className="text-[10px] text-[#0051d5] dark:text-blue-400 font-semibold">(Você)</span>
                           )}
                           {bloqueado && (
-                            <span className="text-[10px] text-slate-500 font-semibold">(Bloqueado)</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">(Bloqueado)</span>
                           )}
                         </div>
-                        <span className="text-[11px] text-slate-500">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
                           {bloqueado ? 'Indisponível em cofre privado' : 'Cartão / Pix dele(a)'}
                         </span>
                       </div>
@@ -657,8 +657,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                         selecionado
                           ? 'bg-[#0051d5] text-white'
                           : bloqueado
-                          ? 'border border-slate-300 bg-slate-200'
-                          : 'border border-slate-300'
+                          ? 'border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800'
+                          : 'border border-slate-300 dark:border-slate-600'
                       }`}
                     >
                       {selecionado && (
@@ -682,10 +682,10 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                   <label
                     className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                       bloqueado
-                        ? 'opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed select-none pointer-events-none'
+                        ? 'opacity-40 bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed select-none pointer-events-none'
                         : selecionado
-                        ? 'bg-purple-50/70 border-[#712ae2] shadow-sm cursor-pointer'
-                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 cursor-pointer'
+                        ? 'bg-purple-50/70 dark:bg-purple-950/40 border-[#712ae2] dark:border-purple-500 shadow-sm cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/60 cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -705,15 +705,15 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-900">{p2Name}</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">{p2Name}</span>
                           {souEuP2 && (
-                            <span className="text-[10px] text-[#712ae2] font-semibold">(Você)</span>
+                            <span className="text-[10px] text-[#712ae2] dark:text-purple-400 font-semibold">(Você)</span>
                           )}
                           {bloqueado && (
-                            <span className="text-[10px] text-slate-500 font-semibold">(Bloqueado)</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">(Bloqueado)</span>
                           )}
                         </div>
-                        <span className="text-[11px] text-slate-500">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
                           {bloqueado ? 'Indisponível em cofre privado' : 'Cartão / Pix dele(a)'}
                         </span>
                       </div>
@@ -723,8 +723,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                         selecionado
                           ? 'bg-[#712ae2] text-white'
                           : bloqueado
-                          ? 'border border-slate-300 bg-slate-200'
-                          : 'border border-slate-300'
+                          ? 'border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800'
+                          : 'border border-slate-300 dark:border-slate-600'
                       }`}
                     >
                       {selecionado && (
@@ -742,12 +742,12 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
 
           {/* Row 5: Divisão da Compra Dinâmica */}
           {privada ? (
-            <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-950 text-xs flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5">
+            <div className="p-4 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-950 dark:text-blue-200 text-xs flex items-start gap-2.5">
+              <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px] shrink-0 mt-0.5">
                 lock
               </span>
               <div>
-                <strong className="block font-bold text-blue-950 mb-0.5">
+                <strong className="block font-bold text-blue-950 dark:text-white mb-0.5">
                   Despesa 100% Pessoal & Confidencial
                 </strong>
                 Este item é atribuído integralmente ao seu cofre privado. Ele não será dividido com o parceiro, não cria dívidas e não entrará no fechamento mensal do casal.
@@ -756,15 +756,15 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           ) : (
             <div className="flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">pie_chart</span>
                   <span>Regime de Divisão desta Compra</span>
                   <span className="text-red-500">*</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setMostrarPersonalizado(!mostrarPersonalizado)}
-                  className="text-[11px] font-semibold text-[#006948] hover:text-[#005137] hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] font-semibold text-[#006948] dark:text-emerald-400 hover:text-[#005137] dark:hover:text-emerald-300 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[14px]">tune</span>
                   <span>{mostrarPersonalizado ? 'Ocultar Personalizado' : 'Ajuste Fino (%)'}</span>
@@ -813,14 +813,14 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                     }}
                     className={`py-2 px-2.5 rounded-xl border text-left flex flex-col gap-0.5 transition-all cursor-pointer ${
                       ativo
-                        ? 'bg-emerald-50/70 border-[#006948] ring-1 ring-[#006948]'
-                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                        ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-[#006948] dark:border-emerald-500 ring-1 ring-[#006948] dark:ring-emerald-500'
+                        : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                     }`}
                   >
-                    <span className="text-xs font-bold text-slate-900 leading-tight">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
                       {opcao.label}
                     </span>
-                    <span className="text-[10px] text-slate-500 truncate leading-tight">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate leading-tight">
                       {opcao.desc}
                     </span>
                   </button>
@@ -830,22 +830,22 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
 
             {/* Painel de Rateio Personalizado (Slider + Inputs) */}
             {mostrarPersonalizado && (
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-blue-600">sliders</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">sliders</span>
                     <span>Definir Porcentagens Livres do Casal</span>
                   </span>
-                  <span className="text-[11px] font-mono font-bold text-slate-600">
+                  <span className="text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300">
                     {customP1}% + {100 - customP1}% = 100%
                   </span>
                 </div>
 
                 {/* Slider */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
-                    <span className="text-[#0051d5]">{p1Name}: {customP1}%</span>
-                    <span className="text-[#712ae2]">{p2Name}: {100 - customP1}%</span>
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                    <span className="text-[#0051d5] dark:text-blue-400">{p1Name}: {customP1}%</span>
+                    <span className="text-[#712ae2] dark:text-purple-400">{p2Name}: {100 - customP1}%</span>
                   </div>
                   <input
                     type="range"
@@ -864,9 +864,9 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
 
                 {/* Number Inputs diretos */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#0051d5] shrink-0"></span>
-                    <span className="text-[11px] font-semibold text-slate-600 truncate flex-1">{p1Name}:</span>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 truncate flex-1">{p1Name}:</span>
                     <input
                       type="number"
                       min="0"
@@ -879,14 +879,14 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                         setCustomP1(v);
                         setDivisao(`${v}/${100 - v}`);
                       }}
-                      className="w-12 text-right font-bold text-xs text-slate-900 border-none focus:outline-none"
+                      className="w-12 text-right font-bold text-xs text-slate-900 dark:text-white bg-transparent border-none focus:outline-none"
                     />
                     <span className="text-xs text-slate-400 font-bold">%</span>
                   </div>
 
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#712ae2] shrink-0"></span>
-                    <span className="text-[11px] font-semibold text-slate-600 truncate flex-1">{p2Name}:</span>
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 truncate flex-1">{p2Name}:</span>
                     <input
                       type="number"
                       min="0"
@@ -899,7 +899,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                         setCustomP1(100 - v);
                         setDivisao(`${100 - v}/${v}`);
                       }}
-                      className="w-12 text-right font-bold text-xs text-slate-900 border-none focus:outline-none"
+                      className="w-12 text-right font-bold text-xs text-slate-900 dark:text-white bg-transparent border-none focus:outline-none"
                     />
                     <span className="text-xs text-slate-400 font-bold">%</span>
                   </div>
@@ -921,19 +921,19 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
               const ehPagadorP1 = pagoPor === p1Name || pagoPor === p1Uid;
 
               return (
-                <div className="p-3.5 rounded-xl bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 border border-slate-200 flex flex-col gap-2">
+                <div className="p-3.5 rounded-xl bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900/60 dark:via-slate-800/40 dark:to-emerald-950/20 border border-slate-200 dark:border-slate-800 flex flex-col gap-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[15px] text-[#006948]">calculate</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[15px] text-[#006948] dark:text-emerald-400">calculate</span>
                       <span>Impacto da Divisão no Acerto ({percP1}% / {percP2}%)</span>
                     </span>
-                    <span className="font-bold text-[#006948]">
+                    <span className="font-bold text-[#006948] dark:text-emerald-400">
                       Total: {formatarBRL(valorCentavosLimpo)}
                     </span>
                   </div>
 
                   {/* Barra de Proporção Bi-Color */}
-                  <div className="w-full bg-slate-200 h-2 rounded-full flex overflow-hidden">
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full flex overflow-hidden">
                     <div
                       className="bg-[#0051d5] h-full transition-all duration-300"
                       style={{ width: `${percP1}%` }}
@@ -948,30 +948,30 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
 
                   {/* Cotas Monetárias */}
                   <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                    <div className="p-2 rounded-lg bg-blue-50/60 border border-blue-100 flex flex-col">
-                      <span className="text-[#0051d5] font-semibold flex items-center gap-1">
+                    <div className="p-2 rounded-lg bg-blue-50/60 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 flex flex-col">
+                      <span className="text-[#0051d5] dark:text-blue-400 font-semibold flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#0051d5]"></span>
                         <span>Cota {p1Name} ({percP1}%)</span>
                       </span>
-                      <strong className="text-slate-900 text-xs font-bold mt-0.5">
+                      <strong className="text-slate-900 dark:text-white text-xs font-bold mt-0.5">
                         {formatarBRL(cotaP1)}
                       </strong>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-purple-50/60 border border-purple-100 flex flex-col">
-                      <span className="text-[#712ae2] font-semibold flex items-center gap-1">
+                    <div className="p-2 rounded-lg bg-purple-50/60 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 flex flex-col">
+                      <span className="text-[#712ae2] dark:text-purple-400 font-semibold flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#712ae2]"></span>
                         <span>Cota {p2Name} ({percP2}%)</span>
                       </span>
-                      <strong className="text-slate-900 text-xs font-bold mt-0.5">
+                      <strong className="text-slate-900 dark:text-white text-xs font-bold mt-0.5">
                         {formatarBRL(cotaP2)}
                       </strong>
                     </div>
                   </div>
 
                   {/* Explicação da Dívida e Ressarcimento */}
-                  <div className="text-[11px] text-slate-600 bg-slate-100/70 p-2 rounded-lg flex items-start gap-1.5 mt-0.5">
-                    <span className="material-symbols-outlined text-[15px] text-[#006948] shrink-0 mt-0.5">
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-slate-800/60 p-2 rounded-lg flex items-start gap-1.5 mt-0.5">
+                    <span className="material-symbols-outlined text-[15px] text-[#006948] dark:text-emerald-400 shrink-0 mt-0.5">
                       info
                     </span>
                     <span>
@@ -1014,7 +1014,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
 
           {/* Row 6: Descrição Opcional */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="compra-desc" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+            <label htmlFor="compra-desc" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[16px] text-slate-400">notes</span>
               <span>Descrição / Observações</span>
               <span className="text-slate-400 text-[11px] font-normal">(opcional)</span>
@@ -1025,16 +1025,16 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               placeholder="Ex: Frutas e itens de limpeza, ceia especial, etc."
-              className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 transition-all"
+              className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 transition-all"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
             <button
               type="button"
               onClick={onFechar}
-              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors cursor-pointer border border-transparent dark:border-slate-700"
             >
               Cancelar
             </button>

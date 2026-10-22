@@ -1,13 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { CategoriaMeta, Compra, CoupleSpace, LancamentoMensal, UsuarioId } from '../types';
+import { CategoriaMeta, Compra, CoupleSpace, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
 import { CATEGORIAS_PADRAO_INDIVIDUAIS } from '../data/initialData';
 import { formatarBRL } from '../calculations/acertoMensal';
+import { calcularTetoIndividual } from '../calculations/tetoIndividual';
 import { ModalCompartilharCompra } from './ModalCompartilharCompra';
 import { ModalTetoPessoal } from './ModalTetoPessoal';
 import { ModalCategoriasIndividuais } from './ModalCategoriasIndividuais';
 import { RankingCategoriasView } from './RankingCategoriasView';
 import { HeatmapCalendario } from './HeatmapCalendario';
 import { CategoryIconOrImage } from './CategoryIconOrImage';
+import { SeletorMesFlutuante } from './SeletorMesFlutuante';
 import { calcularRankingCategorias } from '../calculations/rankingCategorias';
 import { obterDiasNoMes } from '../calculations/parcelas';
 
@@ -20,6 +22,7 @@ interface MinhasDespesasViewProps {
   lancamentosPrivadosDoMes: LancamentoMensal[];
   totalGastosCasalCentavos: number;
   tetoPessoalCentavos: number;
+  resumoAcerto?: ResumoAcerto;
   categoriasIndividuais?: CategoriaMeta[];
   onSalvarCategoriasIndividuais?: (novasCategorias: CategoriaMeta[]) => Promise<void> | void;
   onSalvarTetoPessoal: (novoTetoCentavos: number) => Promise<void> | void;
@@ -39,6 +42,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   lancamentosPrivadosDoMes,
   totalGastosCasalCentavos,
   tetoPessoalCentavos,
+  resumoAcerto,
   categoriasIndividuais,
   onSalvarCategoriasIndividuais,
   onSalvarTetoPessoal,
@@ -106,10 +110,28 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
     return parceladosDoMes.reduce((acc, l) => acc + l.valorCentavos, 0);
   }, [parceladosDoMes]);
 
-  // Teto pessoal e margem livre
-  const tetoEfetivoCentavos = tetoPessoalCentavos > 0 ? tetoPessoalCentavos : 250000;
-  const percUsadoTeto = Math.round((totalGastoPessoalCentavos / tetoEfetivoCentavos) * 100);
-  const margemLivreCentavos = tetoEfetivoCentavos - totalGastoPessoalCentavos;
+  // Cálculo automático do teto individual considerando despesas individuais e acerto do casal
+  const calculoTeto = useMemo(() => {
+    return calcularTetoIndividual({
+      tetoBaseCentavos: tetoPessoalCentavos,
+      gastoIndividualCentavos: totalGastoPessoalCentavos,
+      resumoAcerto,
+      usuarioAtual,
+      p1Uid: couple?.partner1Uid || 'Vinicius',
+      p1Name: couple?.partner1Name || 'Vinicius',
+      p2Uid: couple?.partner2Uid || 'Silvia',
+      p2Name: couple?.partner2Name || 'Silvia',
+    });
+  }, [
+    tetoPessoalCentavos,
+    totalGastoPessoalCentavos,
+    resumoAcerto,
+    usuarioAtual,
+    couple?.partner1Uid,
+    couple?.partner1Name,
+    couple?.partner2Uid,
+    couple?.partner2Name,
+  ]);
 
   // Equilíbrio de Consciência: Casal vs Individual
   const somaTotalCentavos = totalGastosCasalCentavos + totalGastoPessoalCentavos;
@@ -203,41 +225,41 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   return (
     <div className="space-y-6 pb-12 animate-fadeIn">
       {/* 1. Top Switcher Banner: 100% Individual & Confidencial */}
-      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-200/80 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-slate-900 border border-blue-200/80 dark:border-blue-900/60 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
         <div className="flex items-start sm:items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/20">
             <span className="material-symbols-outlined text-[22px]">lock</span>
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-blue-950 tracking-tight">
+              <span className="text-xs sm:text-sm font-bold text-blue-950 dark:text-blue-200 tracking-tight">
                 ESPAÇO 100% INDIVIDUAL & CONFIDENCIAL
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold tracking-wide uppercase">
                 Visível apenas por você
               </span>
             </div>
-            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
               Estas compras não entram no fechamento mensal do casal, não dividem meio a meio e são invisíveis para a {parceiroNome}.
             </p>
           </div>
         </div>
 
         {/* Segmented Switcher */}
-        <div className="flex items-center p-1 bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-xl shadow-xs shrink-0 self-start md:self-auto">
+        <div className="flex items-center p-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-700 rounded-xl shadow-xs shrink-0 self-start md:self-auto">
           <button
             type="button"
             onClick={onIrParaDespesasCasal}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">groups</span>
             <span>Despesas do Casal</span>
           </button>
           <button
             type="button"
-            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/70 shadow-xs flex items-center gap-1.5 cursor-default"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-700/60 shadow-xs flex items-center gap-1.5 cursor-default"
           >
-            <span className="material-symbols-outlined text-[16px] text-blue-600">person</span>
+            <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">person</span>
             <span>Minhas Despesas (Privado)</span>
           </button>
         </div>
@@ -246,24 +268,22 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
       {/* 2. Header: Title, Subtitle, Month, Modo Discreto, Nova Despesa Privada */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-blue-800 uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-blue-800 dark:text-blue-400 uppercase tracking-wider">
             <span>GESTÃO PESSOAL</span>
             <span>•</span>
             <span>{usuarioAtual}</span>
             <span>•</span>
-            <div className="inline-flex items-center gap-1 normal-case text-slate-600 font-medium">
-              <input
-                type="month"
-                value={mesSelecionado}
-                onChange={(e) => onMudarMes(e.target.value)}
-                className="text-xs font-bold text-blue-900 bg-blue-50/60 px-2 py-0.5 rounded-md border border-blue-200/60 cursor-pointer focus:outline-none"
-              />
-            </div>
+            <SeletorMesFlutuante
+              mesSelecionado={mesSelecionado}
+              onMudarMes={onMudarMes}
+              variante="individual"
+              tamanho="sm"
+            />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
             Minhas Despesas Pessoais
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
             Seus hobbies, surpresas para o casal, compras pontuais e desenvolvimento pessoal protegidos em um cofre privado.
           </p>
         </div>
@@ -273,10 +293,10 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
           <button
             type="button"
             onClick={() => setModalCategoriasAberta(true)}
-            className="px-3.5 py-2 rounded-xl bg-white hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-blue-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Alterar, adicionar e gerenciar categorias do seu cofre individual"
           >
-            <span className="material-symbols-outlined text-[17px] text-blue-600">category</span>
+            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400">category</span>
             <span>Categorias Pessoais</span>
           </button>
 
@@ -285,8 +305,8 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
             onClick={() => setModoDiscreto((prev) => !prev)}
             className={`px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
               modoDiscreto
-                ? 'bg-slate-900 text-white border-slate-900'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                ? 'bg-slate-900 dark:bg-slate-700 text-white border-slate-900 dark:border-slate-600'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
             title="Ocultar valores monetários na tela para maior privacidade"
           >
@@ -310,180 +330,261 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
       {/* 3. Four Metric KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Gasto */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#161f2e] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 TOTAL GASTO EM {nomeMesSimples.toUpperCase()}
               </span>
-              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {formatarValorDiscreto(totalGastoPessoalCentavos)}
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
               <span className="material-symbols-outlined text-[15px]">arrow_downward</span>
               <span>12% menor que o mês anterior</span>
             </span>
-            <span className="text-slate-400 font-medium">
+            <span className="text-slate-400 dark:text-slate-500 font-medium">
               {lancamentosPrivadosDoMes.length} transações
             </span>
           </div>
         </div>
 
-        {/* Card 2: Teto Orçamentário Pessoal */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        {/* Card 2: Teto Orçamentário Pessoal com Cálculo Automático */}
+        <div className="bg-white dark:bg-[#161f2e] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                TETO ORÇAMENTÁRIO PESSOAL
-              </span>
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  percUsadoTeto > 100
-                    ? 'bg-red-100 text-red-700'
-                    : percUsadoTeto > 80
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-emerald-100 text-emerald-700'
-                }`}
-              >
-                {percUsadoTeto}% usado
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                {formatarValorDiscreto(totalGastoPessoalCentavos)}
-              </span>
-              <span className="text-xs text-slate-500 font-medium">
-                de {formatarValorDiscreto(tetoEfetivoCentavos)}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5 truncate">
+                <span>TETO DISPONÍVEL</span>
+                <span>•</span>
+                <span className="text-blue-700 dark:text-blue-400 font-bold">{nomeMesSimples.toUpperCase()}</span>
               </span>
               <button
                 type="button"
                 onClick={() => setModalTetoAberta(true)}
-                className="ml-auto text-blue-600 hover:text-blue-800 text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer"
+                className="shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/60 px-2 py-0.5 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                 title="Ajustar teto orçamentário mensal"
               >
-                <span className="material-symbols-outlined text-[13px]">edit</span>
+                <span className="material-symbols-outlined text-[14px]">edit</span>
                 <span>Editar</span>
               </button>
             </div>
 
+            {/* Valor Disponível Principal */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Disponível no Teto:</span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    calculoTeto.status === 'estourado'
+                      ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300'
+                      : calculoTeto.status === 'atencao'
+                      ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                      : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                  }`}
+                >
+                  {calculoTeto.status === 'estourado'
+                    ? 'Teto Estourado'
+                    : calculoTeto.percConsumido <= 0
+                    ? '100% livre'
+                    : `${calculoTeto.percConsumido}% consumido`}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span
+                  className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+                    calculoTeto.valorDisponivelCentavos < 0
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-slate-900 dark:text-white'
+                  }`}
+                >
+                  {formatarValorDiscreto(calculoTeto.valorDisponivelCentavos)}
+                </span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                  (teto base: {formatarValorDiscreto(calculoTeto.tetoBaseCentavos)})
+                </span>
+              </div>
+            </div>
+
+            {/* Indicador Visual do Ajuste (Gastos em Conjunto) */}
+            {calculoTeto.tipoAjuste !== 'neutro' ? (
+              <div
+                className={`mt-2.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-medium flex items-center gap-2 ${
+                  calculoTeto.tipoAjuste === 'deve'
+                    ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-200/90 dark:border-amber-800/60 text-amber-900 dark:text-amber-200'
+                    : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-200/90 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[16px] shrink-0">
+                  {calculoTeto.tipoAjuste === 'deve' ? 'trending_down' : 'trending_up'}
+                </span>
+                <div className="leading-tight">
+                  <span className="font-bold">
+                    {calculoTeto.tipoAjuste === 'deve' ? '-' : '+'} {formatarValorDiscreto(
+                      calculoTeto.tipoAjuste === 'deve'
+                        ? calculoTeto.valorAPagarCentavos
+                        : calculoTeto.valorAReceberCentavos
+                    )}
+                  </span>{' '}
+                  referente ao acerto de gastos em conjunto
+                  {calculoTeto.tipoAjuste === 'deve'
+                    ? ` (a pagar para ${calculoTeto.parceiroNome})`
+                    : ` (a receber de ${calculoTeto.parceiroNome})`}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2 text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[13px] text-emerald-600 dark:text-emerald-400">check_circle</span>
+                <span>Gastos em conjunto em equilíbrio (sem débitos/créditos no mês)</span>
+              </div>
+            )}
+
             {/* Barra de Progresso */}
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-3">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden mt-3">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  percUsadoTeto > 100
+                  calculoTeto.valorDisponivelCentavos < 0
                     ? 'bg-red-500'
-                    : percUsadoTeto > 80
+                    : calculoTeto.percConsumido > 80
                     ? 'bg-amber-500'
                     : 'bg-blue-600'
                 }`}
-                style={{ width: `${Math.min(percUsadoTeto, 100)}%` }}
+                style={{ width: `${Math.min(Math.max(calculoTeto.percConsumido, 0), 100)}%` }}
               ></div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">Margem livre restante</span>
-            <span
-              className={`font-bold ${
-                margemLivreCentavos >= 0 ? 'text-emerald-600' : 'text-red-600'
-              }`}
-            >
-              {margemLivreCentavos >= 0
-                ? `+ ${formatarValorDiscreto(margemLivreCentavos)}`
-                : `- ${formatarValorDiscreto(Math.abs(margemLivreCentavos))}`}
-            </span>
+          {/* Breakdown em 3 colunas */}
+          <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-1 text-[11px] leading-tight">
+            <div>
+              <span className="block text-slate-400 dark:text-slate-500 text-[10px]">Gasto Individual:</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">
+                - {formatarValorDiscreto(calculoTeto.gastoIndividualCentavos)}
+              </span>
+            </div>
+            <div>
+              <span className="block text-slate-400 dark:text-slate-500 text-[10px]">Acerto Casal:</span>
+              <span
+                className={`font-bold ${
+                  calculoTeto.tipoAjuste === 'deve'
+                    ? 'text-amber-700 dark:text-amber-300'
+                    : calculoTeto.tipoAjuste === 'recebe'
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                {calculoTeto.tipoAjuste === 'deve'
+                  ? `- ${formatarValorDiscreto(calculoTeto.valorAPagarCentavos)}`
+                  : calculoTeto.tipoAjuste === 'recebe'
+                  ? `+ ${formatarValorDiscreto(calculoTeto.valorAReceberCentavos)}`
+                  : 'R$ 0,00'}
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="block text-slate-400 dark:text-slate-500 text-[10px]">Disponível Real:</span>
+              <span
+                className={`font-extrabold ${
+                  calculoTeto.valorDisponivelCentavos < 0
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-blue-700 dark:text-blue-400'
+                }`}
+              >
+                {calculoTeto.valorDisponivelCentavos >= 0
+                  ? formatarValorDiscreto(calculoTeto.valorDisponivelCentavos)
+                  : `- ${formatarValorDiscreto(Math.abs(calculoTeto.valorDisponivelCentavos))}`}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Card 3: Compromisso em Parcelas */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#161f2e] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 COMPROMISSO EM PARCELAS
               </span>
-              <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">credit_card</span>
               </div>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                 {formatarValorDiscreto(totalCompromissoParcelasCentavos)}
               </span>
-              <span className="text-xs text-slate-500 font-medium">/mês</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/mês</span>
             </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 flex-wrap">
             {parceladosDoMes.length > 0 ? (
               parceladosDoMes.slice(0, 3).map((p) => (
                 <span
                   key={p.compraId}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200/80 truncate max-w-[150px]"
+                  className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/80 dark:border-slate-700 truncate max-w-[150px]"
                   title={`${p.nome} (${p.numeroParcela}/${p.totalParcelas})`}
                 >
                   {p.nome.split(' ')[0]} {p.numeroParcela}/{p.totalParcelas}
                 </span>
               ))
             ) : (
-              <span className="text-xs text-slate-400">Nenhum parcelamento ativo</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">Nenhum parcelamento ativo</span>
             )}
           </div>
         </div>
 
         {/* Card 4: Ritmo Diário & Pico Pessoal */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#161f2e] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 RITMO DIÁRIO & MAIOR GASTO
               </span>
-              <div className="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">query_stats</span>
               </div>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                 {formatarValorDiscreto(mediaDiariaCentavos)}
               </span>
-              <span className="text-xs text-slate-500 font-medium">/dia</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/dia</span>
             </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">Maior item:</span>
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Maior item:</span>
             {maiorLancamentoDoMes ? (
               <span
-                className="font-bold text-slate-800 truncate max-w-[130px]"
+                className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[130px]"
                 title={`${maiorLancamentoDoMes.nome} (${formatarValorDiscreto(maiorLancamentoDoMes.valorCentavos)})`}
               >
                 {maiorLancamentoDoMes.nome}
               </span>
             ) : (
-              <span className="text-slate-400">Nenhum</span>
+              <span className="text-slate-400 dark:text-slate-500">Nenhum</span>
             )}
           </div>
         </div>
       </div>
 
       {/* 4. Equilíbrio de Consciência Card */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+      <div className="bg-white dark:bg-[#161f2e] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">balance</span>
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                 Equilíbrio de Consciência
               </h2>
-              <p className="text-xs text-slate-500 max-w-xl">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
                 Visão holística da sua contribuição mensal. Suas despesas individuais estão saudáveis e respeitam a meta conjunta.
               </p>
             </div>
@@ -492,19 +593,19 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
           <div className="flex items-center gap-4 text-xs font-semibold shrink-0">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#006948]"></span>
-              <span className="text-slate-700">
+              <span className="text-slate-700 dark:text-slate-300">
                 Gastos do Casal ({percCasal}%)
               </span>
-              <span className="text-slate-900 font-bold">
+              <span className="text-slate-900 dark:text-white font-bold">
                 {formatarValorDiscreto(totalGastosCasalCentavos)}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-              <span className="text-slate-700">
+              <span className="text-slate-700 dark:text-slate-300">
                 Minhas Despesas ({percIndividual}%)
               </span>
-              <span className="text-slate-900 font-bold">
+              <span className="text-slate-900 dark:text-white font-bold">
                 {formatarValorDiscreto(totalGastoPessoalCentavos)}
               </span>
             </div>
@@ -512,7 +613,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
         </div>
 
         {/* Dual Progress Bar */}
-        <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mt-4 flex">
+        <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden mt-4 flex">
           <div
             className="bg-[#006948] h-full transition-all duration-500"
             style={{ width: `${percCasal}%` }}
@@ -526,11 +627,11 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
         </div>
 
         {/* Status text */}
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+        <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span className="text-[11px]">
             Proporção equilibrada entre projetos a dois e autonomia pessoal.
           </span>
-          <div className="flex items-center gap-1 text-[#006948] font-bold">
+          <div className="flex items-center gap-1 text-[#006948] dark:text-emerald-400 font-bold">
             <span className="material-symbols-outlined text-[15px]">verified</span>
             <span>Status da Parceria: 100% Equilibrado</span>
           </div>
@@ -574,7 +675,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                 className={`px-3 py-1.5 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   ehAtiva
                     ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 {cat === 'Todos' ? `Todos (${lancamentosPrivadosDoMes.length})` : cat}
@@ -584,7 +685,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
           <button
             type="button"
             onClick={() => setModalCategoriasAberta(true)}
-            className="px-2.5 py-1.5 rounded-full text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center gap-1 whitespace-nowrap cursor-pointer transition-all"
+            className="px-2.5 py-1.5 rounded-full text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 flex items-center gap-1 whitespace-nowrap cursor-pointer transition-all"
             title="Adicionar ou alterar categorias pessoais"
           >
             <span className="material-symbols-outlined text-[14px]">tune</span>
@@ -603,39 +704,39 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Filtrar lançamentos..."
-              className="pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 w-48 sm:w-60"
+              className="pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 w-48 sm:w-60"
             />
           </div>
-          <span className="text-xs text-slate-400 whitespace-nowrap">
+          <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
             Total: {lancamentosFiltrados.length} registros
           </span>
         </div>
       </div>
 
       {/* 6. Transactions Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white dark:bg-[#161f2e] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#111a28] text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 <th className="py-3 px-4 sm:px-6">DESCRIÇÃO & CONTEXTO PRIVADO</th>
                 <th className="py-3 px-4">CATEGORIA</th>
                 <th className="py-3 px-4 text-right">VALOR INDIVIDUAL</th>
                 <th className="py-3 px-4 sm:px-6 text-right">AÇÕES RÁPIDAS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
               {lancamentosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
+                  <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <span className="material-symbols-outlined text-[36px] text-slate-300">
+                      <span className="material-symbols-outlined text-[36px] text-slate-300 dark:text-slate-600">
                         lock_open
                       </span>
-                      <p className="font-semibold text-slate-600 text-sm">
+                      <p className="font-semibold text-slate-600 dark:text-slate-300 text-sm">
                         Nenhum lançamento privado encontrado neste mês.
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         Cadastre surpresas, assinaturas ou despesas particulares clicando em "+ Nova Despesa Privada".
                       </p>
                     </div>
@@ -649,7 +750,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                   return (
                     <tr
                       key={`${lanc.compraId}-${lanc.numeroParcela}`}
-                      className="hover:bg-slate-50/60 transition-colors group"
+                      className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group"
                     >
                       {/* Descrição & Contexto */}
                       <td className="py-3.5 px-4 sm:px-6">
@@ -683,30 +784,30 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                           })()}
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-slate-900 text-sm">
+                              <span className="font-bold text-slate-900 dark:text-white text-sm">
                                 {lanc.nome}
                               </span>
 
                               {/* Badges */}
                               {lanc.segredoCasal && (
-                                <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold flex items-center gap-1">
                                   <span>Segredo do Casal 🤫</span>
                                 </span>
                               )}
                               {lanc.assinatura && (
-                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">
+                                <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-semibold">
                                   Assinatura
                                 </span>
                               )}
                               {lanc.totalParcelas > 1 && (
-                                <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-semibold">
+                                <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold">
                                   Parcela {lanc.numeroParcela} de {lanc.totalParcelas}
                                 </span>
                               )}
                             </div>
 
                             {/* Subtitle / context */}
-                            <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
                               <span>
                                 {lanc.dataReferencia
                                   ? `${lanc.dataReferencia.split('-')[2]} de ${nomeMesSimples}`
@@ -719,7 +820,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                                 </>
                               )}
                               <span>•</span>
-                              <span className="text-blue-600 font-medium">
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">
                                 Somente você pode visualizar
                               </span>
                             </div>
@@ -736,7 +837,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                               c.nome.toLowerCase() === lanc.categoria.toLowerCase()
                           );
                           return (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-900 text-[11px] font-bold border border-blue-100/80">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-900 dark:text-blue-300 text-[11px] font-bold border border-blue-100/80 dark:border-blue-900/60">
                               <CategoryIconOrImage
                                 icone={catMeta?.icone || '🏷️'}
                                 imagemUrl={catMeta?.imagemUrl}
@@ -751,10 +852,10 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
 
                       {/* Valor Individual */}
                       <td className="py-3.5 px-4 text-right">
-                        <div className="font-extrabold text-slate-900 text-sm sm:text-base">
+                        <div className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
                           {formatarValorDiscreto(lanc.valorCentavos)}
                         </div>
-                        <div className="text-[11px] text-slate-400">
+                        <div className="text-[11px] text-slate-400 dark:text-slate-500">
                           {lanc.totalParcelas > 1
                             ? `Total: ${formatarValorDiscreto(
                                 compraOriginal?.valorCentavos ??
@@ -774,10 +875,10 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                                 setCompraParaCompartilhar(compraOriginal);
                               }
                             }}
-                            className="px-2.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 font-semibold text-xs transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold text-xs transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
                             title="Mover este lançamento para as contas compartilhadas do casal"
                           >
-                            <span className="material-symbols-outlined text-[15px] text-blue-600">
+                            <span className="material-symbols-outlined text-[15px] text-blue-600 dark:text-blue-400">
                               group_add
                             </span>
                             <span>+ Compartilhar</span>
@@ -786,7 +887,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                           <button
                             type="button"
                             onClick={() => onEditarCompra(lanc.compraId)}
-                            className="w-8 h-8 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             title="Editar lançamento"
                           >
                             <span className="material-symbols-outlined text-[16px]">edit</span>
@@ -795,7 +896,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                           <button
                             type="button"
                             onClick={() => onRemoverCompra(lanc.compraId, lanc.numeroParcela)}
-                            className="w-8 h-8 rounded-xl border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-200 dark:hover:border-red-900/50 text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             title="Excluir lançamento"
                           >
                             <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -812,9 +913,9 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
       </div>
 
       {/* 7. Bottom Privacy & Security Banner */}
-      <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-blue-900">
+      <div className="p-4 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-blue-900 dark:text-blue-200 transition-colors">
         <div className="flex items-center gap-2.5">
-          <span className="material-symbols-outlined text-blue-600 text-[20px]">
+          <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px]">
             shield
           </span>
           <span>
@@ -824,7 +925,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
         <button
           type="button"
           onClick={() => setModalTetoAberta(true)}
-          className="text-blue-700 font-bold hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap self-start sm:self-auto"
+          className="text-blue-700 dark:text-blue-400 font-bold hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap self-start sm:self-auto"
         >
           <span>Gerenciar chaves e teto de privacidade</span>
           <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -847,8 +948,12 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
         <ModalTetoPessoal
           aberto={modalTetoAberta}
           onFechar={() => setModalTetoAberta(false)}
-          tetoAtualCentavos={tetoEfetivoCentavos}
-          totalGastoMesCentavos={totalGastoPessoalCentavos}
+          tetoAtualCentavos={calculoTeto.tetoBaseCentavos}
+          totalGastoMesCentavos={calculoTeto.gastoIndividualCentavos}
+          tipoAjuste={calculoTeto.tipoAjuste}
+          valorAPagarCentavos={calculoTeto.valorAPagarCentavos}
+          valorAReceberCentavos={calculoTeto.valorAReceberCentavos}
+          parceiroNome={calculoTeto.parceiroNome}
           onSalvarTeto={onSalvarTetoPessoal}
         />
       )}

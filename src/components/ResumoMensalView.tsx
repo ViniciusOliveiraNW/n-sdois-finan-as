@@ -5,6 +5,7 @@ import { ResultadoRanking } from '../calculations/rankingCategorias';
 import { RankingCategoriasView } from './RankingCategoriasView';
 import { HeatmapCalendario } from './HeatmapCalendario';
 import { CategoryIconOrImage } from './CategoryIconOrImage';
+import { SeletorMesFlutuante } from './SeletorMesFlutuante';
 
 interface ResumoMensalViewProps {
   mesSelecionado: string;
@@ -140,52 +141,31 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
   return (
     <div className="flex flex-col gap-6">
       {/* 1. SELETOR DE MÊS, STATUS & TOGGLE DE VISÃO */}
-      <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-[#161f2e] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          {/* Navegador de Meses */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
-            <button
-              onClick={() => handleAvancarMes(-1)}
-              aria-label="Mês anterior"
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-            </button>
-            <div className="px-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#006948] text-[20px]">
-                calendar_month
-              </span>
-              <span className="text-base font-bold text-slate-900 tracking-tight">
-                {nomeMesFormatado}
-              </span>
-            </div>
-            <button
-              onClick={() => handleAvancarMes(1)}
-              aria-label="Próximo mês"
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-            </button>
-          </div>
-
-
+          {/* Navegador de Meses com Calendário Flutuante */}
+          <SeletorMesFlutuante
+            mesSelecionado={mesSelecionado}
+            onMudarMes={onMudarMes}
+            variante="casal"
+          />
 
           {/* Badge de Status do Mês */}
           <div
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold w-fit ${
               statusMes === 'quitado'
-                ? 'bg-emerald-100 text-[#006948]'
+                ? 'bg-emerald-100 dark:bg-emerald-950/50 text-[#006948] dark:text-emerald-300'
                 : statusMes === 'parcial'
-                ? 'bg-amber-100 text-amber-800'
+                ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300'
                 : statusMes === 'vazio'
-                ? 'bg-slate-100 text-slate-500'
-                : 'bg-emerald-50 text-[#006948] border border-emerald-200/60'
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                : 'bg-emerald-50 dark:bg-emerald-950/40 text-[#006948] dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60'
             }`}
           >
             <span
               className={`w-2 h-2 rounded-full ${
                 statusMes === 'quitado'
-                  ? 'bg-emerald-600'
+                  ? 'bg-emerald-600 dark:bg-emerald-400'
                   : statusMes === 'parcial'
                   ? 'bg-amber-500'
                   : statusMes === 'vazio'
@@ -207,20 +187,20 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
 
         {/* Toggle de Visão do App */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center p-1 bg-slate-100 rounded-xl" role="tablist">
+          <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-transparent dark:border-slate-700/60" role="tablist">
             <button
               onClick={() => onAlternarVisao('meus')}
               aria-selected={visao === 'meus'}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 visao === 'meus'
-                  ? 'bg-white text-[#0051d5] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-[#0051d5] dark:text-blue-300 shadow-sm font-bold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
               type="button"
             >
               <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
               <span>Meus Pagamentos</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[#0051d5] text-[10px]">
+              <span className="px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-950/80 text-[#0051d5] dark:text-blue-300 text-[10px]">
                 {todosLancamentosDoMes.filter((l) => l.pagoPor === usuarioAtual).length}
               </span>
             </button>
@@ -229,14 +209,14 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               aria-selected={visao === 'casal'}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 visao === 'casal'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm font-bold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
               type="button"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               <span>Casal (Ambos)</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px]">
                 {todosLancamentosDoMes.length}
               </span>
             </button>
@@ -246,7 +226,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
             <button
               type="button"
               onClick={onIrParaMinhasDespesas}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
               title="Acessar cofre individual protegido e confidencial"
             >
               <span className="material-symbols-outlined text-[15px]">lock</span>
@@ -257,18 +237,18 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
       </section>
 
       {/* 2. HERO: BALANÇA FINANCEIRA E ACERTO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-sm">
+      <section className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 dark:from-[#161f2e] dark:via-[#131b28] dark:to-[#0f221c] p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
           <div className="flex flex-col gap-2 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700 text-[11px] font-semibold uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-semibold uppercase tracking-wider">
                 {statusMes === 'quitado' ? 'Acerto Liquidado' : 'Fechamento & Balança'}
               </span>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                   resumoAcerto.valorAcertoCentavos === 0
-                    ? 'bg-emerald-100 text-[#006948]'
-                    : 'bg-amber-100 text-amber-800'
+                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-300'
+                    : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
                 }`}
               >
                 {resumoAcerto.valorAcertoCentavos === 0
@@ -278,30 +258,30 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
             </div>
 
             <div className="flex flex-col gap-1 mt-1">
-              <span className="text-xs font-medium text-slate-500">
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 Equilíbrio Financeiro do Casal
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-x-2.5 gap-y-1">
                 {!resumoAcerto.temLancamentos ? (
                   <div className="flex flex-col gap-1">
-                    <span className="text-slate-500 font-medium text-xl">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium text-xl">
                       Nenhum lançamento registrado neste mês.
                     </span>
                     {compras.length > 0 && (
-                      <span className="text-xs text-amber-700 font-semibold flex items-center gap-1 mt-0.5">
+                      <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1 mt-0.5">
                         <span className="material-symbols-outlined text-[15px]">info</span>
                         <span>Seu espaço possui {compras.length} compras cadastradas em outros meses.</span>
                       </span>
                     )}
                   </div>
                 ) : resumoAcerto.valorAcertoCentavos === 0 ? (
-                  <span className="text-[#006948]">
+                  <span className="text-[#006948] dark:text-emerald-400">
                     As contas estão perfeitamente equilibradas (R$ 0,00).
                   </span>
                 ) : (
                   <>
                     <span>{resumoAcerto.devedor} paga</span>
-                    <span className="text-[#006948] font-bold tabular-nums">
+                    <span className="text-[#006948] dark:text-emerald-400 font-bold tabular-nums">
                       {formatarBRL(resumoAcerto.valorAcertoCentavos)}
                     </span>
                     <span>a {resumoAcerto.credor}</span>
@@ -309,7 +289,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                 )}
               </h2>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               O cálculo considera automaticamente parcelas ativas 50/50 e despesas exclusivas sem
               misturar com pagamentos de compras.
             </p>
@@ -329,7 +309,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               <button
                 onClick={onAbrirModalAcerto}
                 type="button"
-                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">receipt_long</span>
                 <span>Detalhes</span>
@@ -338,7 +318,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                 <button
                   onClick={() => onAbrirNotaFechamento(mesSelecionado)}
                   type="button"
-                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#006948] text-xs font-semibold transition-colors cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-[#006948] dark:text-emerald-300 text-xs font-semibold transition-colors cursor-pointer"
                   title="Extrair nota com pagamentos e parcelas em PDF"
                 >
                   <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
@@ -350,50 +330,50 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
         </div>
 
         {/* 3 Sub-Cards do Acerto */}
-        <div className="relative z-10 mt-6 pt-5 border-t border-slate-200/80 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="relative z-10 mt-6 pt-5 border-t border-slate-200/80 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* P1 */}
-          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white/90 border border-slate-200/80">
-            <div className="w-9 h-9 rounded-full bg-blue-100 text-[#0051d5] flex items-center justify-center font-bold text-xs uppercase shrink-0">
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60">
+            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-950/80 text-[#0051d5] dark:text-blue-300 flex items-center justify-center font-bold text-xs uppercase shrink-0">
               {p1Name.charAt(0)}
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] text-slate-500 font-medium">Pago por {p1Name}</span>
-              <span className="text-sm font-bold text-slate-900 tabular-nums">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Pago por {p1Name}</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
                 {formatarBRL(resumoAcerto.totalPagoP1Centavos)}
               </span>
-              <span className="text-[11px] text-slate-500">
-                Cota {p2Name}: <strong className="text-[#0051d5]">{formatarBRL(resumoAcerto.cotaP2Em5050Centavos)}</strong>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                Cota {p2Name}: <strong className="text-[#0051d5] dark:text-blue-400">{formatarBRL(resumoAcerto.cotaP2Em5050Centavos)}</strong>
               </span>
             </div>
           </div>
 
           {/* P2 */}
-          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white/90 border border-slate-200/80">
-            <div className="w-9 h-9 rounded-full bg-purple-100 text-[#712ae2] flex items-center justify-center font-bold text-xs uppercase shrink-0">
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60">
+            <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-950/80 text-[#712ae2] dark:text-purple-300 flex items-center justify-center font-bold text-xs uppercase shrink-0">
               {p2Name.charAt(0)}
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] text-slate-500 font-medium">Pago por {p2Name}</span>
-              <span className="text-sm font-bold text-slate-900 tabular-nums">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Pago por {p2Name}</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
                 {formatarBRL(resumoAcerto.totalPagoP2Centavos)}
               </span>
-              <span className="text-[11px] text-slate-500">
-                Cota {p1Name}: <strong className="text-[#712ae2]">{formatarBRL(resumoAcerto.cotaP1Em5050Centavos)}</strong>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                Cota {p1Name}: <strong className="text-[#712ae2] dark:text-purple-400">{formatarBRL(resumoAcerto.cotaP1Em5050Centavos)}</strong>
               </span>
             </div>
           </div>
 
           {/* Diferença Líquida */}
-          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/70">
-            <div className="w-9 h-9 rounded-full bg-emerald-100 text-[#006948] flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/60">
+            <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-[#006948] dark:text-emerald-300 flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[18px]">balance</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] text-[#006948] font-semibold">Diferença Líquida</span>
-              <span className="text-sm font-bold text-[#006948] tabular-nums">
+              <span className="text-[11px] text-[#006948] dark:text-emerald-300 font-semibold">Diferença Líquida</span>
+              <span className="text-sm font-bold text-[#006948] dark:text-emerald-300 tabular-nums">
                 {formatarBRL(resumoAcerto.valorAcertoCentavos)}
               </span>
-              <span className="text-[11px] text-slate-600">
+              <span className="text-[11px] text-slate-600 dark:text-slate-400">
                 {resumoAcerto.valorAcertoCentavos === 0
                   ? 'Balança equilibrada'
                   : `Saldo a favor de ${resumoAcerto.credor}`}
@@ -406,45 +386,45 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
       {/* 3. 4 CARDS DE KPIS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Gasto Casal */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">
               {visao === 'meus' ? 'Meus Gastos' : 'Total Gasto Casal'}
             </span>
-            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#006948]">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[#006948] dark:text-emerald-400">
               <span className="material-symbols-outlined text-[16px]">receipt_long</span>
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-slate-900 tabular-nums">
+            <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
               {formatarBRL(
                 visao === 'meus'
                   ? lancamentosVisao.reduce((acc, l) => acc + l.valorCentavos, 0)
                   : resumoAcerto.totalCasalCentavos
               )}
             </div>
-            <span className="text-[11px] text-slate-500 mt-0.5 block">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
               {lancamentosVisao.length} lançamentos na visão
             </span>
           </div>
         </div>
 
         {/* Pago por P1 */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
-              <span className="text-xs font-semibold text-slate-700">Pago por {p1Name}</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Pago por {p1Name}</span>
             </div>
-            <span className="text-[11px] font-bold text-[#0051d5] px-1.5 py-0.2 rounded-full bg-blue-50">
+            <span className="text-[11px] font-bold text-[#0051d5] dark:text-blue-300 px-1.5 py-0.2 rounded-full bg-blue-50 dark:bg-blue-950/60">
               {percVinicius}%
             </span>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-[#0051d5] tabular-nums">
+            <div className="text-2xl font-extrabold text-[#0051d5] dark:text-blue-400 tabular-nums">
               {formatarBRL(resumoAcerto.totalPagoP1Centavos)}
             </div>
-            <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
               <div
                 className="bg-[#0051d5] h-full rounded-full"
                 style={{ width: `${percVinicius}%` }}
@@ -454,21 +434,21 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
         </div>
 
         {/* Pago por P2 */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#712ae2]"></span>
-              <span className="text-xs font-semibold text-slate-700">Pago por {p2Name}</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Pago por {p2Name}</span>
             </div>
-            <span className="text-[11px] font-bold text-[#712ae2] px-1.5 py-0.2 rounded-full bg-purple-50">
+            <span className="text-[11px] font-bold text-[#712ae2] dark:text-purple-300 px-1.5 py-0.2 rounded-full bg-purple-50 dark:bg-purple-950/60">
               {percSilvia}%
             </span>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-[#712ae2] tabular-nums">
+            <div className="text-2xl font-extrabold text-[#712ae2] dark:text-purple-400 tabular-nums">
               {formatarBRL(resumoAcerto.totalPagoP2Centavos)}
             </div>
-            <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
               <div
                 className="bg-[#712ae2] h-full rounded-full"
                 style={{ width: `${percSilvia}%` }}
@@ -478,37 +458,37 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
         </div>
 
         {/* Regime de Gastos: Compartilhado vs Individuais & Rateios */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Regime de Gastos</span>
-            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
               <span className="material-symbols-outlined text-[16px]">pie_chart</span>
             </div>
           </div>
           <div className="mt-3">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-900 mb-1">
-              <span>Rateio Compartilhado: {formatarBRL(gastosCompartilhadosCentavos)}</span>
+            <div className="flex items-center justify-between text-xs font-bold text-slate-900 dark:text-white mb-1">
+              <span>Rateio: {formatarBRL(gastosCompartilhadosCentavos)}</span>
               <span className="text-slate-400 font-normal">{percCompartilhado}%</span>
             </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden flex">
               <div
                 className="bg-[#006948] h-full transition-all duration-300"
                 style={{ width: `${percCompartilhado}%` }}
                 title={`Rateios compartilhados: ${percCompartilhado}%`}
               ></div>
               <div
-                className="bg-slate-400 h-full transition-all duration-300"
+                className="bg-slate-400 dark:bg-slate-600 h-full transition-all duration-300"
                 style={{ width: `${100 - percCompartilhado}%` }}
                 title={`Gastos individuais: ${100 - percCompartilhado}%`}
               ></div>
             </div>
-            <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
+            <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400">
               <span>Individuais: {formatarBRL(gastosIndividuaisCentavos)}</span>
               <div className="flex items-center gap-1 flex-wrap justify-end">
                 {Object.keys(regimesUsados).slice(0, 3).map((k) => (
                   <span
                     key={k}
-                    className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[9px]"
+                    className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-[9px]"
                   >
                     {regimesUsados[k].label}
                   </span>
@@ -537,17 +517,17 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
       </section>
 
       {/* 5. TABELA DE LANÇAMENTOS RECENTES DO MÊS */}
-      <section className="flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+      <section className="flex flex-col bg-white dark:bg-[#161f2e] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-[#006948] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-[#006948] dark:text-emerald-400 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 leading-tight">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
                 Lançamentos do Mês ({lancamentosVisao.length})
               </h3>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
                 {visao === 'meus' ? `Apenas pagos por ${usuarioAtual}` : 'Visão completa do casal'}
               </span>
             </div>
@@ -556,7 +536,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
           <button
             onClick={onIrParaLancamentos}
             type="button"
-            className="text-[#006948] hover:underline text-xs font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-center"
+            className="text-[#006948] dark:text-emerald-400 hover:underline text-xs font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-center"
           >
             <span>Ver tabela completa & filtros</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -566,11 +546,11 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
         {lancamentosVisao.length === 0 ? (
           compras.length > 0 ? (
             <div className="py-10 px-4 text-center flex flex-col items-center gap-2.5">
-              <span className="material-symbols-outlined text-amber-600 text-[24px]">event_busy</span>
-              <div className="text-xs text-slate-700 font-semibold">
+              <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-[24px]">event_busy</span>
+              <div className="text-xs text-slate-700 dark:text-slate-200 font-semibold">
                 Nenhum lançamento com parcela em {nomeMesFormatado}.
               </div>
-              <p className="text-[11px] text-slate-500 max-w-sm">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm">
                 Existem <strong>{compras.length} compras cadastradas</strong> no total neste espaço em outros meses.
               </p>
               <button
@@ -583,7 +563,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               </button>
             </div>
           ) : (
-            <div className="py-12 text-center text-xs text-slate-400">
+            <div className="py-12 text-center text-xs text-slate-400 dark:text-slate-500">
               Nenhum lançamento registrado para os filtros ativos em {nomeMesFormatado}.
             </div>
           )
@@ -591,7 +571,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                <tr className="bg-slate-50 dark:bg-[#111a28] text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
                   <th className="py-2.5 px-4 whitespace-nowrap">Data</th>
                   <th className="py-2.5 px-4 min-w-[200px]">Estabelecimento / Item</th>
                   <th className="py-2.5 px-4 whitespace-nowrap">Categoria</th>
@@ -602,7 +582,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                   <th className="py-2.5 px-3 text-center w-16">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {lancamentosVisao.slice(0, 8).map((lancamento) => {
                   const dataFormatada = (() => {
                     const parts = lancamento.dataReferencia.split('-');
@@ -614,25 +594,25 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                   return (
                     <tr
                       key={`${lancamento.compraId}-${lancamento.numeroParcela}`}
-                      className="hover:bg-slate-50/70 transition-colors"
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                     >
-                      <td className="py-3 px-4 font-semibold text-slate-600 whitespace-nowrap">
+                      <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                         {dataFormatada}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-slate-900 leading-tight">
+                            <span className="font-semibold text-slate-900 dark:text-white leading-tight">
                               {lancamento.nome}
                             </span>
                             {lancamento.totalParcelas > 1 && (
-                              <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 text-[10px] font-bold">
+                              <span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                                 {lancamento.numeroParcela}/{lancamento.totalParcelas}
                               </span>
                             )}
                           </div>
                           {lancamento.descricao && (
-                            <span className="text-[11px] text-slate-400 truncate max-w-xs">
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-xs">
                               {lancamento.descricao}
                             </span>
                           )}
@@ -644,7 +624,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                             (c) => c.id === lancamento.categoria || c.nome === lancamento.categoria
                           );
                           return (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200/50">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/50 dark:border-slate-700/60">
                               <CategoryIconOrImage
                                 icone={catObj?.icone}
                                 imagemUrl={catObj?.imagemUrl}
@@ -661,8 +641,8 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                             lancamento.pagoPor === 'Vinicius'
-                              ? 'bg-blue-50 text-[#0051d5]'
-                              : 'bg-purple-50 text-[#712ae2]'
+                              ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-300'
+                              : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-300'
                           }`}
                         >
                           <span
@@ -684,36 +664,36 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                           );
                           if (lancamento.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#006948]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-300">
                                 ⚖️ 50/50
                               </span>
                             );
                           }
                           if (percP1 === 100 && percP2 === 0) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0051d5]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-300">
                                 👤 Só {p1Name}
                               </span>
                             );
                           }
                           if (percP1 === 0 && percP2 === 100) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#712ae2]">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-300">
                                 👤 Só {p2Name}
                               </span>
                             );
                           }
                           return (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
                               📊 {percP1}/{percP2}
                             </span>
                           );
                         })()}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
+                      <td className="py-3 px-4 text-right font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.valorCentavos)}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-[#006948] tabular-nums whitespace-nowrap">
+                      <td className="py-3 px-4 text-right font-bold text-[#006948] dark:text-emerald-400 tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.minhaParteCentavos)}
                       </td>
                       <td className="py-3 px-3 text-center whitespace-nowrap">
@@ -721,7 +701,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => onEditarCompra(lancamento.compraId)}
-                              className="w-6 h-6 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-6 h-6 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                               title="Editar compra (Autor)"
                             >
                               <span className="material-symbols-outlined text-[15px]">edit</span>
@@ -730,7 +710,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                               onClick={() =>
                                 onRemoverCompra(lancamento.compraId, lancamento.numeroParcela)
                               }
-                              className="w-6 h-6 rounded hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-6 h-6 rounded hover:bg-red-50 dark:hover:bg-red-950/50 text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer"
                               title="Cancelar a partir desta parcela"
                             >
                               <span className="material-symbols-outlined text-[15px]">
@@ -740,7 +720,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                           </div>
                         ) : (
                           <span
-                            className="text-[10px] text-slate-400 italic"
+                            className="text-[10px] text-slate-400 dark:text-slate-500 italic"
                             title={`Cadastrado por ${lancamento.cadastradoPor}. Apenas o autor pode editar.`}
                           >
                             Por {lancamento.cadastradoPor}

@@ -75,20 +75,20 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
     >
-      <div className="bg-white w-full max-w-[520px] rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200">
+      <div className="bg-white dark:bg-[#161f2e] w-full max-w-[520px] rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200 dark:border-slate-800">
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 flex items-center justify-between">
+        <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border-b border-blue-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
               <span className="material-symbols-outlined text-[22px]">group_add</span>
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                 Compartilhar com o Casal
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Mover do cofre individual para o painel compartilhado
               </p>
             </div>
@@ -96,7 +96,7 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
           <button
             onClick={onFechar}
             type="button"
-            className="w-8 h-8 rounded-full bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer border border-slate-200 dark:border-slate-700"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -105,15 +105,15 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
         {/* Content */}
         <div className="p-6 space-y-5">
           {/* Item Preview Card */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                 Lançamento Selecionado
               </span>
-              <h3 className="font-bold text-slate-900 text-sm mt-0.5">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm mt-0.5">
                 {compra.nome}
               </h3>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {compra.numeroDeParcelas > 1
                   ? `${compra.numeroDeParcelas} parcelas`
                   : 'À vista'}
@@ -121,15 +121,15 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
               </span>
             </div>
             <div className="text-right">
-              <span className="text-lg font-extrabold text-blue-600">
+              <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
                 {formatarBRL(valorCentavos)}
               </span>
             </div>
           </div>
 
           {/* Explanation Banner */}
-          <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-900 text-xs leading-relaxed flex items-start gap-2.5">
-            <span className="material-symbols-outlined text-blue-600 text-[18px] shrink-0 mt-0.5">
+          <div className="p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-900 dark:text-blue-200 text-xs leading-relaxed flex items-start gap-2.5">
+            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px] shrink-0 mt-0.5">
               info
             </span>
             <div>
@@ -142,7 +142,7 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
           <div className="space-y-4">
             {/* Quem pagou */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Quem realizou o pagamento?
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -151,8 +151,8 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
                   onClick={() => setPagoPor(p1Name)}
                   className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     pagoPor === p1Name
-                      ? 'border-[#006948] bg-emerald-50 text-[#006948] shadow-sm ring-1 ring-[#006948]'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-[#006948] dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 shadow-sm ring-1 ring-[#006948] dark:ring-emerald-500'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">person</span>
@@ -163,8 +163,8 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
                   onClick={() => setPagoPor(p2Name)}
                   className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     pagoPor === p2Name
-                      ? 'border-[#006948] bg-emerald-50 text-[#006948] shadow-sm ring-1 ring-[#006948]'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-[#006948] dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 shadow-sm ring-1 ring-[#006948] dark:ring-emerald-500'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">person</span>
@@ -175,7 +175,7 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
 
             {/* Regra de Divisão */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Regra de divisão no casal
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -184,8 +184,8 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
                   onClick={() => setDivisao('50/50')}
                   className={`py-2 px-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                     divisao === '50/50'
-                      ? 'border-[#006948] bg-emerald-50 text-[#006948] shadow-sm ring-1 ring-[#006948]'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-[#006948] dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 shadow-sm ring-1 ring-[#006948] dark:ring-emerald-500'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   50% / 50%
@@ -195,8 +195,8 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
                   onClick={() => setDivisao('70/30')}
                   className={`py-2 px-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                     divisao === '70/30'
-                      ? 'border-[#006948] bg-emerald-50 text-[#006948] shadow-sm ring-1 ring-[#006948]'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-[#006948] dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 shadow-sm ring-1 ring-[#006948] dark:ring-emerald-500'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   70% / 30%
@@ -206,8 +206,8 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
                   onClick={() => setDivisao('100/0')}
                   className={`py-2 px-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                     divisao === '100/0'
-                      ? 'border-[#006948] bg-emerald-50 text-[#006948] shadow-sm ring-1 ring-[#006948]'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-[#006948] dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 shadow-sm ring-1 ring-[#006948] dark:ring-emerald-500'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   100% Pagador
@@ -217,16 +217,16 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
 
             {/* Categoria Compartilhada */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Categoria no Casal
               </label>
               <select
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#006948]"
               >
                 {categorias.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={cat.id} className="dark:bg-slate-800">
                     {cat.icone} {cat.nome}
                   </option>
                 ))}
@@ -236,11 +236,11 @@ export const ModalCompartilharCompra: React.FC<ModalCompartilharCompraProps> = (
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/70 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onFechar}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Cancelar
           </button>

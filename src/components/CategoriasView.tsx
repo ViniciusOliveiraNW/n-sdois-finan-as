@@ -225,31 +225,31 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#006948]"></span>
               Ciclo Atual: {mesSelecionado}
             </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-xs text-slate-500 font-medium">
+            <span className="text-slate-300 dark:text-slate-600">•</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               {categorias.length} categorias cadastradas
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Categorias & Metas Orçamentárias
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
             Personalize os tetos de gastos, defina despesas fixas ou variáveis e configure o acompanhamento financeiro de {p1Nome} e {p2Nome}.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
               onClick={() => setFiltroTipo('todos')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 filtroTipo === 'todos'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Todos os Tetos ({categorias.length})
@@ -258,8 +258,8 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               onClick={() => setFiltroTipo('fixos')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 filtroTipo === 'fixos'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Fixos do Casal ({categoriasFixas.length})
@@ -268,8 +268,8 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               onClick={() => setFiltroTipo('variaveis')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 filtroTipo === 'variaveis'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Variáveis ({categorias.length - categoriasFixas.length})
@@ -289,56 +289,56 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
       {/* Summary Metas Ribbon */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-1">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="bg-white dark:bg-[#161f2e] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">
               Teto Geral Estimado
             </span>
-            <span className="material-symbols-outlined text-slate-400 text-[18px]">
+            <span className="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[18px]">
               account_balance_wallet
             </span>
           </div>
-          <span className="text-2xl font-extrabold text-slate-900 tabular-nums">
+          <span className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
             {formatarBRL(tetoGeralCentavos)}
           </span>
-          <span className="text-[11px] text-slate-400">Soma dos limites de todas as categorias</span>
+          <span className="text-[11px] text-slate-400 dark:text-slate-500">Soma dos limites de todas as categorias</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-1">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="bg-white dark:bg-[#161f2e] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">
               Gasto Consolidado
             </span>
-            <span className="material-symbols-outlined text-[#006948] text-[18px]">trending_up</span>
+            <span className="material-symbols-outlined text-[#006948] dark:text-emerald-400 text-[18px]">trending_up</span>
           </div>
-          <span className="text-2xl font-extrabold text-[#006948] tabular-nums">
+          <span className="text-2xl font-extrabold text-[#006948] dark:text-emerald-400 tabular-nums">
             {formatarBRL(gastoConsolidadoCentavos)}
           </span>
-          <span className="text-[11px] text-[#006948] font-semibold">
+          <span className="text-[11px] text-[#006948] dark:text-emerald-400 font-semibold">
             {percentualConsumido}% do orçamento total consumido
           </span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-1">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="bg-white dark:bg-[#161f2e] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Margem Restante</span>
-            <span className="material-symbols-outlined text-[#0051d5] text-[18px]">savings</span>
+            <span className="material-symbols-outlined text-[#0051d5] dark:text-blue-400 text-[18px]">savings</span>
           </div>
-          <span className="text-2xl font-extrabold text-[#0051d5] tabular-nums">
+          <span className="text-2xl font-extrabold text-[#0051d5] dark:text-blue-400 tabular-nums">
             {formatarBRL(margemRestanteCentavos)}
           </span>
-          <span className="text-[11px] text-slate-400">Ainda disponível p/ gastos no mês</span>
+          <span className="text-[11px] text-slate-400 dark:text-slate-500">Ainda disponível p/ gastos no mês</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-1">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="bg-white dark:bg-[#161f2e] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Atenção & Desvios</span>
             <span className="material-symbols-outlined text-red-500 text-[18px]">warning</span>
           </div>
-          <span className="text-2xl font-extrabold text-red-600 tabular-nums">
+          <span className="text-2xl font-extrabold text-red-600 dark:text-red-400 tabular-nums">
             {extrapoladas.length} {extrapoladas.length === 1 ? 'Categoria' : 'Categorias'}
           </span>
-          <span className="text-[11px] text-red-600 font-medium truncate">
+          <span className="text-[11px] text-red-600 dark:text-red-400 font-medium truncate">
             {extrapoladas.length > 0
               ? `${extrapoladas.map((c) => c.nome).join(', ')} extrapolou`
               : 'Nenhum teto extrapolado'}
@@ -366,7 +366,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
           return (
             <div
               key={cat.id}
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow group relative"
+              className="bg-white dark:bg-[#161f2e] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow group relative"
             >
               <div className="flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
@@ -380,12 +380,12 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                     />
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="text-base font-bold text-slate-900 leading-tight">
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
                           {cat.nome}
                         </h3>
                         {cat.imagemUrl && (
                           <span
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-emerald-50 text-[#006948] text-[10px] font-semibold border border-emerald-200"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 text-[10px] font-semibold border border-emerald-200 dark:border-emerald-800"
                             title="Imagem personalizada via CDN ativa"
                           >
                             <span className="material-symbols-outlined text-[11px]">image</span>
@@ -393,7 +393,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-400 line-clamp-1">{cat.descricao}</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500 line-clamp-1">{cat.descricao}</span>
                     </div>
                   </div>
 
@@ -401,10 +401,10 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                     <span
                       className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                         estourou
-                          ? 'bg-red-100 text-red-700 flex items-center gap-0.5'
+                          ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 flex items-center gap-0.5'
                           : proporcaoTeto > 85
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-emerald-100 text-[#006948]'
+                          ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
+                          : 'bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400'
                       }`}
                     >
                       {estourou && (
@@ -417,7 +417,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                     <button
                       type="button"
                       onClick={() => abrirModalEditar(cat)}
-                      className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#006948]/10 text-slate-500 hover:text-[#006948] flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-[#006948]/10 text-slate-500 dark:text-slate-400 hover:text-[#006948] dark:hover:text-emerald-400 flex items-center justify-center transition-colors cursor-pointer"
                       title="Editar categoria e teto"
                     >
                       <span className="material-symbols-outlined text-[15px]">edit</span>
@@ -428,21 +428,21 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                 {/* Spending numbers */}
                 <div className="flex items-baseline justify-between mt-1">
                   <div>
-                    <span className="text-[11px] text-slate-400 block">Gasto Atual</span>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 block">Gasto Atual</span>
                     <span
                       className={`text-lg font-extrabold tabular-nums ${
-                        estourou ? 'text-red-600' : 'text-slate-900'
+                        estourou ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'
                       }`}
                     >
                       {formatarBRL(gastoAtualCentavos)}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[11px] text-slate-400 block">Teto Estimado</span>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 block">Teto Estimado</span>
                     <button
                       type="button"
                       onClick={() => abrirModalEditar(cat)}
-                      className="text-xs font-bold text-slate-700 hover:text-[#006948] tabular-nums hover:underline flex items-center gap-0.5 ml-auto cursor-pointer"
+                      className="text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#006948] dark:hover:text-emerald-400 tabular-nums hover:underline flex items-center gap-0.5 ml-auto cursor-pointer"
                       title="Clique para alterar este teto"
                     >
                       <span>{formatarBRL(cat.tetoEstimadoCentavos)}</span>
@@ -452,7 +452,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       estourou ? 'bg-red-500' : proporcaoTeto > 85 ? 'bg-amber-500' : 'bg-[#006948]'
@@ -463,20 +463,20 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
                 {/* Details: Pagadores & Divisão */}
                 <div className="pt-1 flex flex-col gap-1.5 text-xs">
-                  <div className="flex items-center justify-between text-slate-500">
+                  <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                     <span>Pagadores no mês:</span>
                     {totalCat > 0 ? (
                       <div className="flex items-center gap-2 font-semibold">
-                        <span className="text-[#0051d5]">{p1Nome} ({percP1}%)</span>
-                        <span className="text-[#712ae2]">{p2Nome} ({percP2}%)</span>
+                        <span className="text-[#0051d5] dark:text-blue-400">{p1Nome} ({percP1}%)</span>
+                        <span className="text-[#712ae2] dark:text-purple-400">{p2Nome} ({percP2}%)</span>
                       </div>
                     ) : (
-                      <span className="text-slate-400 italic">Sem registros</span>
+                      <span className="text-slate-400 dark:text-slate-500 italic">Sem registros</span>
                     )}
                   </div>
-                  <div className="flex items-center justify-between text-slate-500">
+                  <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                     <span>Divisão sugerida:</span>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px]">
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px]">
                       {cat.divisaoPadrao}
                     </span>
                   </div>
@@ -484,9 +484,9 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               </div>
 
               {/* Card Footer: Lançamentos & Interativo Toggle Fixo */}
-              <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs text-slate-500">
+              <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1 font-medium">
-                  <span className="material-symbols-outlined text-[15px] text-slate-400">receipt_long</span>
+                  <span className="material-symbols-outlined text-[15px] text-slate-400 dark:text-slate-500">receipt_long</span>
                   <span>{info?.count || 0} Lançamentos</span>
                 </span>
 
@@ -501,8 +501,8 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                   }
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
                     cat.isFixo
-                      ? 'bg-blue-50 text-[#0051d5] border border-blue-200/80 hover:bg-blue-100 font-bold'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/60'
+                      ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400 border border-blue-200/80 dark:border-blue-800 hover:bg-blue-100 font-bold'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[13px]">
@@ -517,47 +517,48 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
       </div>
 
       {/* Regras de Divisão Automática & Gestão de Despesas Fixas */}
+      {/* Regras de Divisão Automática & Gestão de Despesas Fixas */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Regras do Casal */}
-        <div className="lg:col-span-7 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+        <div className="lg:col-span-7 bg-white dark:bg-[#161f2e] p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 flex items-center justify-center">
               <span className="material-symbols-outlined text-[22px]">balance</span>
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
                 Regras de Divisão Automática
               </h3>
-              <span className="text-xs text-slate-400">Configurações para agilizar o fechamento do casal</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">Configurações para agilizar o fechamento do casal</span>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 text-xs">
             {/* Bloco 1: Despesas Fixas Dinâmicas */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
-              <span className="material-symbols-outlined text-[#006948] text-[18px] mt-0.5 shrink-0">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-start gap-3">
+              <span className="material-symbols-outlined text-[#006948] dark:text-emerald-400 text-[18px] mt-0.5 shrink-0">
                 check_circle
               </span>
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <strong className="text-slate-900">
+                  <strong className="text-slate-900 dark:text-white">
                     Despesas Fixas Compartilhadas ({categoriasFixas.length})
                   </strong>
-                  <span className="px-1.5 py-0.2 rounded bg-blue-50 text-[#0051d5] font-semibold text-[10px]">
+                  <span className="px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400 font-semibold text-[10px]">
                     Automático 50/50
                   </span>
                 </div>
-                <p className="text-slate-600 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                   {categoriasFixas.length > 0 ? (
                     <>
-                      <strong>{categoriasFixas.map((c) => c.nome).join(', ')}</strong> estão
+                      <strong className="text-slate-900 dark:text-white">{categoriasFixas.map((c) => c.nome).join(', ')}</strong> estão
                       definidas como fixas e possuem prioridade na divisão 50/50 no acerto mensal,
                       independentemente de quem tenha passado o cartão inicialmente.
                     </>
                   ) : (
                     <>
                       Nenhuma categoria está marcada como fixa no momento. Você pode clicar no botão{' '}
-                      <strong>"Variável"</strong> de qualquer categoria acima para transformá-la em fixa.
+                      <strong className="text-slate-900 dark:text-white">"Variável"</strong> de qualquer categoria acima para transformá-la em fixa.
                     </>
                   )}
                 </p>
@@ -565,33 +566,33 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
             </div>
 
             {/* Bloco 2: Alimentação & Mercado */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
-              <span className="material-symbols-outlined text-[#0051d5] text-[18px] mt-0.5 shrink-0">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-start gap-3">
+              <span className="material-symbols-outlined text-[#0051d5] dark:text-blue-400 text-[18px] mt-0.5 shrink-0">
                 pie_chart
               </span>
               <div>
-                <strong className="text-slate-900 block mb-0.5">Alimentação & Consumo Compartilhado</strong>
-                <p className="text-slate-600 leading-relaxed">
-                  <strong>Mercado e Padaria</strong> adotam a sugestão padrão de 50/50, permitindo
+                <strong className="text-slate-900 dark:text-white block mb-0.5">Alimentação & Consumo Compartilhado</strong>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <strong className="text-slate-900 dark:text-white">Mercado e Padaria</strong> adotam a sugestão padrão de 50/50, permitindo
                   ajuste para 100% pessoal em itens de consumo exclusivo de {p1Nome} ou {p2Nome}.
                 </p>
               </div>
             </div>
 
             {/* Bloco 3: Reserva de Emergência Oficial */}
-            <div className="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200/70 flex items-start gap-3">
-              <span className="material-symbols-outlined text-rose-600 text-[18px] mt-0.5 shrink-0">
+            <div className="p-3.5 rounded-xl bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 flex items-start gap-3">
+              <span className="material-symbols-outlined text-rose-600 dark:text-rose-400 text-[18px] mt-0.5 shrink-0">
                 shield
               </span>
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <strong className="text-slate-900">Reserva de Emergência</strong>
-                  <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">
+                  <strong className="text-slate-900 dark:text-white">Reserva de Emergência</strong>
+                  <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold text-[10px]">
                     {reservaCat ? `Teto: ${formatarBRL(reservaCat.tetoEstimadoCentavos)}` : 'Ativa no App'}
                   </span>
                 </div>
-                <p className="text-slate-600 leading-relaxed">
-                  Disponível para seleção em <strong>"Nova Compra"</strong> para registrar aportes, consertos inesperados da casa ou despesas veterinárias/médicas urgentes, garantindo equalização equilibrada 50/50.
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Disponível para seleção em <strong className="text-slate-900 dark:text-white">"Nova Compra"</strong> para registrar aportes, consertos inesperados da casa ou despesas veterinárias/médicas urgentes, garantindo equalização equilibrada 50/50.
                 </p>
               </div>
             </div>
@@ -599,43 +600,43 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
         </div>
 
         {/* Painel de Gestão e Dicas */}
-        <div className="lg:col-span-5 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4">
+        <div className="lg:col-span-5 bg-white dark:bg-[#161f2e] p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#006948] animate-pulse"></span>
-                <span className="text-xs font-bold text-[#006948]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#006948] dark:bg-emerald-400 animate-pulse"></span>
+                <span className="text-xs font-bold text-[#006948] dark:text-emerald-400">
                   Sincronização em Tempo Real
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-mono">
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-mono">
                 {couple?.id ? 'Nuvem Conectada' : 'Modo Offline'}
               </span>
             </div>
-            <h4 className="text-sm font-bold text-slate-900">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
               Metas Orçamentárias Personalizadas
             </h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Todos os tetos e categorias editados são salvos automaticamente no Espaço do Casal e
               ficam disponíveis imediatamente para {p1Nome} e {p2Nome} ao cadastrar novas compras.
             </p>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 text-xs flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">tips_and_updates</span>
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/70 dark:border-slate-700/70 text-xs flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">tips_and_updates</span>
                 <span>Como configurar seus tetos:</span>
               </div>
-              <ul className="list-disc list-inside text-slate-600 space-y-1 text-[11px] leading-relaxed">
+              <ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-1 text-[11px] leading-relaxed">
                 <li>Clique no ícone de lápis ou no valor do teto para editar.</li>
-                <li>Marque categorias essenciais como <strong>Despesa Fixa</strong> para filtrar com rapidez.</li>
-                <li>Selecione <strong>"Reserva de Emergência"</strong> em imprevistos pontuais.</li>
+                <li>Marque categorias essenciais como <strong className="text-slate-900 dark:text-white">Despesa Fixa</strong> para filtrar com rapidez.</li>
+                <li>Selecione <strong className="text-slate-900 dark:text-white">"Reserva de Emergência"</strong> em imprevistos pontuais.</li>
               </ul>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Equilíbrio Financeiro a Dois</span>
-            <span className="text-[#006948] font-bold">NósDois Finanças</span>
+            <span className="text-[#006948] dark:text-emerald-400 font-bold">NósDois Finanças</span>
           </div>
         </div>
       </div>

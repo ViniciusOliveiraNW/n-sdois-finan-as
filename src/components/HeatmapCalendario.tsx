@@ -102,11 +102,11 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
         case 3:
           return 'bg-blue-500 text-white font-bold';
         case 2:
-          return 'bg-blue-300 text-blue-950 font-semibold';
+          return 'bg-blue-300 dark:bg-blue-800 text-blue-950 dark:text-blue-100 font-semibold';
         case 1:
-          return 'bg-blue-100 text-blue-900 font-medium';
+          return 'bg-blue-100 dark:bg-blue-950/70 text-blue-900 dark:text-blue-200 font-medium';
         default:
-          return 'bg-slate-100 text-slate-500 hover:bg-slate-200';
+          return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700';
       }
     }
 
@@ -116,36 +116,38 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
       case 3:
         return 'bg-[#00855d] text-white font-bold';
       case 2:
-        return 'bg-emerald-300 text-emerald-950 font-semibold';
+        return 'bg-emerald-300 dark:bg-emerald-800 text-emerald-950 dark:text-emerald-100 font-semibold';
       case 1:
-        return 'bg-emerald-100 text-emerald-900 font-medium';
+        return 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 font-medium';
       default:
-        return 'bg-slate-100 text-slate-500 hover:bg-slate-200';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700';
     }
   };
 
   return (
-    <div className="flex flex-col justify-between bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full">
+    <div className="flex flex-col justify-between bg-white dark:bg-[#161f2e] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm h-full">
       <div>
         <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-2.5">
             <div
               className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                isBlue ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-[#006948]'
+                isBlue
+                  ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                  : 'bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400'
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">calendar_view_month</span>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 leading-tight">{titulo}</h3>
-              <span className="text-[11px] text-slate-500">{subtitulo}</span>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{titulo}</h3>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">{subtitulo}</span>
             </div>
           </div>
         </div>
 
         {/* Matriz Heatmap: 7 colunas (D, S, T, Q, Q, S, S) */}
         <div className="flex flex-col gap-1 my-2">
-          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 py-0.5">
+          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 py-0.5">
             <span>D</span>
             <span>S</span>
             <span>T</span>
@@ -161,7 +163,7 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
                 return (
                   <div
                     key={`vazio-${idx}`}
-                    className="h-7 sm:h-8 rounded-lg bg-slate-50 opacity-40"
+                    className="h-7 sm:h-8 rounded-lg bg-slate-50 dark:bg-slate-800/40 opacity-40"
                   />
                 );
               }
@@ -191,13 +193,13 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
       </div>
 
       {/* Legenda & Pico */}
-      <div className="flex flex-col gap-2 pt-3 border-t border-slate-100">
-        <div className="flex items-center justify-between text-[11px] text-slate-500">
+      <div className="flex flex-col gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
           <span>Sem gasto</span>
           <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-slate-100"></span>
-            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-100' : 'bg-emerald-100'}`}></span>
-            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-300' : 'bg-emerald-300'}`}></span>
+            <span className="w-3 h-3 rounded bg-slate-100 dark:bg-slate-800"></span>
+            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-100 dark:bg-blue-950/70' : 'bg-emerald-100 dark:bg-emerald-950/70'}`}></span>
+            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-300 dark:bg-blue-800' : 'bg-emerald-300 dark:bg-emerald-800'}`}></span>
             <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-500' : 'bg-[#00855d]'}`}></span>
             <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-600' : 'bg-[#006948]'}`}></span>
           </div>
@@ -205,28 +207,28 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
         </div>
 
         {maiorGastoDiaCentavos > 0 ? (
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700">
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs text-slate-700 dark:text-slate-300">
             <span
               className={`material-symbols-outlined text-[16px] ${
-                isBlue ? 'text-blue-600' : 'text-[#006948]'
+                isBlue ? 'text-blue-600 dark:text-blue-400' : 'text-[#006948] dark:text-emerald-400'
               }`}
             >
               bolt
             </span>
             <span>
               Pico do mês:{' '}
-              <strong className="text-slate-900 tabular-nums">
+              <strong className="text-slate-900 dark:text-white tabular-nums">
                 {formatarBRL(maiorGastoDiaCentavos)}
               </strong>{' '}
               no dia{' '}
-              <strong>
+              <strong className="text-slate-900 dark:text-white">
                 {String(diaPico).padStart(2, '0')}/{mesStr}
               </strong>{' '}
               ({itemPico?.nome || 'Maior despesa'}).
             </span>
           </div>
         ) : (
-          <div className="p-2 rounded-xl bg-slate-50 text-[11px] text-slate-500 text-center">
+          <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] text-slate-500 dark:text-slate-400 text-center">
             Nenhum lançamento no mês para gerar mapa de calor.
           </div>
         )}

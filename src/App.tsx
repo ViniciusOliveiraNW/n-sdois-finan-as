@@ -645,9 +645,9 @@ export default function App() {
   // 1. Tela de Carregamento Inicial
   if (carregandoAuth) {
     return (
-      <div className="min-h-screen bg-[#f8f9ff] flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 border-4 border-[#006948]/20 border-t-[#006948] rounded-full animate-spin mb-4"></div>
-        <span className="text-sm font-semibold text-slate-700">Conectando ao NósDois Finanças...</span>
+      <div className="min-h-screen bg-[#f8f9ff] dark:bg-[#0b1320] text-[#0b1c30] dark:text-slate-100 flex flex-col items-center justify-center p-4 transition-colors">
+        <div className="w-12 h-12 border-4 border-[#006948]/20 border-t-[#006948] dark:border-emerald-500/20 dark:border-t-emerald-400 rounded-full animate-spin mb-4"></div>
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Conectando ao NósDois Finanças...</span>
       </div>
     );
   }
@@ -660,9 +660,9 @@ export default function App() {
   // 3. Autenticado mas Carregando Espaço do Casal
   if (userProfile?.coupleId && (carregandoEspaco || (couple === null && !espacoNaoEncontrado))) {
     return (
-      <div className="min-h-screen bg-[#f8f9ff] flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 border-4 border-[#006948]/20 border-t-[#006948] rounded-full animate-spin mb-4"></div>
-        <span className="text-sm font-semibold text-slate-700">Carregando espaço do casal...</span>
+      <div className="min-h-screen bg-[#f8f9ff] dark:bg-[#0b1320] text-[#0b1c30] dark:text-slate-100 flex flex-col items-center justify-center p-4 transition-colors">
+        <div className="w-12 h-12 border-4 border-[#006948]/20 border-t-[#006948] dark:border-emerald-500/20 dark:border-t-emerald-400 rounded-full animate-spin mb-4"></div>
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Carregando espaço do casal...</span>
       </div>
     );
   }
@@ -685,7 +685,7 @@ export default function App() {
 
   // 4. Aplicação Principal com Firestore Ativo e Dados Reais
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9ff] text-[#0b1c30]">
+    <div className="min-h-screen flex flex-col bg-[#f8f9ff] dark:bg-[#0b1320] text-[#0b1c30] dark:text-slate-100 transition-colors">
       {/* Top Header */}
       <Header
         abaAtiva={abaAtiva}
@@ -778,6 +778,7 @@ export default function App() {
             comprasPrivadas={comprasPrivadas}
             lancamentosPrivadosDoMes={lancamentosPrivadosDoMes}
             totalGastosCasalCentavos={resumoAcerto.totalCasalCentavos}
+            resumoAcerto={resumoAcerto}
             tetoPessoalCentavos={userProfile?.tetoPessoalCentavos || 250000}
             categoriasIndividuais={categoriasIndividuais}
             onSalvarCategoriasIndividuais={handleSalvarCategoriasIndividuais}

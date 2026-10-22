@@ -81,11 +81,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] flex flex-col justify-center items-center p-4 sm:p-6 text-[#0b1c30]">
+    <div className="min-h-screen bg-[#f8f9ff] dark:bg-[#0b1320] flex flex-col justify-center items-center p-4 sm:p-6 text-[#0b1c30] dark:text-slate-100 transition-colors">
       {/* Background Decor */}
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-[#161f2e] rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-colors">
         {/* Brand Header */}
-        <div className="p-7 sm:p-8 bg-gradient-to-b from-slate-50 to-white border-b border-slate-100 flex flex-col items-center text-center">
+        <div className="p-7 sm:p-8 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/60 dark:to-[#161f2e] border-b border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
           {/* Logo SVG Interlocking Circles */}
           <div className="w-14 h-14 mb-3 flex items-center justify-center">
             <svg
@@ -119,15 +119,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
             </svg>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 text-[#006948] text-[11px] font-bold uppercase tracking-wider mb-1.5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 text-[11px] font-bold uppercase tracking-wider mb-1.5">
             <span className="material-symbols-outlined text-[14px]">favorite</span>
             <span>Controle Financeiro a Dois</span>
           </div>
 
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            NósDois <span className="text-[#006948]">Finanças</span>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            NósDois <span className="text-[#006948] dark:text-emerald-400">Finanças</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1 max-w-xs leading-relaxed">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed">
             Gestão transparente de contas, divisão 50/50 em centavos e conciliação em tempo real para o casal.
           </p>
         </div>
@@ -139,7 +139,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
             type="button"
             onClick={handleGoogleLogin}
             disabled={carregando}
-            className="w-full h-11 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+            className="w-full h-11 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -163,14 +163,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
           </button>
 
           {/* Divider */}
-          <div className="flex items-center my-0.5 text-slate-400 text-[11px]">
-            <div className="flex-1 h-px bg-slate-200"></div>
+          <div className="flex items-center my-0.5 text-slate-400 dark:text-slate-500 text-[11px]">
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800"></div>
             <span className="px-3">ou use seu e-mail</span>
-            <div className="flex-1 h-px bg-slate-200"></div>
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800"></div>
           </div>
 
           {/* Mode Switch Tabs */}
-          <div className="p-1 bg-slate-100 rounded-xl flex">
+          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl flex">
             <button
               type="button"
               onClick={() => {
@@ -179,8 +179,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
               }}
               className={`flex-1 py-1.5 text-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 modo === 'login'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Entrar
@@ -193,8 +193,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
               }}
               className={`flex-1 py-1.5 text-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 modo === 'signup'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Cadastrar
@@ -204,7 +204,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
           {erro && (
             <div
               role="alert"
-              className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2"
+              className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">error</span>
               <span>{erro}</span>
@@ -215,7 +215,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
           <form onSubmit={handleEmailAuth} className="flex flex-col gap-3.5 text-xs">
             {modo === 'signup' && (
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Seu Nome ou Apelido</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Seu Nome ou Apelido</label>
                 <div className="relative flex items-center">
                   <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
                     person
@@ -225,14 +225,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Ex: Vinicius ou Silvia"
-                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                   />
                 </div>
               </div>
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="font-semibold text-slate-700">E-mail</label>
+              <label className="font-semibold text-slate-700 dark:text-slate-300">E-mail</label>
               <div className="relative flex items-center">
                 <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
                   mail
@@ -242,14 +242,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                  className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                   required
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="font-semibold text-slate-700">Senha</label>
+              <label className="font-semibold text-slate-700 dark:text-slate-300">Senha</label>
               <div className="relative flex items-center">
                 <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
                   lock
@@ -259,13 +259,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSucesso }) => {
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full h-10 pl-9 pr-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                  className="w-full h-10 pl-9 pr-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setMostrarSenha(!mostrarSenha)}
-                  className="absolute right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[18px]">
                     {mostrarSenha ? 'visibility_off' : 'visibility'}
