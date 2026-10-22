@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth } from './firebase';
 import { CategoriaMeta, Compra, CoupleSpace, FechamentoMensal, PagamentoAcerto, UserProfile, UsuarioId } from './types';
-import { CATEGORIAS_PADRAO } from './data/initialData';
+import { CATEGORIAS_PADRAO, CATEGORIAS_PADRAO_INDIVIDUAIS } from './data/initialData';
 import {
   getPerfilUsuario,
   salvarPerfilUsuario,
@@ -17,6 +17,9 @@ import {
   buscarEspacosDoUsuario,
   reconectarEspaco,
   restaurarComprasIniciais,
+  salvarTetoPessoal,
+  salvarCategoriasIndividuais,
+  deletarCompraFirestore,
 } from './services/firebaseService';
 import { gerarLancamentosDoMes } from './calculations/parcelas';
 import { calcularAcertoMensal } from './calculations/acertoMensal';
@@ -26,6 +29,7 @@ import { ResumoMensalView } from './components/ResumoMensalView';
 import { LancamentosView } from './components/LancamentosView';
 import { FechamentosView } from './components/FechamentosView';
 import { CategoriasView } from './components/CategoriasView';
+import { MinhasDespesasView } from './components/MinhasDespesasView';
 import { ModalCompra } from './components/ModalCompra';
 import { ModalAcerto } from './components/ModalAcerto';
 import { ModalNotaFechamento } from './components/ModalNotaFechamento';
@@ -59,6 +63,19 @@ export default function App() {
     return CATEGORIAS_PADRAO;
   });
 
+  const [categoriasIndividuais, setCategoriasIndividuais] = useState<CategoriaMeta[]>(() => {
+    try {
+      const salvo = localStorage.getItem('nosdois_categorias_individuais');
+      if (salvo) {
+        const parsed = JSON.parse(salvo);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      // ignore
+    }
+    return CATEGORIAS_PADRAO_INDIVIDUAIS;
+  });
+
   // 3. Mês e Visão
   const [mesSelecionado, setMesSelecionado] = useState<string>(() => {
     const hoje = new Date();
@@ -71,6 +88,7 @@ export default function App() {
 
   // 4. Modais
   const [modalCompraAberta, setModalCompraAberta] = useState(false);
+  const [modalCompraModoPrivado, setModalCompraModoPrivado] = useState(false);
   const [compraEmEdicao, setCompraEmEdicao] = useState<Compra | null>(null);
   const [modalAcertoAberta, setModalAcertoAberta] = useState(false);
   const [modalNotaAberta, setModalNotaAberta] = useState(false);
@@ -127,6 +145,15 @@ export default function App() {
               }
             } catch (errEspacos) {
               console.warn('Erro ao auto-localizar espaços do usuário:', errEspacos);
+            }
+          }
+
+          if (perfil.categoriasIndividuais && Array.isArray(perfil.categoriasIndividuais) && perfil.categoriasIndividuais.length > 0) {
+            setCategoriasIndividuais(perfil.categoriasIndividuais);
+            try {
+              localStorage.setItem('nosdois_categorias_individuais', JSON.stringify(perfil.categoriasIndividuais));
+            } catch (e) {
+              // ignore
             }
           }
 
@@ -220,10 +247,36 @@ export default function App() {
     }
   };
 
+  const handleSalvarCategoriasIndividuais = async (novasCategorias: CategoriaMeta[]) => {
+    setCategoriasIndividuais(novasCategorias);
+    try {
+      localStorage.setItem('nosdois_categorias_individuais', JSON.stringify(novasCategorias));
+    } catch (e) {
+      console.warn('Erro ao salvar categorias individuais no localStorage', e);
+    }
+    if (authUser) {
+      try {
+        await salvarCategoriasIndividuais(authUser.uid, novasCategorias);
+        setUserProfile((prev) =>
+          prev ? { ...prev, categoriasIndividuais: novasCategorias } : prev
+        );
+      } catch (e) {
+        console.error('Erro ao salvar categorias individuais no Firestore:', e);
+      }
+    }
+  };
+
   const recarregarPerfil = async () => {
     if (authUser) {
       const perfil = await getPerfilUsuario(authUser.uid);
       setUserProfile(perfil);
+      if (
+        perfil?.categoriasIndividuais &&
+        Array.isArray(perfil.categoriasIndividuais) &&
+        perfil.categoriasIndividuais.length > 0
+      ) {
+        setCategoriasIndividuais(perfil.categoriasIndividuais);
+      }
     }
   };
 
@@ -234,6 +287,22 @@ export default function App() {
   // Nome do usuário ativo para a sessão
   const usuarioNome = userProfile?.displayName || authUser?.displayName || 'Você';
 
+  // Separação estrita: Compras do Casal vs Cofre Privado / Individual
+  const comprasCasal = useMemo(() => {
+    return compras.filter((c) => !c.privada);
+  }, [compras]);
+
+  const comprasPrivadas = useMemo(() => {
+    return compras.filter(
+      (c) =>
+        c.privada &&
+        (c.cadastradoPorUid === authUser?.uid ||
+          c.cadastradoPor === usuarioNome ||
+          c.cadastradoPor === userProfile?.displayName ||
+          (!c.cadastradoPorUid && (usuarioNome === 'Vinicius' || !authUser)))
+    );
+  }, [compras, authUser?.uid, usuarioNome, userProfile?.displayName]);
+
   // Cálculos derivados em tempo real a partir das compras do Firestore
   const todosLancamentosDoMes = useMemo(() => {
     const p1Uid = couple?.partner1Uid || 'Vinicius';
@@ -241,7 +310,7 @@ export default function App() {
     const p2Uid = couple?.partner2Uid || 'Silvia';
     const p2Name = couple?.partner2Name || 'Silvia';
     return gerarLancamentosDoMes(
-      compras,
+      comprasCasal,
       mesSelecionado,
       authUser?.uid || 'user',
       p1Uid,
@@ -249,7 +318,24 @@ export default function App() {
       [p1Name, p1Uid, 'Vinicius', 'p1'],
       [p2Name, p2Uid, 'Silvia', 'p2']
     );
-  }, [compras, mesSelecionado, authUser?.uid, couple]);
+  }, [comprasCasal, mesSelecionado, authUser?.uid, couple]);
+
+  // Lançamentos privados individuais do mês atual
+  const lancamentosPrivadosDoMes = useMemo(() => {
+    const p1Uid = couple?.partner1Uid || 'Vinicius';
+    const p1Name = couple?.partner1Name || 'Vinicius';
+    const p2Uid = couple?.partner2Uid || 'Silvia';
+    const p2Name = couple?.partner2Name || 'Silvia';
+    return gerarLancamentosDoMes(
+      comprasPrivadas,
+      mesSelecionado,
+      authUser?.uid || 'user',
+      p1Uid,
+      p2Uid,
+      [p1Name, p1Uid, 'Vinicius', 'p1'],
+      [p2Name, p2Uid, 'Silvia', 'p2']
+    );
+  }, [comprasPrivadas, mesSelecionado, authUser?.uid, couple]);
 
   const lancamentosVisao = useMemo(() => {
     if (visao === 'meus' && authUser) {
@@ -275,7 +361,7 @@ export default function App() {
     return fechamentos.find((f) => f.mesReferencia === mesSelecionado);
   }, [fechamentos, mesSelecionado]);
 
-  // Dados derivados especificamente para a Nota de Fechamento do Mês
+  // Dados derivados especificamente para a Nota de Fechamento do Mês (apenas despesas compartilhadas!)
   const lancamentosNota = useMemo(() => {
     if (mesNota === mesSelecionado) {
       return todosLancamentosDoMes;
@@ -285,7 +371,7 @@ export default function App() {
     const p2Uid = couple?.partner2Uid || 'Silvia';
     const p2Name = couple?.partner2Name || 'Silvia';
     return gerarLancamentosDoMes(
-      compras,
+      comprasCasal,
       mesNota,
       authUser?.uid || 'user',
       p1Uid,
@@ -293,7 +379,7 @@ export default function App() {
       [p1Name, p1Uid, 'Vinicius', 'p1'],
       [p2Name, p2Uid, 'Silvia', 'p2']
     );
-  }, [compras, mesNota, mesSelecionado, todosLancamentosDoMes, authUser?.uid, couple]);
+  }, [comprasCasal, mesNota, mesSelecionado, todosLancamentosDoMes, authUser?.uid, couple]);
 
   const resumoAcertoNota = useMemo(() => {
     if (mesNota === mesSelecionado) {
@@ -314,7 +400,37 @@ export default function App() {
   // Handlers de Negócio
   const handleAbrirNovaCompra = () => {
     setCompraEmEdicao(null);
+    setModalCompraModoPrivado(false);
     setModalCompraAberta(true);
+  };
+
+  const handleAbrirNovaCompraPrivada = () => {
+    setCompraEmEdicao(null);
+    setModalCompraModoPrivado(true);
+    setModalCompraAberta(true);
+  };
+
+  const handleCompartilharComCasal = async (compraAtualizada: Compra) => {
+    if (!couple) return;
+    try {
+      await salvarCompraFirestore(couple.id, compraAtualizada);
+    } catch (e) {
+      console.error('Erro ao compartilhar compra com o casal:', e);
+      throw e;
+    }
+  };
+
+  const handleSalvarTetoPessoal = async (novoTetoCentavos: number) => {
+    if (!authUser) return;
+    try {
+      await salvarTetoPessoal(authUser.uid, novoTetoCentavos);
+      setUserProfile((prev) =>
+        prev ? { ...prev, tetoPessoalCentavos: novoTetoCentavos } : prev
+      );
+    } catch (e) {
+      console.error('Erro ao salvar teto pessoal:', e);
+      throw e;
+    }
   };
 
   const handleEditarCompra = (compraId: string) => {
@@ -381,7 +497,11 @@ export default function App() {
       detalhe: `As parcelas anteriores (1 até ${novoLimiteAtivo}) permanecerão ativas e inalteradas nos meses históricos, sem redistribuição de centavos.`,
       onConfirmar: async () => {
         try {
-          await cancelarParcelasFirestore(couple.id, compraId, novoLimiteAtivo);
+          if (compra.privada && ehPrimeiraParcela) {
+            await deletarCompraFirestore(couple.id, compraId);
+          } else {
+            await cancelarParcelasFirestore(couple.id, compraId, novoLimiteAtivo);
+          }
         } catch (e) {
           console.error('Erro ao cancelar parcela no Firestore:', e);
           alert('Erro ao atualizar parcelas no banco.');
@@ -601,6 +721,7 @@ export default function App() {
             onRemoverCompra={handleRemoverCompra}
             onIrParaLancamentos={() => setAbaAtiva('lancamentos')}
             onIrParaCategorias={() => setAbaAtiva('categorias')}
+            onIrParaMinhasDespesas={() => setAbaAtiva('minhas-despesas')}
           />
         )}
 
@@ -646,6 +767,27 @@ export default function App() {
             onSalvarCategorias={handleSalvarCategorias}
           />
         )}
+
+        {abaAtiva === 'minhas-despesas' && (
+          <MinhasDespesasView
+            mesSelecionado={mesSelecionado}
+            onMudarMes={setMesSelecionado}
+            usuarioAtual={usuarioNome}
+            couple={couple}
+            comprasPrivadas={comprasPrivadas}
+            lancamentosPrivadosDoMes={lancamentosPrivadosDoMes}
+            totalGastosCasalCentavos={resumoAcerto.totalCasalCentavos}
+            tetoPessoalCentavos={userProfile?.tetoPessoalCentavos || 250000}
+            categoriasIndividuais={categoriasIndividuais}
+            onSalvarCategoriasIndividuais={handleSalvarCategoriasIndividuais}
+            onSalvarTetoPessoal={handleSalvarTetoPessoal}
+            onAbrirNovaCompraPrivada={handleAbrirNovaCompraPrivada}
+            onEditarCompra={handleEditarCompra}
+            onRemoverCompra={handleRemoverCompra}
+            onCompartilharComCasal={handleCompartilharComCasal}
+            onIrParaDespesasCasal={() => setAbaAtiva('resumo-mensal')}
+          />
+        )}
       </main>
 
       {/* Footer */}
@@ -657,11 +799,14 @@ export default function App() {
         onFechar={() => {
           setModalCompraAberta(false);
           setCompraEmEdicao(null);
+          setModalCompraModoPrivado(false);
         }}
         compraEmEdicao={compraEmEdicao}
         usuarioAtual={usuarioNome}
         couple={couple}
         categorias={categorias}
+        categoriasIndividuais={categoriasIndividuais}
+        modoPrivadoInicial={modalCompraModoPrivado}
         onSalvarCompra={handleSalvarCompra}
       />
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CoupleSpace, UserProfile, UsuarioId } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 
-export type AbaNavegacao = 'resumo-mensal' | 'lancamentos' | 'fechamentos-e-acertos' | 'categorias';
+export type AbaNavegacao = 'resumo-mensal' | 'lancamentos' | 'fechamentos-e-acertos' | 'categorias' | 'minhas-despesas';
 
 interface HeaderProps {
   abaAtiva: AbaNavegacao;
@@ -138,6 +138,17 @@ export const Header: React.FC<HeaderProps> = ({
             >
               Categorias
             </button>
+            <button
+              onClick={() => onSelecionarAba('minhas-despesas')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                abaAtiva === 'minhas-despesas'
+                  ? 'bg-[#0051d5] text-white shadow-sm'
+                  : 'text-blue-700 hover:text-blue-900 hover:bg-blue-50/70'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">lock</span>
+              <span>Minhas Despesas</span>
+            </button>
           </nav>
         </div>
 
@@ -253,6 +264,15 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           Categorias
+        </button>
+        <button
+          onClick={() => onSelecionarAba('minhas-despesas')}
+          className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+            abaAtiva === 'minhas-despesas' ? 'bg-blue-600 text-white font-bold' : 'text-blue-700'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[13px]">lock</span>
+          <span>Privado</span>
         </button>
       </div>
     </header>

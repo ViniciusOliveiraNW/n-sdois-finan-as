@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CategoriaId, CategoriaMeta, Compra, CoupleSpace, DivisaoTipo, UsuarioId } from '../types';
-import { CATEGORIAS_PADRAO } from '../data/initialData';
+import { CATEGORIAS_PADRAO, CATEGORIAS_PADRAO_INDIVIDUAIS } from '../data/initialData';
 import { calcularValoresParcelas, calcularMesesParcelas } from '../calculations/parcelas';
 import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
 import { CategoryIconOrImage } from './CategoryIconOrImage';
@@ -12,6 +12,8 @@ interface ModalCompraProps {
   usuarioAtual: UsuarioId;
   couple?: CoupleSpace | null;
   categorias?: CategoriaMeta[];
+  categoriasIndividuais?: CategoriaMeta[];
+  modoPrivadoInicial?: boolean;
   onSalvarCompra: (compra: Compra) => void;
 }
 
@@ -22,13 +24,19 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   usuarioAtual,
   couple,
   categorias,
+  categoriasIndividuais,
+  modoPrivadoInicial = false,
   onSalvarCompra,
 }) => {
-  const listaCategorias = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
   const p1Name = couple?.partner1Name || 'Vinicius';
   const p1Uid = couple?.partner1Uid || 'Vinicius';
   const p2Name = couple?.partner2Name || 'Silvia';
   const p2Uid = couple?.partner2Uid || 'Silvia';
+
+  // Identificação do usuário atual entre Parceiro 1 e Parceiro 2
+  const souP2 = usuarioAtual === p2Uid || usuarioAtual === p2Name;
+  const meuNome = souP2 ? p2Name : p1Name;
+  const meuUid = souP2 ? p2Uid : p1Uid;
 
   const [nome, setNome] = useState('');
   const [valorInput, setValorInput] = useState('');
@@ -38,12 +46,23 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   );
   const [tipoCobranca, setTipoCobranca] = useState<'a_vista' | 'parcelado'>('a_vista');
   const [numeroDeParcelas, setNumeroDeParcelas] = useState(1);
-  const [pagoPor, setPagoPor] = useState<string>(p1Name);
+  const [pagoPor, setPagoPor] = useState<string>(meuNome);
   const [divisao, setDivisao] = useState<DivisaoTipo>('50/50');
   const [mostrarPersonalizado, setMostrarPersonalizado] = useState(false);
   const [customP1, setCustomP1] = useState(50);
   const [descricao, setDescricao] = useState('');
   const [erro, setErro] = useState<string | null>(null);
+
+  // Estados de Despesa Privada / Cofre Individual
+  const [privada, setPrivada] = useState(false);
+  const [segredoCasal, setSegredoCasal] = useState(false);
+  const [formaPagamentoNome, setFormaPagamentoNome] = useState('');
+  const [assinatura, setAssinatura] = useState(false);
+
+  // Lista dinâmica de categorias: se privada, usa categorias individuais; senão, do casal
+  const listaCategorias = privada
+    ? (categoriasIndividuais && categoriasIndividuais.length > 0 ? categoriasIndividuais : CATEGORIAS_PADRAO_INDIVIDUAIS)
+    : (categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO);
 
   // Inicializa o formulário com dados da compra em edição ou padrão
   useEffect(() => {
@@ -58,8 +77,18 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       const parcelas = compraEmEdicao.numeroDeParcelas || 1;
       setNumeroDeParcelas(parcelas);
       setTipoCobranca(parcelas > 1 ? 'parcelado' : 'a_vista');
-      setPagoPor(compraEmEdicao.pagoPorNome || compraEmEdicao.pagoPor || p1Name);
-      setDivisao(compraEmEdicao.divisao);
+      const ehPrivada = Boolean(compraEmEdicao.privada);
+      setPrivada(ehPrivada);
+
+      if (ehPrivada) {
+        // Despesa privada é obrigatoriamente paga por quem cadastrou/usuário atual
+        setPagoPor(meuNome);
+        setDivisao(souP2 ? '0/100' : '100/0');
+      } else {
+        setPagoPor(compraEmEdicao.pagoPorNome || compraEmEdicao.pagoPor || p1Name);
+        setDivisao(compraEmEdicao.divisao);
+      }
+
       const { percP1 } = parseDivisaoPercentuais(
         compraEmEdicao.divisao,
         p1Uid,
@@ -71,26 +100,40 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       const presetsPadroes = ['50/50', '70/30', '30/70', '60/40', '40/60', '100/0', '0/100', p1Uid, p2Uid];
       setMostrarPersonalizado(!presetsPadroes.includes(compraEmEdicao.divisao));
       setDescricao(compraEmEdicao.descricao || '');
+      setSegredoCasal(Boolean(compraEmEdicao.segredoCasal));
+      setFormaPagamentoNome(compraEmEdicao.formaPagamentoNome || '');
+      setAssinatura(Boolean(compraEmEdicao.assinatura));
     } else {
       setNome('');
       setValorInput('');
-      setCategoria('Mercado');
+      const ehPrivada = Boolean(modoPrivadoInicial);
+      setPrivada(ehPrivada);
+      const catsIndiv = categoriasIndividuais && categoriasIndividuais.length > 0 ? categoriasIndividuais : CATEGORIAS_PADRAO_INDIVIDUAIS;
+      const catsCasal = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
+      setCategoria(ehPrivada ? (catsIndiv[0]?.id || 'Lazer & Hobbies') : (catsCasal[0]?.id || 'Mercado'));
       setDataPrimeiroPagamento(new Date().toISOString().slice(0, 10));
       setTipoCobranca('a_vista');
       setNumeroDeParcelas(1);
-      // Padrão: quem está logado
-      const defaultPayer =
-        usuarioAtual === p2Uid || usuarioAtual === p2Name ? p2Name : p1Name;
-      setPagoPor(defaultPayer);
-      const splitPadrao = couple?.defaultSplit || '50/50';
-      setDivisao(splitPadrao);
-      const { percP1 } = parseDivisaoPercentuais(splitPadrao, p1Uid, p2Uid, [p1Name, 'p1'], [p2Name, 'p2']);
-      setCustomP1(percP1);
+
+      // Padrão do pagador: usuário atual
+      setPagoPor(meuNome);
+
+      if (ehPrivada) {
+        setDivisao(souP2 ? '0/100' : '100/0');
+      } else {
+        const splitPadrao = couple?.defaultSplit || '50/50';
+        setDivisao(splitPadrao);
+        const { percP1 } = parseDivisaoPercentuais(splitPadrao, p1Uid, p2Uid, [p1Name, 'p1'], [p2Name, 'p2']);
+        setCustomP1(percP1);
+      }
       setMostrarPersonalizado(false);
       setDescricao('');
+      setSegredoCasal(false);
+      setFormaPagamentoNome('');
+      setAssinatura(false);
     }
     setErro(null);
-  }, [compraEmEdicao, aberto, usuarioAtual, p1Name, p2Name, p1Uid, p2Uid, couple?.defaultSplit]);
+  }, [compraEmEdicao, aberto, usuarioAtual, p1Name, p2Name, p1Uid, p2Uid, couple?.defaultSplit, modoPrivadoInicial, meuNome, souP2]);
 
   if (!aberto) return null;
 
@@ -147,8 +190,10 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
     }
 
     const ehP1 = pagoPor === p1Name || pagoPor === p1Uid;
-    const pagoPorNomeFinal = ehP1 ? p1Name : p2Name;
-    const pagoPorUidFinal = ehP1 ? p1Uid : p2Uid;
+    // Se a compra for privada, o pagador é obrigatoriamente o usuário atual
+    const pagoPorNomeFinal = privada ? meuNome : (ehP1 ? p1Name : p2Name);
+    const pagoPorUidFinal = privada ? meuUid : (ehP1 ? p1Uid : p2Uid);
+    const divisaoFinal = privada ? (souP2 ? '0/100' : '100/0') : divisao;
 
     const cadastradoPorUidFinal =
       compraEmEdicao?.cadastradoPorUid ||
@@ -170,12 +215,16 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       cadastradoPor: cadastradoPorNomeFinal,
       cadastradoPorNome: cadastradoPorNomeFinal,
       cadastradoPorUid: cadastradoPorUidFinal,
-      divisao,
+      divisao: divisaoFinal,
       categoria,
       dataPrimeiroPagamento,
       numeroDeParcelas: parcelasFinais,
       ultimaParcelaAtiva: ultimaParcelaAtivaFinal,
       descricao: descricao.trim() || undefined,
+      privada,
+      segredoCasal: privada ? segredoCasal : false,
+      formaPagamentoNome: formaPagamentoNome.trim() || undefined,
+      assinatura: privada ? assinatura : false,
     };
 
     onSalvarCompra(compraSalva);
@@ -426,117 +475,301 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             )}
           </div>
 
+          {/* Seção: Espaço Individual & Confidencial (Cofre Privado) */}
+          <div className={`p-4 rounded-xl border transition-all ${privada ? 'bg-blue-50/80 border-blue-200 ring-1 ring-blue-300' : 'bg-slate-50 border-slate-200'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${privada ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600'}`}>
+                  <span className="material-symbols-outlined text-[18px]">lock</span>
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">
+                    Lançamento Individual (Cofre Privado)
+                  </span>
+                  <span className="text-[11px] text-slate-500 block">
+                    Não entra no fechamento do casal, não divide 50/50 e é visível apenas por você.
+                  </span>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  checked={privada}
+                  onChange={(e) => {
+                    const novoPrivada = e.target.checked;
+                    setPrivada(novoPrivada);
+                    if (novoPrivada) {
+                      // Regra de Integridade: despesa privada pertence exclusivamente ao usuário atual!
+                      setPagoPor(meuNome);
+                      setDivisao(souP2 ? '0/100' : '100/0');
+                      const catsIndiv =
+                        categoriasIndividuais && categoriasIndividuais.length > 0
+                          ? categoriasIndividuais
+                          : CATEGORIAS_PADRAO_INDIVIDUAIS;
+                      if (!catsIndiv.some((c) => c.id === categoria)) {
+                        setCategoria(catsIndiv[0]?.id || 'Lazer & Hobbies');
+                      }
+                    } else {
+                      setPagoPor(meuNome);
+                      const splitPadrao = couple?.defaultSplit || '50/50';
+                      setDivisao(splitPadrao);
+                      const { percP1 } = parseDivisaoPercentuais(
+                        splitPadrao,
+                        p1Uid,
+                        p2Uid,
+                        [p1Name, 'p1'],
+                        [p2Name, 'p2']
+                      );
+                      setCustomP1(percP1);
+                      const catsCasal =
+                        categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
+                      if (!catsCasal.some((c) => c.id === categoria)) {
+                        setCategoria('Mercado');
+                      }
+                    }
+                  }}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            {privada && (
+              <div className="mt-3 pt-3 border-t border-blue-100 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <label className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-blue-200/80 cursor-pointer hover:bg-blue-50/50">
+                    <input
+                      type="checkbox"
+                      checked={segredoCasal}
+                      onChange={(e) => setSegredoCasal(e.target.checked)}
+                      className="rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-semibold text-slate-800">
+                      Segredo do Casal 🤫 (Surpresa)
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-blue-200/80 cursor-pointer hover:bg-blue-50/50">
+                    <input
+                      type="checkbox"
+                      checked={assinatura}
+                      onChange={(e) => setAssinatura(e.target.checked)}
+                      className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-semibold text-slate-800">
+                      Assinatura Periódica
+                    </span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Forma de Pagamento ou Contexto
+                  </label>
+                  <input
+                    type="text"
+                    value={formaPagamentoNome}
+                    onChange={(e) => setFormaPagamentoNome(e.target.value)}
+                    placeholder="Ex: Cartão Nubank Vinicius, Amazon Kindle Store, VR / Cartão Refeição"
+                    className="w-full px-3 py-1.5 text-xs bg-white border border-blue-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Row 4: Quem Pagou */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-[#006948]">
-                account_balance_wallet
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948]">
+                  account_balance_wallet
+                </span>
+                <span>Quem pagou a compra?</span>
+                <span className="text-red-500">*</span>
               </span>
-              <span>Quem pagou a compra?</span>
-              <span className="text-red-500">*</span>
-            </span>
+              {privada && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-100/90 px-2 py-0.5 rounded-full">
+                  <span className="material-symbols-outlined text-[13px]">lock</span>
+                  <span>Restrito a você ({meuNome})</span>
+                </span>
+              )}
+            </div>
+
+            {privada && (
+              <div className="p-2.5 rounded-xl bg-blue-50/90 border border-blue-200 text-blue-900 text-xs flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-600 text-[18px] shrink-0">info</span>
+                <span>
+                  Lançamento confidencial do seu cofre pessoal: <strong>o pagador é fixado obrigatoriamente em você ({meuNome})</strong> para garantir que nenhuma despesa particular seja cobrada do parceiro.
+                </span>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Parceiro 1 */}
-              <label
-                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
-                  pagoPor === p1Name || pagoPor === p1Uid
-                    ? 'bg-blue-50/70 border-[#0051d5] shadow-sm'
-                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <input
-                    type="radio"
-                    name="pagoPor"
-                    value={p1Name}
-                    checked={pagoPor === p1Name || pagoPor === p1Uid}
-                    onChange={() => setPagoPor(p1Name)}
-                    className="sr-only"
-                  />
-                  <div className="w-8 h-8 rounded-full bg-[#0051d5] text-white flex items-center justify-center font-bold text-xs uppercase">
-                    {p1Name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-900">{p1Name}</span>
-                      {(usuarioAtual === p1Uid || usuarioAtual === p1Name) && (
-                        <span className="text-[10px] text-[#0051d5] font-semibold">(Você)</span>
+              {(() => {
+                const souEuP1 = !souP2;
+                const bloqueado = privada && !souEuP1;
+                const selecionado = (pagoPor === p1Name || pagoPor === p1Uid) && !bloqueado;
+
+                return (
+                  <label
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                      bloqueado
+                        ? 'opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed select-none pointer-events-none'
+                        : selecionado
+                        ? 'bg-blue-50/70 border-[#0051d5] shadow-sm cursor-pointer'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="pagoPor"
+                        value={p1Name}
+                        disabled={bloqueado}
+                        checked={selecionado}
+                        onChange={() => {
+                          if (!bloqueado) setPagoPor(p1Name);
+                        }}
+                        className="sr-only"
+                      />
+                      <div className="w-8 h-8 rounded-full bg-[#0051d5] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                        {p1Name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-900">{p1Name}</span>
+                          {souEuP1 && (
+                            <span className="text-[10px] text-[#0051d5] font-semibold">(Você)</span>
+                          )}
+                          {bloqueado && (
+                            <span className="text-[10px] text-slate-500 font-semibold">(Bloqueado)</span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-500">
+                          {bloqueado ? 'Indisponível em cofre privado' : 'Cartão / Pix dele(a)'}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                        selecionado
+                          ? 'bg-[#0051d5] text-white'
+                          : bloqueado
+                          ? 'border border-slate-300 bg-slate-200'
+                          : 'border border-slate-300'
+                      }`}
+                    >
+                      {selecionado && (
+                        <span className="material-symbols-outlined text-[14px]">check</span>
+                      )}
+                      {bloqueado && !selecionado && (
+                        <span className="material-symbols-outlined text-[12px] text-slate-400">lock</span>
                       )}
                     </div>
-                    <span className="text-[11px] text-slate-500">Cartão / Pix dele(a)</span>
-                  </div>
-                </div>
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    pagoPor === p1Name || pagoPor === p1Uid ? 'bg-[#0051d5] text-white' : 'border border-slate-300'
-                  }`}
-                >
-                  {(pagoPor === p1Name || pagoPor === p1Uid) && (
-                    <span className="material-symbols-outlined text-[14px]">check</span>
-                  )}
-                </div>
-              </label>
+                  </label>
+                );
+              })()}
 
               {/* Parceiro 2 */}
-              <label
-                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
-                  pagoPor === p2Name || pagoPor === p2Uid
-                    ? 'bg-purple-50/70 border-[#712ae2] shadow-sm'
-                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <input
-                    type="radio"
-                    name="pagoPor"
-                    value={p2Name}
-                    checked={pagoPor === p2Name || pagoPor === p2Uid}
-                    onChange={() => setPagoPor(p2Name)}
-                    className="sr-only"
-                  />
-                  <div className="w-8 h-8 rounded-full bg-[#712ae2] text-white flex items-center justify-center font-bold text-xs uppercase">
-                    {p2Name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-900">{p2Name}</span>
-                      {(usuarioAtual === p2Uid || usuarioAtual === p2Name) && (
-                        <span className="text-[10px] text-[#712ae2] font-semibold">(Você)</span>
+              {(() => {
+                const souEuP2 = souP2;
+                const bloqueado = privada && !souEuP2;
+                const selecionado = (pagoPor === p2Name || pagoPor === p2Uid) && !bloqueado;
+
+                return (
+                  <label
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                      bloqueado
+                        ? 'opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed select-none pointer-events-none'
+                        : selecionado
+                        ? 'bg-purple-50/70 border-[#712ae2] shadow-sm cursor-pointer'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="pagoPor"
+                        value={p2Name}
+                        disabled={bloqueado}
+                        checked={selecionado}
+                        onChange={() => {
+                          if (!bloqueado) setPagoPor(p2Name);
+                        }}
+                        className="sr-only"
+                      />
+                      <div className="w-8 h-8 rounded-full bg-[#712ae2] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                        {p2Name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-900">{p2Name}</span>
+                          {souEuP2 && (
+                            <span className="text-[10px] text-[#712ae2] font-semibold">(Você)</span>
+                          )}
+                          {bloqueado && (
+                            <span className="text-[10px] text-slate-500 font-semibold">(Bloqueado)</span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-500">
+                          {bloqueado ? 'Indisponível em cofre privado' : 'Cartão / Pix dele(a)'}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                        selecionado
+                          ? 'bg-[#712ae2] text-white'
+                          : bloqueado
+                          ? 'border border-slate-300 bg-slate-200'
+                          : 'border border-slate-300'
+                      }`}
+                    >
+                      {selecionado && (
+                        <span className="material-symbols-outlined text-[14px]">check</span>
+                      )}
+                      {bloqueado && !selecionado && (
+                        <span className="material-symbols-outlined text-[12px] text-slate-400">lock</span>
                       )}
                     </div>
-                    <span className="text-[11px] text-slate-500">Cartão / Pix dele(a)</span>
-                  </div>
-                </div>
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    pagoPor === p2Name || pagoPor === p2Uid ? 'bg-[#712ae2] text-white' : 'border border-slate-300'
-                  }`}
-                >
-                  {(pagoPor === p2Name || pagoPor === p2Uid) && (
-                    <span className="material-symbols-outlined text-[14px]">check</span>
-                  )}
-                </div>
-              </label>
+                  </label>
+                );
+              })()}
             </div>
           </div>
 
           {/* Row 5: Divisão da Compra Dinâmica */}
-          <div className="flex flex-col gap-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
-                <span>Regime de Divisão desta Compra</span>
-                <span className="text-red-500">*</span>
+          {privada ? (
+            <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-950 text-xs flex items-start gap-2.5">
+              <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5">
+                lock
               </span>
-              <button
-                type="button"
-                onClick={() => setMostrarPersonalizado(!mostrarPersonalizado)}
-                className="text-[11px] font-semibold text-[#006948] hover:text-[#005137] hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[14px]">tune</span>
-                <span>{mostrarPersonalizado ? 'Ocultar Personalizado' : 'Ajuste Fino (%)'}</span>
-              </button>
+              <div>
+                <strong className="block font-bold text-blue-950 mb-0.5">
+                  Despesa 100% Pessoal & Confidencial
+                </strong>
+                Este item é atribuído integralmente ao seu cofre privado. Ele não será dividido com o parceiro, não cria dívidas e não entrará no fechamento mensal do casal.
+              </div>
             </div>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-[#006948]">pie_chart</span>
+                  <span>Regime de Divisão desta Compra</span>
+                  <span className="text-red-500">*</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMostrarPersonalizado(!mostrarPersonalizado)}
+                  className="text-[11px] font-semibold text-[#006948] hover:text-[#005137] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[14px]">tune</span>
+                  <span>{mostrarPersonalizado ? 'Ocultar Personalizado' : 'Ajuste Fino (%)'}</span>
+                </button>
+              </div>
 
             {/* Presets Rápidos */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -777,6 +1010,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
               );
             })()}
           </div>
+          )}
 
           {/* Row 6: Descrição Opcional */}
           <div className="flex flex-col gap-1.5">

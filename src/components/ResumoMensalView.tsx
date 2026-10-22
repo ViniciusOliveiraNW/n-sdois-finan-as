@@ -25,6 +25,7 @@ interface ResumoMensalViewProps {
   onRemoverCompra: (compraId: string, numeroParcela: number) => void;
   onIrParaLancamentos: () => void;
   onIrParaCategorias: () => void;
+  onIrParaMinhasDespesas?: () => void;
 }
 
 export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
@@ -46,6 +47,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
   onRemoverCompra,
   onIrParaLancamentos,
   onIrParaCategorias,
+  onIrParaMinhasDespesas,
 }) => {
   // Navegação de mês anterior e posterior
   const handleAvancarMes = (offset: number) => {
@@ -239,6 +241,18 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               </span>
             </button>
           </div>
+
+          {onIrParaMinhasDespesas && (
+            <button
+              type="button"
+              onClick={onIrParaMinhasDespesas}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              title="Acessar cofre individual protegido e confidencial"
+            >
+              <span className="material-symbols-outlined text-[15px]">lock</span>
+              <span className="hidden sm:inline">Cofre Privado</span>
+            </button>
+          )}
         </div>
       </section>
 

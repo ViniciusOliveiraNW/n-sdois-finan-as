@@ -622,6 +622,40 @@ export async function cancelarParcelasFirestore(
   }
 }
 
+export async function deletarCompraFirestore(
+  coupleId: string,
+  compraId: string
+): Promise<void> {
+  const path = `couples/${coupleId}/purchases/${compraId}`;
+  try {
+    await deleteDoc(doc(db, 'couples', coupleId, 'purchases', compraId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
+}
+
+export async function salvarTetoPessoal(uid: string, tetoCentavos: number): Promise<void> {
+  const path = `users/${uid}`;
+  try {
+    await setDoc(doc(db, 'users', uid), { tetoPessoalCentavos: tetoCentavos }, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+export async function salvarCategoriasIndividuais(
+  uid: string,
+  categories: CategoriaMeta[]
+): Promise<void> {
+  const path = `users/${uid}`;
+  try {
+    const dadosLimpos = JSON.parse(JSON.stringify(categories));
+    await setDoc(doc(db, 'users', uid), { categoriasIndividuais: dadosLimpos }, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
 // Fechamentos em tempo real
 export function ouvirFechamentos(
   coupleId: string,

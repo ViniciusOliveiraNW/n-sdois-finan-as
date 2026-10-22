@@ -215,6 +215,10 @@ export function gerarLancamentosDoMes(
       cadastradoPor: cadastradoPorNome,
       divisao: compra.divisao,
       minhaParteCentavos,
+      privada: compra.privada,
+      segredoCasal: compra.segredoCasal,
+      formaPagamentoNome: compra.formaPagamentoNome,
+      assinatura: compra.assinatura,
     });
   }
 

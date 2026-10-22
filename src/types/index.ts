@@ -11,6 +11,8 @@ export interface UserProfile {
   photoURL?: string;
   coupleId?: string;
   createdAt?: string;
+  tetoPessoalCentavos?: number; // Teto orçamentário pessoal mensal (ex: 250000 = R$ 2.500,00)
+  categoriasIndividuais?: CategoriaMeta[]; // Categorias personalizadas do espaço individual
 }
 
 export interface CoupleSpace {
@@ -50,6 +52,12 @@ export interface Compra {
   ultimaParcelaAtiva: number; // Número ordinal inclusivo
   descricao?: string;
   createdAt?: string;
+
+  // Campos para Espaço Individual & Cofre Privado:
+  privada?: boolean; // Se true, lançamento é 100% individual e não entra nas contas do casal
+  segredoCasal?: boolean; // Badge "Segredo do Casal 🤫" (ex: presente surpresa para parceiro)
+  formaPagamentoNome?: string; // Ex: 'Cartão Nubank Vinicius', 'Amazon Kindle Store', 'VR / Cartão Refeição'
+  assinatura?: boolean; // Se é assinatura / renovação periódica
 }
 
 export interface LancamentoMensal {
@@ -70,6 +78,10 @@ export interface LancamentoMensal {
   cadastradoPor?: string;
   divisao: DivisaoTipo;
   minhaParteCentavos: number; // Cota individual do usuário ativo
+  privada?: boolean;
+  segredoCasal?: boolean;
+  formaPagamentoNome?: string;
+  assinatura?: boolean;
 }
 
 export interface CategoriaMeta {
