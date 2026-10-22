@@ -250,7 +250,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               title="Acessar cofre individual protegido e confidencial"
             >
               <span className="material-symbols-outlined text-[15px]">lock</span>
-              <span className="hidden sm:inline">Cofre Privado</span>
+              <span>Cofre Privado</span>
             </button>
           )}
         </div>

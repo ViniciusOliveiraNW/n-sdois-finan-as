@@ -5,6 +5,11 @@ import { formatarBRL } from '../calculations/acertoMensal';
 import { ModalCompartilharCompra } from './ModalCompartilharCompra';
 import { ModalTetoPessoal } from './ModalTetoPessoal';
 import { ModalCategoriasIndividuais } from './ModalCategoriasIndividuais';
+import { RankingCategoriasView } from './RankingCategoriasView';
+import { HeatmapCalendario } from './HeatmapCalendario';
+import { CategoryIconOrImage } from './CategoryIconOrImage';
+import { calcularRankingCategorias } from '../calculations/rankingCategorias';
+import { obterDiasNoMes } from '../calculations/parcelas';
 
 interface MinhasDespesasViewProps {
   mesSelecionado: string;
@@ -50,7 +55,6 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   const [modalTetoAberta, setModalTetoAberta] = useState(false);
   const [modalCategoriasAberta, setModalCategoriasAberta] = useState(false);
   const [mostrarPainelCategorias, setMostrarPainelCategorias] = useState(false);
-  const [menuAbertoId, setMenuAbertoId] = useState<string | null>(null);
 
   const categoriasEfetivas = useMemo(() => {
     return categoriasIndividuais && categoriasIndividuais.length > 0
@@ -113,6 +117,30 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
     ? Math.round((totalGastosCasalCentavos / somaTotalCentavos) * 100)
     : 50;
   const percIndividual = 100 - percCasal;
+
+  // Ranking Top Categorias do Cofre Individual
+  const rankingIndividual = useMemo(() => {
+    return calcularRankingCategorias(lancamentosPrivadosDoMes);
+  }, [lancamentosPrivadosDoMes]);
+
+  // Maior Lançamento do Mês
+  const maiorLancamentoDoMes = useMemo(() => {
+    if (lancamentosPrivadosDoMes.length === 0) return null;
+    return [...lancamentosPrivadosDoMes].sort((a, b) => b.valorCentavos - a.valorCentavos)[0];
+  }, [lancamentosPrivadosDoMes]);
+
+  // Total de dias no mês selecionado
+  const totalDiasDoMes = useMemo(() => {
+    try {
+      const [ano, mes] = mesSelecionado.split('-');
+      return obterDiasNoMes(parseInt(ano, 10), parseInt(mes, 10));
+    } catch {
+      return 30;
+    }
+  }, [mesSelecionado]);
+
+  // Média Diária (Ritmo) de gastos pessoais
+  const mediaDiariaCentavos = totalDiasDoMes > 0 ? Math.round(totalGastoPessoalCentavos / totalDiasDoMes) : 0;
 
   // Filtragem dos lançamentos
   const lancamentosFiltrados = useMemo(() => {
@@ -279,8 +307,8 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
         </div>
       </div>
 
-      {/* 3. Three Metric KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* 3. Four Metric KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Gasto */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
@@ -408,6 +436,40 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
             )}
           </div>
         </div>
+
+        {/* Card 4: Ritmo Diário & Pico Pessoal */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                RITMO DIÁRIO & MAIOR GASTO
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[18px]">query_stats</span>
+              </div>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {formatarValorDiscreto(mediaDiariaCentavos)}
+              </span>
+              <span className="text-xs text-slate-500 font-medium">/dia</span>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500">Maior item:</span>
+            {maiorLancamentoDoMes ? (
+              <span
+                className="font-bold text-slate-800 truncate max-w-[130px]"
+                title={`${maiorLancamentoDoMes.nome} (${formatarValorDiscreto(maiorLancamentoDoMes.valorCentavos)})`}
+              >
+                {maiorLancamentoDoMes.nome}
+              </span>
+            ) : (
+              <span className="text-slate-400">Nenhum</span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 4. Equilíbrio de Consciência Card */}
@@ -474,6 +536,29 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 4.1. Dashboard Duplo: Top 5 Categorias & Calendário de Calor Individual */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div className="lg:col-span-7">
+          <RankingCategoriasView
+            ranking={rankingIndividual}
+            categorias={categoriasEfetivas}
+            onVerTodasCategorias={() => setModalCategoriasAberta(true)}
+            titulo="Top 5 Categorias Pessoais"
+            subtitulo="Distribuição ponderada dos seus gastos individuais no mês"
+            corTema="blue"
+          />
+        </div>
+        <div className="lg:col-span-5">
+          <HeatmapCalendario
+            mesSelecionado={mesSelecionado}
+            lancamentos={lancamentosPrivadosDoMes}
+            titulo="Mapa de Gastos Pessoais"
+            subtitulo="Intensidade diária do seu cofre individual"
+            corTema="blue"
+          />
+        </div>
+      </section>
 
       {/* 5. Categories Pills & Search Input */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
@@ -560,7 +645,6 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                 lancamentosFiltrados.map((lanc) => {
                   const metaIcone = getIconeCategoria(lanc);
                   const compraOriginal = comprasPrivadas.find((c) => c.id === lanc.compraId);
-                  const isMenuAberto = menuAbertoId === lanc.compraId;
 
                   return (
                     <tr
@@ -570,13 +654,33 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                       {/* Descrição & Contexto */}
                       <td className="py-3.5 px-4 sm:px-6">
                         <div className="flex items-center gap-3">
-                          <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${metaIcone.bg}`}
-                          >
-                            <span className="material-symbols-outlined text-[19px]">
-                              {metaIcone.icon}
-                            </span>
-                          </div>
+                          {(() => {
+                            const catMeta = categoriasEfetivas.find(
+                              (c) =>
+                                c.id === lanc.categoria ||
+                                c.nome.toLowerCase() === lanc.categoria.toLowerCase()
+                            );
+                            if (catMeta?.imagemUrl) {
+                              return (
+                                <CategoryIconOrImage
+                                  icone={catMeta.icone || '🏷️'}
+                                  imagemUrl={catMeta.imagemUrl}
+                                  size="sm"
+                                  nome={catMeta.nome || lanc.nome}
+                                  className="shrink-0 rounded-xl"
+                                />
+                              );
+                            }
+                            return (
+                              <div
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${metaIcone.bg}`}
+                              >
+                                <span className="material-symbols-outlined text-[19px]">
+                                  {metaIcone.icon}
+                                </span>
+                              </div>
+                            );
+                          })()}
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-slate-900 text-sm">
@@ -633,7 +737,12 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                           );
                           return (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-900 text-[11px] font-bold border border-blue-100/80">
-                              <span>{catMeta?.icone || '🏷️'}</span>
+                              <CategoryIconOrImage
+                                icone={catMeta?.icone || '🏷️'}
+                                imagemUrl={catMeta?.imagemUrl}
+                                size="xs"
+                                nome={catMeta?.nome || lanc.categoria}
+                              />
                               <span>{catMeta?.nome || lanc.categoria}</span>
                             </span>
                           );
@@ -656,8 +765,8 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                       </td>
 
                       {/* Ações Rápidas */}
-                      <td className="py-3.5 px-4 sm:px-6 text-right">
-                        <div className="flex items-center justify-end gap-2 relative">
+                      <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
                             onClick={() => {
@@ -665,7 +774,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                                 setCompraParaCompartilhar(compraOriginal);
                               }
                             }}
-                            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-300 text-slate-700 hover:text-blue-700 font-semibold text-xs transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 font-semibold text-xs transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
                             title="Mover este lançamento para as contas compartilhadas do casal"
                           >
                             <span className="material-symbols-outlined text-[15px] text-blue-600">
@@ -674,51 +783,23 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                             <span>+ Compartilhar</span>
                           </button>
 
-                          {/* Menu 3-dots */}
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setMenuAbertoId(isMenuAberto ? null : lanc.compraId)
-                              }
-                              className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-[18px]">
-                                more_vert
-                              </span>
-                            </button>
+                          <button
+                            type="button"
+                            onClick={() => onEditarCompra(lanc.compraId)}
+                            className="w-8 h-8 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            title="Editar lançamento"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">edit</span>
+                          </button>
 
-                            {isMenuAberto && (
-                              <div className="absolute right-0 top-8 z-30 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1 text-xs">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setMenuAbertoId(null);
-                                    onEditarCompra(lanc.compraId);
-                                  }}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-slate-100 flex items-center gap-2 text-slate-700 cursor-pointer"
-                                >
-                                  <span className="material-symbols-outlined text-[15px]">
-                                    edit
-                                  </span>
-                                  <span>Editar</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setMenuAbertoId(null);
-                                    onRemoverCompra(lanc.compraId, lanc.numeroParcela);
-                                  }}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
-                                >
-                                  <span className="material-symbols-outlined text-[15px]">
-                                    delete
-                                  </span>
-                                  <span>Excluir</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onRemoverCompra(lanc.compraId, lanc.numeroParcela)}
+                            className="w-8 h-8 rounded-xl border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            title="Excluir lançamento"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                          </button>
                         </div>
                       </td>
                     </tr>

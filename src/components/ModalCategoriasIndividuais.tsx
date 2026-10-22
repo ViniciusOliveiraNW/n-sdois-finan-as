@@ -249,10 +249,15 @@ export const ModalCategoriasIndividuais: React.FC<ModalCategoriasIndividuaisProp
                           />
                         </div>
                         <div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="text-xs font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
                               {cat.nome}
                             </h3>
+                            {cat.imagemUrl && (
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                Foto CDN
+                              </span>
+                            )}
                             {cat.isFixo && (
                               <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">
                                 Fixa
@@ -403,6 +408,49 @@ export const ModalCategoriasIndividuais: React.FC<ModalCategoriasIndividuaisProp
                         {em}
                       </button>
                     ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Imagem da Categoria (URL Direta da sua CDN) */}
+              <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-blue-50/50 border border-blue-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-blue-600">image</span>
+                    <span>Imagem da Categoria (URL Direta da sua CDN)</span>
+                  </label>
+                  {imagemUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setImagemUrl('')}
+                      className="text-[11px] font-semibold text-red-600 hover:underline cursor-pointer"
+                    >
+                      Remover Imagem
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <CategoryIconOrImage
+                    icone={icone}
+                    imagemUrl={imagemUrl}
+                    nome={nome || 'Prévia'}
+                    size="lg"
+                    className="shrink-0"
+                  />
+                  <div className="flex-1 flex flex-col gap-1 min-w-0">
+                    <input
+                      type="url"
+                      value={imagemUrl}
+                      onChange={(e) => setImagemUrl(e.target.value)}
+                      placeholder="https://sua-cdn.com/categorias/jogos.png"
+                      className="w-full h-9 px-3 bg-white border border-blue-200 rounded-lg text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    />
+                    <span className="text-[10px] text-slate-500">
+                      {imagemUrl.trim()
+                        ? 'Exibindo imagem da sua CDN (o emoji ao lado é usado como fallback se a imagem falhar).'
+                        : 'Cole o link direto da imagem hospedada na sua CDN (ex: S3, Cloudinary, Imgur, CDN própria).'}
+                    </span>
                   </div>
                 </div>
               </div>

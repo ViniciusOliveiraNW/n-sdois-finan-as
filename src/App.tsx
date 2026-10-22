@@ -740,6 +740,7 @@ export default function App() {
             onEditarCompra={handleEditarCompra}
             onRemoverCompra={handleRemoverCompra}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
+            onIrParaMinhasDespesas={() => setAbaAtiva('minhas-despesas')}
           />
         )}
 

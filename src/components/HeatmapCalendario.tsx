@@ -6,12 +6,19 @@ import { obterDiasNoMes } from '../calculations/parcelas';
 interface HeatmapCalendarioProps {
   mesSelecionado: string; // 'AAAA-MM'
   lancamentos: LancamentoMensal[];
+  titulo?: string;
+  subtitulo?: string;
+  corTema?: 'emerald' | 'blue';
 }
 
 export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
   mesSelecionado,
   lancamentos,
+  titulo = 'Mapa de Gastos',
+  subtitulo = 'Intensidade diária no mês',
+  corTema = 'emerald',
 }) => {
+  const isBlue = corTema === 'blue';
   const [anoStr, mesStr] = mesSelecionado.split('-');
   const ano = parseInt(anoStr, 10);
   const mes = parseInt(mesStr, 10);
@@ -88,6 +95,21 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
 
   // Obter cor de fundo pelo nível
   const getCorNivel = (nivel?: number) => {
+    if (isBlue) {
+      switch (nivel) {
+        case 4:
+          return 'bg-blue-600 text-white font-bold shadow-sm';
+        case 3:
+          return 'bg-blue-500 text-white font-bold';
+        case 2:
+          return 'bg-blue-300 text-blue-950 font-semibold';
+        case 1:
+          return 'bg-blue-100 text-blue-900 font-medium';
+        default:
+          return 'bg-slate-100 text-slate-500 hover:bg-slate-200';
+      }
+    }
+
     switch (nivel) {
       case 4:
         return 'bg-[#006948] text-white font-bold shadow-sm';
@@ -107,12 +129,16 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
       <div>
         <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center">
+            <div
+              className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                isBlue ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-[#006948]'
+              }`}
+            >
               <span className="material-symbols-outlined text-[18px]">calendar_view_month</span>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 leading-tight">Mapa de Gastos</h3>
-              <span className="text-[11px] text-slate-500">Intensidade diária no mês</span>
+              <h3 className="text-sm font-bold text-slate-900 leading-tight">{titulo}</h3>
+              <span className="text-[11px] text-slate-500">{subtitulo}</span>
             </div>
           </div>
         </div>
@@ -170,17 +196,23 @@ export const HeatmapCalendario: React.FC<HeatmapCalendarioProps> = ({
           <span>Sem gasto</span>
           <div className="flex items-center gap-1">
             <span className="w-3 h-3 rounded bg-slate-100"></span>
-            <span className="w-3 h-3 rounded bg-emerald-100"></span>
-            <span className="w-3 h-3 rounded bg-emerald-300"></span>
-            <span className="w-3 h-3 rounded bg-[#00855d]"></span>
-            <span className="w-3 h-3 rounded bg-[#006948]"></span>
+            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-100' : 'bg-emerald-100'}`}></span>
+            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-300' : 'bg-emerald-300'}`}></span>
+            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-500' : 'bg-[#00855d]'}`}></span>
+            <span className={`w-3 h-3 rounded ${isBlue ? 'bg-blue-600' : 'bg-[#006948]'}`}></span>
           </div>
           <span>Maior volume</span>
         </div>
 
         {maiorGastoDiaCentavos > 0 ? (
           <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700">
-            <span className="material-symbols-outlined text-[#006948] text-[16px]">bolt</span>
+            <span
+              className={`material-symbols-outlined text-[16px] ${
+                isBlue ? 'text-blue-600' : 'text-[#006948]'
+              }`}
+            >
+              bolt
+            </span>
             <span>
               Pico do mês:{' '}
               <strong className="text-slate-900 tabular-nums">

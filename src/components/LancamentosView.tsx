@@ -18,6 +18,7 @@ interface LancamentosViewProps {
   onEditarCompra: (compraId: string) => void;
   onRemoverCompra: (compraId: string, numeroParcela: number) => void;
   onAbrirModalAcerto: () => void;
+  onIrParaMinhasDespesas?: () => void;
 }
 
 export const LancamentosView: React.FC<LancamentosViewProps> = ({
@@ -34,6 +35,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   onEditarCompra,
   onRemoverCompra,
   onAbrirModalAcerto,
+  onIrParaMinhasDespesas,
 }) => {
   const listaCategorias = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
   const p1Name = resumoAcerto.p1Name || 'Vinicius';
@@ -341,6 +343,18 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               </span>
             </button>
           </div>
+
+          {onIrParaMinhasDespesas && (
+            <button
+              onClick={onIrParaMinhasDespesas}
+              type="button"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs"
+              title="Acessar cofre individual protegido e confidencial"
+            >
+              <span className="material-symbols-outlined text-[16px]">lock</span>
+              <span>Cofre Privado</span>
+            </button>
+          )}
 
           <button
             onClick={onAbrirNovaCompra}

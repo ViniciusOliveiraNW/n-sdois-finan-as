@@ -138,27 +138,13 @@ export const Header: React.FC<HeaderProps> = ({
             >
               Categorias
             </button>
-            <button
-              onClick={() => onSelecionarAba('minhas-despesas')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                abaAtiva === 'minhas-despesas'
-                  ? 'bg-[#0051d5] text-white shadow-sm'
-                  : 'text-blue-700 hover:text-blue-900 hover:bg-blue-50/70'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[15px]">lock</span>
-              <span>Minhas Despesas</span>
-            </button>
           </nav>
         </div>
 
         {/* Right Zone: Convite pendente, Nova Compra, User Profile */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Se aguardando parceiro, exibe código amigável para copiar */}
-
-
           {/* Sincronizado Firebase */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
+          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Firestore Conectado</span>
           </div>
@@ -177,7 +163,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* User Profile Badge */}
-          <div className="flex items-center gap-1 sm:gap-1.5 pl-1.5 pr-0.5 py-1 bg-white rounded-full border border-slate-200 shadow-sm max-w-[200px] sm:max-w-none">
+          <div className="flex items-center gap-1 sm:gap-1.5 pl-1.5 pr-1 py-1 bg-white rounded-full border border-slate-200 shadow-sm shrink-0">
             {/* Clickable Profile Avatar */}
             <button
               type="button"
