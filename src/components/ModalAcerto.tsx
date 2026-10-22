@@ -8,6 +8,7 @@ interface ModalAcertoProps {
   resumoAcerto: ResumoAcerto;
   fechamentoAtual?: FechamentoMensal;
   usuarioAtual: UsuarioId;
+  onAbrirNotaFechamento?: () => void;
   onRegistrarPagamento: (
     pagamento: Omit<PagamentoAcerto, 'id'>,
     marcarComoQuitado: boolean
@@ -20,6 +21,7 @@ export const ModalAcerto: React.FC<ModalAcertoProps> = ({
   resumoAcerto,
   fechamentoAtual,
   usuarioAtual,
+  onAbrirNotaFechamento,
   onRegistrarPagamento,
 }) => {
   const [valorInput, setValorInput] = useState('');
@@ -422,13 +424,26 @@ export const ModalAcerto: React.FC<ModalAcertoProps> = ({
 
         {/* Footer Actions */}
         <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onFechar}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
-          >
-            Fechar
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={onFechar}
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Fechar
+            </button>
+            {onAbrirNotaFechamento && (
+              <button
+                type="button"
+                onClick={onAbrirNotaFechamento}
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 text-slate-700 hover:text-[#006948] text-xs font-semibold transition-colors cursor-pointer"
+                title="Extrair nota com pagamentos realizados, cobranças e parcelas em PDF"
+              >
+                <span className="material-symbols-outlined text-[16px] text-[#006948]">picture_as_pdf</span>
+                <span>Nota em PDF</span>
+              </button>
+            )}
+          </div>
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <button
               type="button"

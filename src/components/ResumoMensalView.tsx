@@ -20,6 +20,7 @@ interface ResumoMensalViewProps {
   compras: Compra[];
   categorias?: CategoriaMeta[];
   onAbrirModalAcerto: () => void;
+  onAbrirNotaFechamento?: (mes: string) => void;
   onEditarCompra: (compraId: string) => void;
   onRemoverCompra: (compraId: string, numeroParcela: number) => void;
   onIrParaLancamentos: () => void;
@@ -40,6 +41,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
   compras,
   categorias,
   onAbrirModalAcerto,
+  onAbrirNotaFechamento,
   onEditarCompra,
   onRemoverCompra,
   onIrParaLancamentos,
@@ -309,14 +311,27 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
               <span>Registrar Pagamento do Acerto</span>
             </button>
-            <button
-              onClick={onAbrirModalAcerto}
-              type="button"
-              className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-              <span>Ver Detalhes do Cálculo</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onAbrirModalAcerto}
+                type="button"
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+                <span>Detalhes</span>
+              </button>
+              {onAbrirNotaFechamento && (
+                <button
+                  onClick={() => onAbrirNotaFechamento(mesSelecionado)}
+                  type="button"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#006948] text-xs font-semibold transition-colors cursor-pointer"
+                  title="Extrair nota com pagamentos e parcelas em PDF"
+                >
+                  <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                  <span>Nota (PDF)</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

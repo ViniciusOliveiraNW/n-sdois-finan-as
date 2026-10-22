@@ -28,6 +28,7 @@ import { FechamentosView } from './components/FechamentosView';
 import { CategoriasView } from './components/CategoriasView';
 import { ModalCompra } from './components/ModalCompra';
 import { ModalAcerto } from './components/ModalAcerto';
+import { ModalNotaFechamento } from './components/ModalNotaFechamento';
 import { ModalEspacoCasal } from './components/ModalEspacoCasal';
 import { ModalPerfilUsuario } from './components/ModalPerfilUsuario';
 import { ModalConfirmacao } from './components/ModalConfirmacao';
@@ -72,6 +73,13 @@ export default function App() {
   const [modalCompraAberta, setModalCompraAberta] = useState(false);
   const [compraEmEdicao, setCompraEmEdicao] = useState<Compra | null>(null);
   const [modalAcertoAberta, setModalAcertoAberta] = useState(false);
+  const [modalNotaAberta, setModalNotaAberta] = useState(false);
+  const [mesNota, setMesNota] = useState<string>(() => {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    return `${ano}-${mes}`;
+  });
   const [modalEspacoAberta, setModalEspacoAberta] = useState(false);
   const [modalPerfilAberta, setModalPerfilAberta] = useState(false);
 
@@ -267,6 +275,42 @@ export default function App() {
     return fechamentos.find((f) => f.mesReferencia === mesSelecionado);
   }, [fechamentos, mesSelecionado]);
 
+  // Dados derivados especificamente para a Nota de Fechamento do Mês
+  const lancamentosNota = useMemo(() => {
+    if (mesNota === mesSelecionado) {
+      return todosLancamentosDoMes;
+    }
+    const p1Uid = couple?.partner1Uid || 'Vinicius';
+    const p1Name = couple?.partner1Name || 'Vinicius';
+    const p2Uid = couple?.partner2Uid || 'Silvia';
+    const p2Name = couple?.partner2Name || 'Silvia';
+    return gerarLancamentosDoMes(
+      compras,
+      mesNota,
+      authUser?.uid || 'user',
+      p1Uid,
+      p2Uid,
+      [p1Name, p1Uid, 'Vinicius', 'p1'],
+      [p2Name, p2Uid, 'Silvia', 'p2']
+    );
+  }, [compras, mesNota, mesSelecionado, todosLancamentosDoMes, authUser?.uid, couple]);
+
+  const resumoAcertoNota = useMemo(() => {
+    if (mesNota === mesSelecionado) {
+      return resumoAcerto;
+    }
+    return calcularAcertoMensal(lancamentosNota, mesNota, couple);
+  }, [lancamentosNota, mesNota, mesSelecionado, resumoAcerto, couple]);
+
+  const fechamentoNota = useMemo(() => {
+    return fechamentos.find((f) => f.mesReferencia === mesNota);
+  }, [fechamentos, mesNota]);
+
+  const handleAbrirNotaFechamento = (mesAlvo?: string) => {
+    setMesNota(mesAlvo || mesSelecionado);
+    setModalNotaAberta(true);
+  };
+
   // Handlers de Negócio
   const handleAbrirNovaCompra = () => {
     setCompraEmEdicao(null);
@@ -378,6 +422,7 @@ export default function App() {
 
     try {
       await salvarFechamentoFirestore(couple.id, novoFechamento);
+      setMesNota(mesSelecionado);
       setModalAcertoAberta(true);
     } catch (e) {
       console.error('Erro ao fechar mês:', e);
@@ -551,6 +596,7 @@ export default function App() {
             compras={compras}
             categorias={categorias}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
+            onAbrirNotaFechamento={handleAbrirNotaFechamento}
             onEditarCompra={handleEditarCompra}
             onRemoverCompra={handleRemoverCompra}
             onIrParaLancamentos={() => setAbaAtiva('lancamentos')}
@@ -585,6 +631,7 @@ export default function App() {
             couple={couple}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
             onFecharMes={handleFecharMes}
+            onAbrirNotaFechamento={handleAbrirNotaFechamento}
             onQuitarResidualRetroativo={handleQuitarResidualRetroativo}
             onDeletarFechamento={handleDeletarFechamento}
           />
@@ -624,7 +671,22 @@ export default function App() {
         resumoAcerto={resumoAcerto}
         fechamentoAtual={fechamentoAtual}
         usuarioAtual={usuarioNome}
+        onAbrirNotaFechamento={() =>
+          handleAbrirNotaFechamento(fechamentoAtual?.mesReferencia || mesSelecionado)
+        }
         onRegistrarPagamento={handleRegistrarPagamento}
+      />
+
+      <ModalNotaFechamento
+        aberto={modalNotaAberta}
+        onFechar={() => setModalNotaAberta(false)}
+        mesReferencia={mesNota}
+        fechamento={fechamentoNota}
+        resumoAcerto={resumoAcertoNota}
+        lancamentos={lancamentosNota}
+        couple={couple}
+        categorias={categorias}
+        usuarioAtual={usuarioNome}
       />
 
       <ModalEspacoCasal

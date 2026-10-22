@@ -10,6 +10,7 @@ interface FechamentosViewProps {
   couple?: CoupleSpace | null;
   onAbrirModalAcerto: () => void;
   onFecharMes: () => void;
+  onAbrirNotaFechamento: (mes: string) => void;
   onQuitarResidualRetroativo: (fechamentoId: string) => void;
   onDeletarFechamento: (fechamentoId: string) => void;
 }
@@ -22,6 +23,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
   couple,
   onAbrirModalAcerto,
   onFecharMes,
+  onAbrirNotaFechamento,
   onQuitarResidualRetroativo,
   onDeletarFechamento,
 }) => {
@@ -166,26 +168,23 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start md:self-auto">
+        <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
           <button
             onClick={() => setModalSimulacaoAberto(true)}
             type="button"
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px] text-[#0051d5]">calculate</span>
-            <span>Simular Fechamento Atual</span>
+            <span>Simular Fechamento</span>
           </button>
           <button
-            onClick={() => {
-              alert(
-                'Relatório financeiro de acertos gerado e copiado para a área de transferência.'
-              );
-            }}
+            onClick={() => onAbrirNotaFechamento(mesSelecionado)}
             type="button"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            title="Extrair nota com pagamentos realizados, cobranças e parcelas em PDF"
           >
-            <span className="material-symbols-outlined text-[16px]">download</span>
-            <span className="hidden sm:inline">Exportar Relatório</span>
+            <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+            <span>Nota do Mês (PDF)</span>
           </button>
         </div>
       </div>
@@ -319,9 +318,18 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                 <span>Fechar Mês & Registrar Acerto</span>
               </button>
               <button
+                onClick={() => onAbrirNotaFechamento(mesSelecionado)}
+                type="button"
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                title="Visualizar Nota e Baixar PDF"
+              >
+                <span className="material-symbols-outlined text-[18px] text-[#006948]">picture_as_pdf</span>
+                <span className="hidden sm:inline">Nota PDF</span>
+              </button>
+              <button
                 onClick={onAbrirModalAcerto}
                 type="button"
-                className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                className="flex items-center justify-center px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
                 title="Ver detalhes do cálculo"
               >
                 <span className="material-symbols-outlined text-[18px]">visibility</span>
@@ -419,8 +427,8 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Status Badge */}
-                      <div className="flex items-center gap-2">
+                    {/* Status Badge & Actions */}
+                      <div className="flex items-center gap-2 flex-wrap">
                         <div
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                             fechamento.status === 'quitado'
@@ -445,6 +453,15 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                               : 'Pendência por Edição Retroativa'}
                           </span>
                         </div>
+                        <button
+                          onClick={() => onAbrirNotaFechamento(fechamento.mesReferencia)}
+                          type="button"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#006948] text-xs font-bold transition-colors cursor-pointer"
+                          title="Extrair nota com pagamentos e parcelas em PDF deste mês"
+                        >
+                          <span className="material-symbols-outlined text-[15px]">picture_as_pdf</span>
+                          <span>Nota PDF</span>
+                        </button>
                         <button
                           onClick={() => onDeletarFechamento(fechamento.id)}
                           type="button"
