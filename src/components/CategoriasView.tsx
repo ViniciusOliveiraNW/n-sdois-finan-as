@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CategoriaId, CategoriaMeta, CoupleSpace, LancamentoMensal } from '../types';
 import { CATEGORIAS_PADRAO } from '../data/initialData';
 import { formatarBRL } from '../calculations/acertoMensal';
+import { CategoryIconOrImage } from './CategoryIconOrImage';
 
 interface CategoriasViewProps {
   mesSelecionado: string;
@@ -38,6 +39,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
   // Estados dos formulários
   const [icone, setIcone] = useState('🏷️');
+  const [imagemUrl, setImagemUrl] = useState('');
   const [nome, setNome] = useState('');
   const [tetoInput, setTetoInput] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -125,6 +127,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
   const abrirModalEditar = (cat: CategoriaMeta) => {
     setCategoriaEmEdicao(cat);
     setIcone(cat.icone);
+    setImagemUrl(cat.imagemUrl || '');
     setNome(cat.nome);
     setTetoInput((cat.tetoEstimadoCentavos / 100).toFixed(2).replace('.', ','));
     setDescricao(cat.descricao || '');
@@ -136,6 +139,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
   // Abre o modal para nova categoria
   const abrirModalNova = () => {
     setIcone('🏷️');
+    setImagemUrl('');
     setNome('');
     setTetoInput('400,00');
     setDescricao('');
@@ -159,6 +163,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
           ...c,
           nome: nome.trim(),
           icone: icone.trim() || '🏷️',
+          imagemUrl: imagemUrl.trim() || undefined,
           tetoEstimadoCentavos: tetoCentavos,
           descricao: descricao.trim() || 'Categoria personalizada do casal',
           divisaoPadrao,
@@ -190,6 +195,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
       id: novoId,
       nome: novoNome,
       icone: icone.trim() || '🏷️',
+      imagemUrl: imagemUrl.trim() || undefined,
       tetoEstimadoCentavos: tetoCentavos,
       divisaoPadrao,
       descricao: descricao.trim() || 'Categoria personalizada do casal',
@@ -365,14 +371,27 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               <div className="flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform shrink-0">
-                      {cat.icone}
-                    </div>
+                    <CategoryIconOrImage
+                      icone={cat.icone}
+                      imagemUrl={cat.imagemUrl}
+                      nome={cat.nome}
+                      size="lg"
+                      className="group-hover:scale-105 transition-transform"
+                    />
                     <div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <h3 className="text-base font-bold text-slate-900 leading-tight">
                           {cat.nome}
                         </h3>
+                        {cat.imagemUrl && (
+                          <span
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-emerald-50 text-[#006948] text-[10px] font-semibold border border-emerald-200"
+                            title="Imagem personalizada via CDN ativa"
+                          >
+                            <span className="material-symbols-outlined text-[11px]">image</span>
+                            <span>CDN</span>
+                          </span>
+                        )}
                       </div>
                       <span className="text-xs text-slate-400 line-clamp-1">{cat.descricao}</span>
                     </div>
@@ -672,7 +691,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
               {/* Emoji Quick Picker */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-slate-400 font-medium">Sugestões de Ícones:</span>
+                <span className="text-[11px] text-slate-400 font-medium">Sugestões de Ícones (Emoji):</span>
                 <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200/60">
                   {EMOJIS_SUGERIDOS.map((emoji) => (
                     <button
@@ -686,6 +705,49 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                       {emoji}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Imagem Personalizada via CDN */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-800 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#006948]">cloud_upload</span>
+                    <span>Imagem da Categoria (Link da sua CDN)</span>
+                  </label>
+                  {imagemUrl.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => setImagemUrl('')}
+                      className="text-[11px] font-semibold text-red-600 hover:underline cursor-pointer"
+                    >
+                      Remover Imagem
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <CategoryIconOrImage
+                    icone={icone}
+                    imagemUrl={imagemUrl}
+                    nome={nome || 'Prévia'}
+                    size="lg"
+                    className="shrink-0"
+                  />
+                  <div className="flex-1 flex flex-col gap-1 min-w-0">
+                    <input
+                      type="url"
+                      value={imagemUrl}
+                      onChange={(e) => setImagemUrl(e.target.value)}
+                      placeholder="https://sua-cdn.com/categorias/mercado.png"
+                      className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#006948]/20 w-full"
+                    />
+                    <span className="text-[10px] text-slate-500">
+                      {imagemUrl.trim()
+                        ? 'Exibindo imagem da sua CDN (o emoji acima é o fallback se a imagem falhar).'
+                        : 'Cole o link direto da imagem hospedada na sua CDN. Ela substituirá o emoji nas telas.'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -875,7 +937,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
               {/* Emoji Quick Picker */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-slate-400 font-medium">Sugestões de Ícones:</span>
+                <span className="text-[11px] text-slate-400 font-medium">Sugestões de Ícones (Emoji):</span>
                 <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200/60">
                   {EMOJIS_SUGERIDOS.map((emoji) => (
                     <button
@@ -889,6 +951,49 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                       {emoji}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Imagem Personalizada via CDN */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-800 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#006948]">cloud_upload</span>
+                    <span>Imagem da Categoria (Link da sua CDN)</span>
+                  </label>
+                  {imagemUrl.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => setImagemUrl('')}
+                      className="text-[11px] font-semibold text-red-600 hover:underline cursor-pointer"
+                    >
+                      Remover Imagem
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <CategoryIconOrImage
+                    icone={icone}
+                    imagemUrl={imagemUrl}
+                    nome={nome || 'Prévia'}
+                    size="lg"
+                    className="shrink-0"
+                  />
+                  <div className="flex-1 flex flex-col gap-1 min-w-0">
+                    <input
+                      type="url"
+                      value={imagemUrl}
+                      onChange={(e) => setImagemUrl(e.target.value)}
+                      placeholder="https://sua-cdn.com/categorias/internet.png"
+                      className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#006948]/20 w-full"
+                    />
+                    <span className="text-[10px] text-slate-500">
+                      {imagemUrl.trim()
+                        ? 'Exibindo imagem da sua CDN (o emoji acima é o fallback se a imagem falhar).'
+                        : 'Cole o link direto da imagem hospedada na sua CDN. Ela substituirá o emoji nas telas.'}
+                    </span>
+                  </div>
                 </div>
               </div>
 

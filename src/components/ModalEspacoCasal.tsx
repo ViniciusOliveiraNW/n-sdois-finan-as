@@ -18,6 +18,7 @@ interface ModalEspacoCasalProps {
   couple: CoupleSpace | null;
   user: UserProfile;
   onEspacoAtualizado: () => void;
+  onAbrirPerfilModal?: () => void;
 }
 
 export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
@@ -26,6 +27,7 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
   couple,
   user,
   onEspacoAtualizado,
+  onAbrirPerfilModal,
 }) => {
   const [copiado, setCopiado] = useState(false);
   const [copiadoMsg, setCopiadoMsg] = useState(false);
@@ -255,15 +257,43 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
 
           {/* Lista de Membros */}
           <div className="flex flex-col gap-2">
-            <span className="font-bold text-slate-700">Membros do Espaço:</span>
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-700">Membros do Espaço:</span>
+              {onAbrirPerfilModal && (
+                <button
+                  type="button"
+                  onClick={onAbrirPerfilModal}
+                  className="text-[11px] font-semibold text-[#006948] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[14px]">photo_camera</span>
+                  <span>Alterar Minha Foto CDN</span>
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {/* Parceiro 1 */}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#0051d5] text-white font-bold flex items-center justify-center uppercase text-sm">
-                  {p1Nome.charAt(0)}
-                </div>
+                {couple.partner1PhotoURL || (user.uid === couple.partner1Uid && user.photoURL) ? (
+                  <img
+                    src={couple.partner1PhotoURL || user.photoURL}
+                    alt={p1Nome}
+                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-[#0051d5] text-white font-bold flex items-center justify-center uppercase text-sm shrink-0">
+                    {p1Nome.charAt(0)}
+                  </div>
+                )}
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-bold text-slate-900 truncate">{p1Nome}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="font-bold text-slate-900 truncate">{p1Nome}</span>
+                    {user.uid === couple.partner1Uid && (
+                      <span className="text-[10px] text-[#006948] font-bold">(Você)</span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-slate-500 truncate">{couple.partner1Email || 'Criador do espaço'}</span>
                 </div>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Ativo"></span>
@@ -271,11 +301,27 @@ export const ModalEspacoCasal: React.FC<ModalEspacoCasalProps> = ({
 
               {/* Parceiro 2 */}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#712ae2] text-white font-bold flex items-center justify-center uppercase text-sm">
-                  {p2Nome.charAt(0)}
-                </div>
+                {couple.partner2PhotoURL || (user.uid === couple.partner2Uid && user.photoURL) ? (
+                  <img
+                    src={couple.partner2PhotoURL || user.photoURL}
+                    alt={p2Nome}
+                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-[#712ae2] text-white font-bold flex items-center justify-center uppercase text-sm shrink-0">
+                    {p2Nome.charAt(0)}
+                  </div>
+                )}
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-bold text-slate-900 truncate">{p2Nome}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="font-bold text-slate-900 truncate">{p2Nome}</span>
+                    {user.uid === couple.partner2Uid && (
+                      <span className="text-[10px] text-[#006948] font-bold">(Você)</span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-slate-500 truncate">
                     {p2Conectado ? couple.partner2Email || 'Afiliado(a)' : 'Aguardando convite...'}
                   </span>

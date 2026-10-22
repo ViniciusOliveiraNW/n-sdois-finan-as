@@ -1,9 +1,12 @@
 import React from 'react';
+import { CategoriaMeta } from '../types';
 import { ResultadoRanking } from '../calculations/rankingCategorias';
 import { formatarBRL } from '../calculations/acertoMensal';
+import { CategoryIconOrImage } from './CategoryIconOrImage';
 
 interface RankingCategoriasViewProps {
   ranking: ResultadoRanking;
+  categorias?: CategoriaMeta[];
   onVerTodasCategorias?: () => void;
 }
 
@@ -22,6 +25,7 @@ const CORES_CATEGORIA: Record<string, string> = {
 
 export const RankingCategoriasView: React.FC<RankingCategoriasViewProps> = ({
   ranking,
+  categorias,
   onVerTodasCategorias,
 }) => {
   return (
@@ -60,8 +64,21 @@ export const RankingCategoriasView: React.FC<RankingCategoriasViewProps> = ({
                 <div key={item.categoria} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="flex items-center gap-2 text-slate-800 font-medium">
-                      <span className={`w-2.5 h-2.5 rounded-full ${cor}`}></span>
-                      {item.categoria}
+                      {(() => {
+                        const catObj = categorias?.find(
+                          (c) => c.id === item.categoria || c.nome === item.categoria
+                        );
+                        return (
+                          <CategoryIconOrImage
+                            icone={catObj?.icone}
+                            imagemUrl={catObj?.imagemUrl}
+                            nome={item.categoria}
+                            size="xs"
+                            className="shrink-0"
+                          />
+                        );
+                      })()}
+                      <span>{item.categoria}</span>
                     </span>
                     <div className="flex items-center gap-2 tabular-nums">
                       <span className="font-bold text-slate-900">

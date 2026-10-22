@@ -1,9 +1,10 @@
 import React from 'react';
-import { Compra, FechamentoMensal, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
+import { CategoriaMeta, Compra, FechamentoMensal, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
 import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
 import { ResultadoRanking } from '../calculations/rankingCategorias';
 import { RankingCategoriasView } from './RankingCategoriasView';
 import { HeatmapCalendario } from './HeatmapCalendario';
+import { CategoryIconOrImage } from './CategoryIconOrImage';
 
 interface ResumoMensalViewProps {
   mesSelecionado: string;
@@ -17,6 +18,7 @@ interface ResumoMensalViewProps {
   lancamentosVisao: LancamentoMensal[];
   todosLancamentosDoMes: LancamentoMensal[];
   compras: Compra[];
+  categorias?: CategoriaMeta[];
   onAbrirModalAcerto: () => void;
   onEditarCompra: (compraId: string) => void;
   onRemoverCompra: (compraId: string, numeroParcela: number) => void;
@@ -36,6 +38,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
   lancamentosVisao,
   todosLancamentosDoMes,
   compras,
+  categorias,
   onAbrirModalAcerto,
   onEditarCompra,
   onRemoverCompra,
@@ -492,6 +495,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
         <div className="lg:col-span-7">
           <RankingCategoriasView
             ranking={ranking}
+            categorias={categorias}
             onVerTodasCategorias={onIrParaCategorias}
           />
         </div>
@@ -606,9 +610,23 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                         </div>
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">
-                          {lancamento.categoria}
-                        </span>
+                        {(() => {
+                          const catObj = categorias?.find(
+                            (c) => c.id === lancamento.categoria || c.nome === lancamento.categoria
+                          );
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200/50">
+                              <CategoryIconOrImage
+                                icone={catObj?.icone}
+                                imagemUrl={catObj?.imagemUrl}
+                                nome={lancamento.categoria}
+                                size="xs"
+                                className="shrink-0"
+                              />
+                              <span>{lancamento.categoria}</span>
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <span

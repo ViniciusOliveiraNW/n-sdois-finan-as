@@ -24,8 +24,10 @@
         "members": { "type": "string", "description": "Lista de UIDs dos membros do casal" },
         "partner1Uid": { "type": "string", "description": "UID do primeiro parceiro" },
         "partner1Name": { "type": "string", "description": "Nome do primeiro parceiro" },
+        "partner1PhotoURL": { "type": "string", "description": "Foto de perfil do parceiro 1 (CDN)" },
         "partner2Uid": { "type": "string", "description": "UID do segundo parceiro (opcional até filiação)" },
         "partner2Name": { "type": "string", "description": "Nome do segundo parceiro" },
+        "partner2PhotoURL": { "type": "string", "description": "Foto de perfil do parceiro 2 (CDN)" },
         "createdAt": { "type": "string", "description": "Data de criação" }
       },
       "required": ["id", "inviteCode", "partner1Uid", "partner1Name"]

@@ -20,9 +20,11 @@ export interface CoupleSpace {
   partner1Uid: string;
   partner1Name: string;
   partner1Email?: string;
+  partner1PhotoURL?: string;
   partner2Uid?: string;
   partner2Name?: string;
   partner2Email?: string;
+  partner2PhotoURL?: string;
   createdAt: string;
   categories?: CategoriaMeta[];
   defaultSplit?: string; // ex: '50/50', '70/30', '30/70', '60/40', etc.
@@ -74,6 +76,7 @@ export interface CategoriaMeta {
   id: CategoriaId;
   nome: string;
   icone: string;
+  imagemUrl?: string; // Link direto de imagem hospedada na CDN do usuário
   tetoEstimadoCentavos: number;
   divisaoPadrao: string;
   descricao: string;

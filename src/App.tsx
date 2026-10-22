@@ -29,6 +29,7 @@ import { CategoriasView } from './components/CategoriasView';
 import { ModalCompra } from './components/ModalCompra';
 import { ModalAcerto } from './components/ModalAcerto';
 import { ModalEspacoCasal } from './components/ModalEspacoCasal';
+import { ModalPerfilUsuario } from './components/ModalPerfilUsuario';
 import { ModalConfirmacao } from './components/ModalConfirmacao';
 import { AuthScreen } from './components/AuthScreen';
 import { CoupleSetupScreen } from './components/CoupleSetupScreen';
@@ -72,6 +73,7 @@ export default function App() {
   const [compraEmEdicao, setCompraEmEdicao] = useState<Compra | null>(null);
   const [modalAcertoAberta, setModalAcertoAberta] = useState(false);
   const [modalEspacoAberta, setModalEspacoAberta] = useState(false);
+  const [modalPerfilAberta, setModalPerfilAberta] = useState(false);
 
   // Modal de confirmação para cancelamento seguro de parcelas
   const [confirmacao, setConfirmacao] = useState<{
@@ -525,8 +527,10 @@ export default function App() {
         onSelecionarAba={setAbaAtiva}
         usuarioAtual={usuarioNome}
         couple={couple}
+        userProfile={userProfile}
         onAbrirNovaCompra={handleAbrirNovaCompra}
         onAbrirEspacoModal={() => setModalEspacoAberta(true)}
+        onAbrirPerfilModal={() => setModalPerfilAberta(true)}
         onLogout={handleLogout}
       />
 
@@ -545,6 +549,7 @@ export default function App() {
             lancamentosVisao={lancamentosVisao}
             todosLancamentosDoMes={todosLancamentosDoMes}
             compras={compras}
+            categorias={categorias}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
             onEditarCompra={handleEditarCompra}
             onRemoverCompra={handleRemoverCompra}
@@ -628,7 +633,21 @@ export default function App() {
         couple={couple}
         user={userProfile!}
         onEspacoAtualizado={recarregarPerfil}
+        onAbrirPerfilModal={() => {
+          setModalEspacoAberta(false);
+          setModalPerfilAberta(true);
+        }}
       />
+
+      {userProfile && (
+        <ModalPerfilUsuario
+          aberto={modalPerfilAberta}
+          onFechar={() => setModalPerfilAberta(false)}
+          user={userProfile}
+          couple={couple}
+          onPerfilAtualizado={recarregarPerfil}
+        />
+      )}
 
       <ModalConfirmacao
         aberto={confirmacao.aberto}

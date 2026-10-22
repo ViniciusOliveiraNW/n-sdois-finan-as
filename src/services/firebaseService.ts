@@ -10,7 +10,8 @@ import {
   getDocs,
   onSnapshot,
 } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { updateProfile } from 'firebase/auth';
+import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { CategoriaMeta, Compra, CoupleSpace, FechamentoMensal, UserProfile } from '../types';
 import { COMPRAS_INICIAIS, FECHAMENTOS_INICIAIS } from '../data/initialData';
 import { calcularMesesParcelas } from '../calculations/parcelas';
@@ -50,6 +51,70 @@ export async function salvarPerfilUsuario(perfil: UserProfile): Promise<void> {
     await setDoc(doc(db, 'users', perfil.uid), dadosLimpos, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+export async function atualizarFotoPerfil(
+  uid: string,
+  photoURL: string,
+  displayName?: string,
+  coupleId?: string
+): Promise<void> {
+  const urlLimpa = photoURL ? photoURL.trim() : '';
+  const nomeLimpo = displayName ? displayName.trim() : '';
+
+  // 1. Atualizar perfil no Firebase Auth
+  try {
+    if (auth.currentUser && auth.currentUser.uid === uid) {
+      const authUpdates: { photoURL?: string; displayName?: string } = {};
+      authUpdates.photoURL = urlLimpa;
+      if (nomeLimpo) {
+        authUpdates.displayName = nomeLimpo;
+      }
+      await updateProfile(auth.currentUser, authUpdates);
+    }
+  } catch (errAuth) {
+    console.warn('Erro ao atualizar photoURL no Firebase Auth:', errAuth);
+  }
+
+  // 2. Atualizar perfil no Firestore users/{uid}
+  const pathUser = `users/${uid}`;
+  try {
+    const userUpdates: Record<string, unknown> = {
+      photoURL: urlLimpa,
+    };
+    if (nomeLimpo) {
+      userUpdates.displayName = nomeLimpo;
+    }
+    await setDoc(doc(db, 'users', uid), userUpdates, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, pathUser);
+  }
+
+  // 3. Se estiver em um casal, atualizar foto no documento do casal para sincronizar com o parceiro
+  if (coupleId) {
+    const pathCouple = `couples/${coupleId}`;
+    try {
+      const coupleSnap = await getDoc(doc(db, 'couples', coupleId));
+      if (coupleSnap.exists()) {
+        const coupleData = coupleSnap.data() as CoupleSpace;
+        const coupleUpdates: Record<string, unknown> = {};
+
+        if (coupleData.partner1Uid === uid) {
+          coupleUpdates.partner1PhotoURL = urlLimpa;
+          if (nomeLimpo) coupleUpdates.partner1Name = nomeLimpo;
+        } else if (coupleData.partner2Uid === uid) {
+          coupleUpdates.partner2PhotoURL = urlLimpa;
+          if (nomeLimpo) coupleUpdates.partner2Name = nomeLimpo;
+        }
+
+        if (Object.keys(coupleUpdates).length > 0) {
+          await updateDoc(doc(db, 'couples', coupleId), coupleUpdates);
+        }
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, pathCouple);
+    }
   }
 }
 

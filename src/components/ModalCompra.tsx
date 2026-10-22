@@ -3,6 +3,7 @@ import { CategoriaId, CategoriaMeta, Compra, CoupleSpace, DivisaoTipo, UsuarioId
 import { CATEGORIAS_PADRAO } from '../data/initialData';
 import { calcularValoresParcelas, calcularMesesParcelas } from '../calculations/parcelas';
 import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
+import { CategoryIconOrImage } from './CategoryIconOrImage';
 
 interface ModalCompraProps {
   aberto: boolean;
@@ -278,23 +279,47 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
           {/* Row 2: Categoria & Data */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="compra-cat" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948]">category</span>
-                <span>Categoria</span>
-                <span className="text-red-500">*</span>
+              <label htmlFor="compra-cat" className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-[#006948]">category</span>
+                  <span>Categoria</span>
+                  <span className="text-red-500">*</span>
+                </span>
+                {(() => {
+                  const catAtual = listaCategorias.find((c) => c.id === categoria);
+                  return catAtual?.imagemUrl ? (
+                    <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-semibold border border-emerald-200">
+                      Foto CDN
+                    </span>
+                  ) : null;
+                })()}
               </label>
-              <select
-                id="compra-cat"
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value as CategoriaId)}
-                className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
-              >
-                {listaCategorias.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.icone} {cat.nome}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const catAtual = listaCategorias.find((c) => c.id === categoria);
+                  return (
+                    <CategoryIconOrImage
+                      icone={catAtual?.icone}
+                      imagemUrl={catAtual?.imagemUrl}
+                      nome={catAtual?.nome}
+                      size="md"
+                      className="shrink-0"
+                    />
+                  );
+                })()}
+                <select
+                  id="compra-cat"
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value as CategoriaId)}
+                  className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
+                >
+                  {listaCategorias.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icone} {cat.nome} {cat.imagemUrl ? '• (CDN)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { CategoriaId, CategoriaMeta, Compra, DivisaoTipo, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
 import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
 import { CATEGORIAS_PADRAO } from '../data/initialData';
+import { CategoryIconOrImage } from './CategoryIconOrImage';
 
 interface LancamentosViewProps {
   mesSelecionado: string;
@@ -624,9 +625,23 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           </div>
                         </td>
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">
-                            {compra.categoria}
-                          </span>
+                          {(() => {
+                            const catObj = listaCategorias.find(
+                              (c) => c.id === compra.categoria || c.nome === compra.categoria
+                            );
+                            return (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200/50">
+                                <CategoryIconOrImage
+                                  icone={catObj?.icone}
+                                  imagemUrl={catObj?.imagemUrl}
+                                  nome={compra.categoria}
+                                  size="xs"
+                                  className="shrink-0"
+                                />
+                                <span>{compra.categoria}</span>
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="py-3 px-4 whitespace-nowrap">
                           <span
@@ -841,9 +856,23 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         </div>
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">
-                          {lancamento.categoria}
-                        </span>
+                        {(() => {
+                          const catObj = listaCategorias.find(
+                            (c) => c.id === lancamento.categoria || c.nome === lancamento.categoria
+                          );
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200/50">
+                              <CategoryIconOrImage
+                                icone={catObj?.icone}
+                                imagemUrl={catObj?.imagemUrl}
+                                nome={lancamento.categoria}
+                                size="xs"
+                                className="shrink-0"
+                              />
+                              <span>{lancamento.categoria}</span>
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <span

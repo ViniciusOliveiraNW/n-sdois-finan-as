@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CoupleSpace, UsuarioId } from '../types';
+import React, { useState, useEffect } from 'react';
+import { CoupleSpace, UserProfile, UsuarioId } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 
 export type AbaNavegacao = 'resumo-mensal' | 'lancamentos' | 'fechamentos-e-acertos' | 'categorias';
@@ -9,8 +9,10 @@ interface HeaderProps {
   onSelecionarAba: (aba: AbaNavegacao) => void;
   usuarioAtual: UsuarioId;
   couple?: CoupleSpace | null;
+  userProfile?: UserProfile | null;
   onAbrirNovaCompra: () => void;
   onAbrirEspacoModal: () => void;
+  onAbrirPerfilModal?: () => void;
   onLogout: () => void;
 }
 
@@ -19,11 +21,18 @@ export const Header: React.FC<HeaderProps> = ({
   onSelecionarAba,
   usuarioAtual,
   couple,
+  userProfile,
   onAbrirNovaCompra,
   onAbrirEspacoModal,
+  onAbrirPerfilModal,
   onLogout,
 }) => {
   const [copiado, setCopiado] = useState(false);
+  const [fotoComErro, setFotoComErro] = useState(false);
+
+  useEffect(() => {
+    setFotoComErro(false);
+  }, [userProfile?.photoURL]);
 
   const p1Nome = couple?.partner1Name || 'Vinicius';
   const p2Nome = couple?.partner2Name || 'Silvia';
@@ -157,16 +166,36 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* User Profile Badge */}
-          <div className="flex items-center gap-1 sm:gap-1.5 pl-1.5 pr-0.5 py-1 bg-white rounded-full border border-slate-200 shadow-sm max-w-[180px] sm:max-w-none">
-            <div className="w-7 h-7 rounded-full bg-[#006948] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
-              {usuarioAtual.charAt(0) || 'U'}
-            </div>
-            <div className="hidden sm:flex flex-col text-left leading-tight pr-1 min-w-0">
-              <span className="text-xs font-semibold text-slate-900 truncate">
-                {usuarioAtual}
-              </span>
-              <span className="text-[10px] font-medium text-[#006948] truncate">(Você)</span>
-            </div>
+          <div className="flex items-center gap-1 sm:gap-1.5 pl-1.5 pr-0.5 py-1 bg-white rounded-full border border-slate-200 shadow-sm max-w-[200px] sm:max-w-none">
+            {/* Clickable Profile Avatar */}
+            <button
+              type="button"
+              onClick={onAbrirPerfilModal}
+              className="flex items-center gap-1.5 text-left focus:outline-none group cursor-pointer"
+              title="Clique para alterar sua foto de perfil via CDN ou nome"
+            >
+              {userProfile?.photoURL && !fotoComErro ? (
+                <img
+                  src={userProfile.photoURL}
+                  alt={usuarioAtual}
+                  className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200 group-hover:ring-2 group-hover:ring-[#006948] transition-all"
+                  onError={() => setFotoComErro(true)}
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-[#006948] group-hover:bg-[#005137] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0 transition-colors">
+                  {usuarioAtual.charAt(0) || 'U'}
+                </div>
+              )}
+              <div className="hidden sm:flex flex-col text-left leading-tight pr-1 min-w-0">
+                <span className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#006948] transition-colors">
+                  {usuarioAtual}
+                </span>
+                <span className="text-[10px] font-medium text-[#006948] truncate flex items-center gap-0.5">
+                  <span>(Você)</span>
+                  <span className="material-symbols-outlined text-[10px] opacity-70">edit</span>
+                </span>
+              </div>
+            </button>
 
             {/* Botão de Espaço do Casal */}
             <button
