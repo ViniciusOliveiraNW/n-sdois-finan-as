@@ -58,11 +58,11 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   // Alternância entre visualização do mês e todas as compras cadastradas
   const [modoExibicao, setModoExibicao] = useState<'mes' | 'todas_compras'>('mes');
 
-  // Mapeia meses que possuem compras
+  // Mapeia meses que possuem compras (apenas do casal / públicas)
   const mesesComCompras = useMemo(() => {
     const setMeses = new Set<string>();
     compras.forEach((c) => {
-      if (c.dataPrimeiroPagamento) {
+      if (!c.privada && c.dataPrimeiroPagamento) {
         const parts = c.dataPrimeiroPagamento.split('-');
         if (parts[0] && parts[1]) setMeses.add(`${parts[0]}-${parts[1]}`);
       }
@@ -179,9 +179,13 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
     }
   }, [lancamentosFiltrados, ordenacao]);
 
-  // Lista de compras completas filtradas (Modo Todas as Compras)
+  // Lista de compras completas filtradas (Modo Todas as Compras - Estritamente Casal)
   const comprasFiltradas = useMemo(() => {
     return compras.filter((c) => {
+      // Cofre Privado: compras privadas NUNCA aparecem na visão de compras compartilhadas do casal
+      if (c.privada) {
+        return false;
+      }
       if (visao === 'meus' && c.pagoPor !== usuarioAtual) {
         return false;
       }
@@ -194,11 +198,42 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       }
       if (filtroCategoria && c.categoria !== filtroCategoria) return false;
       if (filtroPagador && c.pagoPor !== filtroPagador) return false;
-      if (filtroRapido === 'parcelados' && c.numeroDeParcelas <= 1) return false;
+      if (filtroDivisao) {
+        const { percP1, percP2 } = parseDivisaoPercentuais(
+          c.divisao,
+          p1Uid,
+          p2Uid,
+          [p1Name, 'p1'],
+          [p2Name, 'p2']
+        );
+        if (filtroDivisao === '50/50') {
+          if (c.divisao !== '50/50' && (percP1 !== 50 || percP2 !== 50)) return false;
+        } else if (filtroDivisao === 'rateio_dinamico') {
+          if ((percP1 === 50 && percP2 === 50) || percP1 === 100 || percP2 === 100) return false;
+        } else if (filtroDivisao === 'p1') {
+          if (percP1 !== 100) return false;
+        } else if (filtroDivisao === 'p2') {
+          if (percP2 !== 100) return false;
+        }
+      }
+      if (filtroRapido === 'parcelados' && (c.numeroDeParcelas || 1) <= 1) return false;
       if (filtroRapido === 'mercado' && c.categoria !== 'Mercado') return false;
       return true;
     });
-  }, [compras, visao, usuarioAtual, busca, filtroCategoria, filtroPagador, filtroRapido]);
+  }, [
+    compras,
+    visao,
+    usuarioAtual,
+    busca,
+    filtroCategoria,
+    filtroPagador,
+    filtroDivisao,
+    filtroRapido,
+    p1Uid,
+    p2Uid,
+    p1Name,
+    p2Name,
+  ]);
 
   const comprasOrdenadas = useMemo(() => {
     const lista = [...comprasFiltradas];
@@ -285,7 +320,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">list_alt</span>
-              <span>Todas as Compras ({compras.length})</span>
+              <span>Todas as Compras ({compras.filter((c) => !c.privada).length})</span>
             </button>
           </div>
         </div>
@@ -530,7 +565,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              Todos ({todosLancamentosDoMes.length})
+              Todos ({modoExibicao === 'mes' ? todosLancamentosDoMes.length : compras.filter((c) => !c.privada).length})
             </button>
             <button
               onClick={() => {
@@ -543,7 +578,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              Parcelados ({qtdParceladas})
+              Parcelados ({modoExibicao === 'mes' ? qtdParceladas : compras.filter((c) => !c.privada && (c.numeroDeParcelas || 1) > 1).length})
             </button>
             <button
               onClick={() => {
@@ -556,7 +591,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              Supermercado ({todosLancamentosDoMes.filter((l) => l.categoria === 'Mercado').length})
+              Supermercado ({modoExibicao === 'mes' ? todosLancamentosDoMes.filter((l) => l.categoria === 'Mercado').length : compras.filter((c) => !c.privada && c.categoria === 'Mercado').length})
             </button>
           </div>
 
@@ -745,22 +780,26 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               </table>
             </div>
           )
-        ) : lancamentosOrdenados.length === 0 ? (
-          compras.length > 0 ? (
+        ) : (modoExibicao === 'mes' ? lancamentosOrdenados.length === 0 : comprasOrdenadas.length === 0) ? (
+          compras.filter((c) => !c.privada).length > 0 ? (
             <div className="py-14 px-4 text-center flex flex-col items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[26px]">event_busy</span>
               </div>
               <div className="flex flex-col items-center">
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                  Nenhuma parcela encontrada para {nomeMesFormatado}
+                  {modoExibicao === 'mes'
+                    ? `Nenhuma parcela encontrada para ${nomeMesFormatado}`
+                    : 'Nenhuma compra encontrada com os filtros selecionados'}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md leading-relaxed">
-                  Seu espaço possui <strong>{compras.length} compras cadastradas</strong> no total vinculadas à sua conta! Elas estão concentradas em outros meses.
+                  {modoExibicao === 'mes'
+                    ? `Seu espaço possui ${compras.filter((c) => !c.privada).length} compras cadastradas no total! Elas estão concentradas em outros meses.`
+                    : 'Tente alterar os termos da busca ou limpar os filtros para ver as compras cadastradas do casal.'}
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                {mesesComCompras.length > 0 && (
+                {modoExibicao === 'mes' && mesesComCompras.length > 0 && (
                   <button
                     type="button"
                     onClick={() => onMudarMes(mesesComCompras[0])}
@@ -770,14 +809,16 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                     <span>Navegar para {mesesComCompras[0]}</span>
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setModoExibicao('todas_compras')}
-                  className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-800 dark:text-slate-200 font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-[16px]">list_alt</span>
-                  <span>Ver Todas as {compras.length} Compras Cadastradas</span>
-                </button>
+                {modoExibicao === 'mes' && (
+                  <button
+                    type="button"
+                    onClick={() => setModoExibicao('todas_compras')}
+                    className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-800 dark:text-slate-200 font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">list_alt</span>
+                    <span>Ver Todas as {compras.filter((c) => !c.privada).length} Compras Cadastradas</span>
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -787,10 +828,10 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               </div>
               <div className="flex flex-col items-center">
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                  Nenhuma compra encontrada neste espaço
+                  Nenhuma compra do casal encontrada neste espaço
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md leading-relaxed">
-                  Se as compras estavam em outro espaço vinculado ao seu e-mail, abra o <strong>Espaço do Casal</strong> no cabeçalho para restaurar ou alternar de espaço.
+                  Cadastre uma nova compra compartilhada ou acerte despesas existentes.
                 </p>
               </div>
               <button
@@ -974,8 +1015,9 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         {/* Rodapé e Paginação */}
         <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div>
-            Exibindo <strong>{lancamentosPaginados.length}</strong> de{' '}
-            <strong>{lancamentosOrdenados.length}</strong> lançamentos | Soma da página:{' '}
+            Exibindo <strong>{modoExibicao === 'mes' ? lancamentosPaginados.length : comprasPaginadas.length}</strong> de{' '}
+            <strong>{modoExibicao === 'mes' ? lancamentosFiltrados.length : comprasFiltradas.length}</strong>{' '}
+            {modoExibicao === 'mes' ? 'lançamentos' : 'compras'} | Soma da página:{' '}
             <strong className="text-slate-800 dark:text-slate-200 tabular-nums">
               {formatarBRL(somaPaginaCentavos)}
             </strong>

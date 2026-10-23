@@ -153,16 +153,16 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#006948] text-xs font-semibold uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 text-xs font-semibold uppercase tracking-wider">
               Conciliação Mútua
             </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-xs text-slate-500 font-medium">Ciclo Atual</span>
+            <span className="text-slate-300 dark:text-slate-600">•</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Ciclo Atual</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Fechamentos & Acertos Mensais
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
             Histórico transparente dos acertos de contas, comprovantes anexados e conciliação
             equilibrada entre {p1Nome} e {p2Nome}.
           </p>
@@ -172,9 +172,9 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
           <button
             onClick={() => setModalSimulacaoAberto(true)}
             type="button"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-sm transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px] text-[#0051d5]">calculate</span>
+            <span className="material-symbols-outlined text-[16px] text-[#0051d5] dark:text-blue-400">calculate</span>
             <span>Simular Fechamento</span>
           </button>
           <button
@@ -190,10 +190,10 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
       </div>
 
       {/* Active Month Settlement Card */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-col gap-5">
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 dark:from-[#161f2e] dark:via-[#161f2e] dark:to-emerald-950/20 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm flex flex-col gap-5 transition-colors">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-[#006948] text-xs font-bold border border-emerald-200">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Mês em Aberto</span>
             </div>
@@ -211,7 +211,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
         {/* Dynamic Hero Transfer Flow */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
           {/* Visual transfer box */}
-          <div className="lg:col-span-7 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/90 dark:bg-[#161f2e]/90 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div className="lg:col-span-7 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/90 dark:bg-slate-800/90 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
             {/* Debtor */}
             <div className="flex flex-col items-center text-center gap-1">
               <div
@@ -274,7 +274,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
 
           {/* Breakdown & Action Button */}
           <div className="lg:col-span-5 flex flex-col justify-between h-full gap-3">
-            <div className="bg-white/90 dark:bg-[#161f2e]/90 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col gap-2">
+            <div className="bg-white/90 dark:bg-slate-800/90 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col gap-2">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Cálculo Provisório Atual
               </span>
@@ -290,7 +290,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                   {formatarBRL(Math.floor(resumoAcerto.totalCasalCentavos / 2))}
                 </span>
               </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden flex mt-1">
+              <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden flex mt-1">
                 <div
                   className="bg-[#0051d5] h-full"
                   style={{ width: `${percP1}%` }}
@@ -432,10 +432,10 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                         <div
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                             fechamento.status === 'quitado'
-                              ? 'bg-emerald-100 text-[#006948]'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400'
                               : fechamento.status === 'parcial'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-purple-100 text-[#712ae2]'
+                              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400'
+                              : 'bg-purple-100 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
                           }`}
                         >
                           <span className="material-symbols-outlined text-[15px]">

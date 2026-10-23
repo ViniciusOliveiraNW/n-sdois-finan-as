@@ -713,7 +713,7 @@ export default function App() {
             ranking={ranking}
             lancamentosVisao={lancamentosVisao}
             todosLancamentosDoMes={todosLancamentosDoMes}
-            compras={compras}
+            compras={comprasCasal}
             categorias={categorias}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
             onAbrirNotaFechamento={handleAbrirNotaFechamento}
@@ -733,7 +733,7 @@ export default function App() {
             onAlternarVisao={setVisao}
             usuarioAtual={usuarioNome}
             todosLancamentosDoMes={todosLancamentosDoMes}
-            compras={compras}
+            compras={comprasCasal}
             resumoAcerto={resumoAcerto}
             categorias={categorias}
             onAbrirNovaCompra={handleAbrirNovaCompra}

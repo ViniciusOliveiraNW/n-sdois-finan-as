@@ -643,16 +643,16 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
       {/* Modal Editar Categoria Existente */}
       {modalEditarAberta && categoriaEmEdicao && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 flex flex-col gap-4 border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#161f2e] w-full max-w-lg rounded-2xl shadow-2xl p-6 flex flex-col gap-4 border border-slate-200 dark:border-slate-800 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0051d5] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400 flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">tune</span>
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Editar Categoria & Teto</h3>
-                  <span className="text-xs text-slate-500">Ajuste os parâmetros orçamentários</span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Editar Categoria & Teto</h3>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Ajuste os parâmetros orçamentários</span>
                 </div>
               </div>
               <button
@@ -660,7 +660,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                   setModalEditarAberta(false);
                   setCategoriaEmEdicao(null);
                 }}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -669,22 +669,22 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
             <form onSubmit={handleSalvarEdicao} className="flex flex-col gap-4 text-xs">
               <div className="flex gap-3">
                 <div className="w-20 flex flex-col gap-1.5">
-                  <label className="font-semibold text-slate-700">Ícone</label>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Ícone</label>
                   <input
                     type="text"
                     value={icone}
                     onChange={(e) => setIcone(e.target.value)}
                     maxLength={2}
-                    className="h-10 text-center text-xl bg-slate-50 border border-slate-200 rounded-xl"
+                    className="h-10 text-center text-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-1.5">
-                  <label className="font-semibold text-slate-700">Nome da Categoria</label>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Nome da Categoria</label>
                   <input
                     type="text"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
-                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                     required
                   />
                 </div>
@@ -692,15 +692,15 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
               {/* Emoji Quick Picker */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-slate-400 font-medium">Sugestões de Ícones (Emoji):</span>
-                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200/60">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Sugestões de Ícones (Emoji):</span>
+                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700">
                   {EMOJIS_SUGERIDOS.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => setIcone(emoji)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-base hover:bg-white transition-all cursor-pointer ${
-                        icone === emoji ? 'bg-white shadow-sm ring-2 ring-[#006948]' : ''
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-base hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer ${
+                        icone === emoji ? 'bg-white dark:bg-slate-700 shadow-sm ring-2 ring-[#006948] dark:ring-emerald-400' : ''
                       }`}
                     >
                       {emoji}
@@ -710,17 +710,17 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               </div>
 
               {/* Imagem Personalizada via CDN */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-2.5">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-semibold text-slate-800 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-[#006948]">cloud_upload</span>
+                  <label className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">cloud_upload</span>
                     <span>Imagem da Categoria (Link da sua CDN)</span>
                   </label>
                   {imagemUrl.trim() && (
                     <button
                       type="button"
                       onClick={() => setImagemUrl('')}
-                      className="text-[11px] font-semibold text-red-600 hover:underline cursor-pointer"
+                      className="text-[11px] font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
                     >
                       Remover Imagem
                     </button>
@@ -741,9 +741,9 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                       value={imagemUrl}
                       onChange={(e) => setImagemUrl(e.target.value)}
                       placeholder="https://sua-cdn.com/categorias/mercado.png"
-                      className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#006948]/20 w-full"
+                      className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-[#006948]/20 dark:focus:ring-emerald-500/30 w-full"
                     />
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
                       {imagemUrl.trim()
                         ? 'Exibindo imagem da sua CDN (o emoji acima é o fallback se a imagem falhar).'
                         : 'Cole o link direto da imagem hospedada na sua CDN. Ela substituirá o emoji nas telas.'}
@@ -754,7 +754,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
               {/* Teto Estimado Mensal */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Teto Mensal Estimado (R$)</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Teto Mensal Estimado (R$)</label>
                 <div className="relative flex items-center">
                   <span className="absolute left-3 text-slate-400 font-semibold">R$</span>
                   <input
@@ -762,12 +762,12 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                     value={tetoInput}
                     onChange={(e) => setTetoInput(e.target.value)}
                     placeholder="500,00"
-                    className="w-full h-10 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-bold tabular-nums focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="w-full h-10 pl-9 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm font-bold tabular-nums focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                     required
                   />
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[10px] text-slate-400">Ajustes rápidos:</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">Ajustes rápidos:</span>
                   {[50, 100, 250, 500].map((delta) => (
                     <button
                       key={delta}
@@ -776,7 +776,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                         const atual = parseFloat(tetoInput.replace(/\./g, '').replace(',', '.')) || 0;
                         setTetoInput((atual + delta).toFixed(2).replace('.', ','));
                       }}
-                      className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold cursor-pointer"
+                      className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-semibold cursor-pointer"
                     >
                       +{delta}
                     </button>
@@ -786,21 +786,21 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
               {/* Descrição */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Descrição / O que entra aqui</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Descrição / O que entra aqui</label>
                 <input
                   type="text"
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
                   placeholder="Ex: Contas fixas, despensa do mês, medicamentos..."
-                  className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                  className="h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                 />
               </div>
 
               {/* Divisão Sugerida */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-semibold text-slate-700">Divisão Padrão Recomendada</label>
-                  <span className="text-[11px] font-bold text-[#006948]">
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Divisão Padrão Recomendada</label>
+                  <span className="text-[11px] font-bold text-[#006948] dark:text-emerald-400">
                     Atual: {divisaoPadrao}
                   </span>
                 </div>
@@ -824,7 +824,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                         (opcao.id === '100/0' && (divisaoPadrao === `Só ${p1Nome}` || divisaoPadrao === '100/0')) ||
                         (opcao.id === '0/100' && (divisaoPadrao === `Só ${p2Nome}` || divisaoPadrao === '0/100'))
                           ? 'bg-[#006948] text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                       }`}
                     >
                       {opcao.label}
@@ -834,14 +834,14 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               </div>
 
               {/* Toggle Despesa Fixa */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isFixo ? 'bg-blue-100 text-[#0051d5]' : 'bg-slate-200 text-slate-500'}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isFixo ? 'bg-blue-100 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
                     <span className="material-symbols-outlined text-[18px]">push_pin</span>
                   </div>
                   <div>
-                    <strong className="text-slate-900 block text-xs">Definir como Despesa Fixa do Casal</strong>
-                    <span className="text-[11px] text-slate-500 block">
+                    <strong className="text-slate-900 dark:text-white block text-xs">Definir como Despesa Fixa do Casal</strong>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                       Priorizada no fechamento mensal com rateio padrão 50/50
                     </span>
                   </div>
@@ -854,11 +854,11 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => handleRemoverCategoria(categoriaEmEdicao)}
-                  className="px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 font-semibold cursor-pointer flex items-center gap-1"
+                  className="px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 font-semibold cursor-pointer flex items-center gap-1"
                 >
                   <span className="material-symbols-outlined text-[16px]">delete</span>
                   <span>Excluir</span>
@@ -871,7 +871,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                       setModalEditarAberta(false);
                       setCategoriaEmEdicao(null);
                     }}
-                    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -891,21 +891,21 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
       {/* Modal Nova Categoria */}
       {modalNovaAberta && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 flex flex-col gap-4 border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#161f2e] w-full max-w-lg rounded-2xl shadow-2xl p-6 flex flex-col gap-4 border border-slate-200 dark:border-slate-800 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">category</span>
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Adicionar Nova Categoria</h3>
-                  <span className="text-xs text-slate-500">Defina o nome, ícone, teto e se é fixa</span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Adicionar Nova Categoria</h3>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Defina o nome, ícone, teto e se é fixa</span>
                 </div>
               </div>
               <button
                 onClick={() => setModalNovaAberta(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -914,23 +914,23 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
             <form onSubmit={handleSalvarNova} className="flex flex-col gap-4 text-xs">
               <div className="flex gap-3">
                 <div className="w-20 flex flex-col gap-1.5">
-                  <label className="font-semibold text-slate-700">Ícone</label>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Ícone</label>
                   <input
                     type="text"
                     value={icone}
                     onChange={(e) => setIcone(e.target.value)}
                     maxLength={2}
-                    className="h-10 text-center text-xl bg-slate-50 border border-slate-200 rounded-xl"
+                    className="h-10 text-center text-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-1.5">
-                  <label className="font-semibold text-slate-700">Nome da Categoria</label>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Nome da Categoria</label>
                   <input
                     type="text"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Ex: Assinaturas / Lazer / Internet"
-                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                     required
                   />
                 </div>
@@ -938,15 +938,15 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
 
               {/* Emoji Quick Picker */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-slate-400 font-medium">Sugestões de Ícones (Emoji):</span>
-                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200/60">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Sugestões de Ícones (Emoji):</span>
+                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700">
                   {EMOJIS_SUGERIDOS.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => setIcone(emoji)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-base hover:bg-white transition-all cursor-pointer ${
-                        icone === emoji ? 'bg-white shadow-sm ring-2 ring-[#006948]' : ''
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-base hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer ${
+                        icone === emoji ? 'bg-white dark:bg-slate-700 shadow-sm ring-2 ring-[#006948] dark:ring-emerald-400' : ''
                       }`}
                     >
                       {emoji}
@@ -956,17 +956,17 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               </div>
 
               {/* Imagem Personalizada via CDN */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-2.5">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-semibold text-slate-800 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-[#006948]">cloud_upload</span>
+                  <label className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">cloud_upload</span>
                     <span>Imagem da Categoria (Link da sua CDN)</span>
                   </label>
                   {imagemUrl.trim() && (
                     <button
                       type="button"
                       onClick={() => setImagemUrl('')}
-                      className="text-[11px] font-semibold text-red-600 hover:underline cursor-pointer"
+                      className="text-[11px] font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
                     >
                       Remover Imagem
                     </button>
@@ -987,9 +987,9 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                       value={imagemUrl}
                       onChange={(e) => setImagemUrl(e.target.value)}
                       placeholder="https://sua-cdn.com/categorias/internet.png"
-                      className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#006948]/20 w-full"
+                      className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-[#006948]/20 dark:focus:ring-emerald-500/30 w-full"
                     />
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
                       {imagemUrl.trim()
                         ? 'Exibindo imagem da sua CDN (o emoji acima é o fallback se a imagem falhar).'
                         : 'Cole o link direto da imagem hospedada na sua CDN. Ela substituirá o emoji nas telas.'}
@@ -999,7 +999,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Teto Mensal Sugerido (R$)</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Teto Mensal Sugerido (R$)</label>
                 <div className="relative flex items-center">
                   <span className="absolute left-3 text-slate-400 font-semibold">R$</span>
                   <input
@@ -1007,26 +1007,26 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                     value={tetoInput}
                     onChange={(e) => setTetoInput(e.target.value)}
                     placeholder="400,00"
-                    className="w-full h-10 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-bold tabular-nums focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                    className="w-full h-10 pl-9 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm font-bold tabular-nums focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-slate-700">Descrição / Finalidade</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Descrição / Finalidade</label>
                 <input
                   type="text"
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
                   placeholder="Ex: Serviços de streaming, internet residencial..."
-                  className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
+                  className="h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006948]/20"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-semibold text-slate-700">Divisão Padrão Recomendada</label>
-                  <span className="text-[11px] font-bold text-[#006948]">
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Divisão Padrão Recomendada</label>
+                  <span className="text-[11px] font-bold text-[#006948] dark:text-emerald-400">
                     Atual: {divisaoPadrao}
                   </span>
                 </div>
@@ -1050,7 +1050,7 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                         (opcao.id === '100/0' && (divisaoPadrao === `Só ${p1Nome}` || divisaoPadrao === '100/0')) ||
                         (opcao.id === '0/100' && (divisaoPadrao === `Só ${p2Nome}` || divisaoPadrao === '0/100'))
                           ? 'bg-[#006948] text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                       }`}
                     >
                       {opcao.label}
@@ -1060,14 +1060,14 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
               </div>
 
               {/* Toggle Despesa Fixa */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isFixo ? 'bg-blue-100 text-[#0051d5]' : 'bg-slate-200 text-slate-500'}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isFixo ? 'bg-blue-100 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
                     <span className="material-symbols-outlined text-[18px]">push_pin</span>
                   </div>
                   <div>
-                    <strong className="text-slate-900 block text-xs">Definir como Despesa Fixa do Casal</strong>
-                    <span className="text-[11px] text-slate-500 block">
+                    <strong className="text-slate-900 dark:text-white block text-xs">Definir como Despesa Fixa do Casal</strong>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                       Priorizada no fechamento mensal com rateio proporcional do casal
                     </span>
                   </div>
@@ -1080,11 +1080,11 @@ export const CategoriasView: React.FC<CategoriasViewProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setModalNovaAberta(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold cursor-pointer"
                 >
                   Cancelar
                 </button>
