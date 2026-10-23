@@ -10,6 +10,7 @@ interface ModalCompraProps {
   onFechar: () => void;
   compraEmEdicao: Compra | null;
   usuarioAtual: UsuarioId;
+  usuarioUid?: string;
   couple?: CoupleSpace | null;
   categorias?: CategoriaMeta[];
   categoriasIndividuais?: CategoriaMeta[];
@@ -22,6 +23,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   onFechar,
   compraEmEdicao,
   usuarioAtual,
+  usuarioUid,
   couple,
   categorias,
   categoriasIndividuais,
@@ -33,10 +35,18 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   const p2Name = couple?.partner2Name || 'Silvia';
   const p2Uid = couple?.partner2Uid || 'Silvia';
 
-  // Identificação do usuário atual entre Parceiro 1 e Parceiro 2
-  const souP2 = usuarioAtual === p2Uid || usuarioAtual === p2Name;
-  const meuNome = souP2 ? p2Name : p1Name;
-  const meuUid = souP2 ? p2Uid : p1Uid;
+  // Identificação robusta do usuário atual entre Parceiro 1 e Parceiro 2
+  const souP2 = Boolean(
+    (usuarioUid && couple?.partner2Uid && usuarioUid === couple.partner2Uid) ||
+    (usuarioAtual && (
+      usuarioAtual === couple?.partner2Uid ||
+      usuarioAtual === couple?.partner2Name ||
+      usuarioAtual.toLowerCase().includes('silvia') ||
+      (p2Name && usuarioAtual.toLowerCase().includes(p2Name.toLowerCase()))
+    ))
+  );
+  const meuNome = usuarioAtual && usuarioAtual !== 'Você' ? usuarioAtual : (souP2 ? p2Name : p1Name);
+  const meuUid = usuarioUid || (souP2 ? p2Uid : p1Uid);
 
   const [nome, setNome] = useState('');
   const [valorInput, setValorInput] = useState('');
@@ -195,13 +205,11 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
     const pagoPorUidFinal = privada ? meuUid : (ehP1 ? p1Uid : p2Uid);
     const divisaoFinal = privada ? (souP2 ? '0/100' : '100/0') : divisao;
 
-    const cadastradoPorUidFinal =
-      compraEmEdicao?.cadastradoPorUid ||
-      (usuarioAtual === p1Name ? p1Uid : usuarioAtual === p2Name ? p2Uid : usuarioAtual);
+    const cadastradoPorUidFinal = compraEmEdicao?.cadastradoPorUid || meuUid;
     const cadastradoPorNomeFinal =
       compraEmEdicao?.cadastradoPorNome ||
       compraEmEdicao?.cadastradoPor ||
-      (usuarioAtual === p2Uid ? p2Name : p1Name);
+      meuNome;
 
     const compraSalva: Compra = {
       id: compraEmEdicao?.id || crypto.randomUUID(),

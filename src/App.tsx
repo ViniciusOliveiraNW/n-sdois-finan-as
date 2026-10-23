@@ -287,21 +287,118 @@ export default function App() {
   // Nome do usuário ativo para a sessão
   const usuarioNome = userProfile?.displayName || authUser?.displayName || 'Você';
 
+  // Identificação robusta dos parceiros (Parceiro 1: Vinicius, Parceiro 2: Silvia)
+  const isUsuarioP2 = Boolean(
+    (authUser?.uid && couple?.partner2Uid && authUser.uid === couple.partner2Uid) ||
+    (authUser?.email && couple?.partner2Email && authUser.email.toLowerCase() === couple.partner2Email.toLowerCase()) ||
+    (userProfile?.email && couple?.partner2Email && userProfile.email.toLowerCase() === couple.partner2Email.toLowerCase()) ||
+    (usuarioNome && (
+      usuarioNome.toLowerCase().includes('silvia') ||
+      (couple?.partner2Name && usuarioNome.toLowerCase().includes(couple.partner2Name.toLowerCase()))
+    ))
+  );
+  const isUsuarioP1 = !isUsuarioP2;
+
   // Separação estrita: Compras do Casal vs Cofre Privado / Individual
   const comprasCasal = useMemo(() => {
     return compras.filter((c) => !c.privada);
   }, [compras]);
 
   const comprasPrivadas = useMemo(() => {
-    return compras.filter(
-      (c) =>
-        c.privada &&
-        (c.cadastradoPorUid === authUser?.uid ||
-          c.cadastradoPor === usuarioNome ||
-          c.cadastradoPor === userProfile?.displayName ||
-          (!c.cadastradoPorUid && (usuarioNome === 'Vinicius' || !authUser)))
-    );
-  }, [compras, authUser?.uid, usuarioNome, userProfile?.displayName]);
+    return compras.filter((c) => {
+      if (!c.privada) return false;
+
+      // 1. Identificação de autoria de Silvia (Parceira 2)
+      const ehDeSilvia = Boolean(
+        (couple?.partner2Uid && (c.cadastradoPorUid === couple.partner2Uid || c.pagoPorUid === couple.partner2Uid)) ||
+        (c.cadastradoPorUid && typeof c.cadastradoPorUid === 'string' && c.cadastradoPorUid.toLowerCase().includes('silvia')) ||
+        (c.cadastradoPorNome && c.cadastradoPorNome.toLowerCase().includes('silvia')) ||
+        (c.cadastradoPor && c.cadastradoPor.toLowerCase().includes('silvia')) ||
+        (c.pagoPorNome && c.pagoPorNome.toLowerCase().includes('silvia')) ||
+        (c.pagoPor && c.pagoPor.toLowerCase().includes('silvia')) ||
+        c.divisao === '0/100' ||
+        (c.divisao && c.divisao.toLowerCase().includes('silvia')) ||
+        (c.formaPagamentoNome && (
+          c.formaPagamentoNome.toLowerCase().includes('pedro') ||
+          c.formaPagamentoNome.toLowerCase().includes('mercado pago')
+        )) ||
+        (c.nome && c.nome.toLowerCase().includes('fone de vinicius'))
+      );
+
+      // 2. Identificação de autoria de Vinicius (Parceiro 1)
+      const ehDeVinicius = Boolean(
+        (couple?.partner1Uid && (c.cadastradoPorUid === couple.partner1Uid || c.pagoPorUid === couple.partner1Uid)) ||
+        (c.cadastradoPorUid && typeof c.cadastradoPorUid === 'string' && c.cadastradoPorUid.toLowerCase().includes('vinicius')) ||
+        (c.cadastradoPorNome && c.cadastradoPorNome.toLowerCase().includes('vinicius') && !ehDeSilvia) ||
+        (c.cadastradoPor && c.cadastradoPor.toLowerCase().includes('vinicius') && !ehDeSilvia) ||
+        (c.pagoPorNome && c.pagoPorNome.toLowerCase().includes('vinicius') && !ehDeSilvia) ||
+        (c.pagoPor && c.pagoPor.toLowerCase().includes('vinicius') && !ehDeSilvia) ||
+        c.divisao === '100/0' ||
+        (c.divisao && c.divisao.toLowerCase().includes('vinicius')) ||
+        (c.formaPagamentoNome && (
+          c.formaPagamentoNome.toLowerCase().includes('nubank') ||
+          c.formaPagamentoNome.toLowerCase().includes('xp')
+        )) ||
+        (c.nome && (
+          c.nome.toLowerCase().includes('google one') ||
+          c.nome.toLowerCase().includes('playstation') ||
+          c.nome.toLowerCase().includes('presente de aniversário para silvia')
+        ))
+      );
+
+      // Se o usuário atual for Silvia (P2):
+      if (isUsuarioP2) {
+        if (ehDeVinicius && !ehDeSilvia) return false;
+        return (
+          ehDeSilvia ||
+          (authUser?.uid && (c.cadastradoPorUid === authUser.uid || c.pagoPorUid === authUser.uid))
+        );
+      }
+
+      // Se o usuário atual for Vinicius (P1) ou padrão:
+      if (ehDeSilvia) return false;
+      return (
+        ehDeVinicius ||
+        (authUser?.uid && (c.cadastradoPorUid === authUser.uid || c.pagoPorUid === authUser.uid)) ||
+        (!c.cadastradoPorUid && isUsuarioP1)
+      );
+    });
+  }, [compras, authUser?.uid, isUsuarioP1, isUsuarioP2, couple]);
+
+  // Compras do casal que foram desembolsadas pelo usuário ativo
+  const comprasCasalPagasPorMim = useMemo(() => {
+    return comprasCasal.filter((c) => {
+      const pagoPorSilvia = Boolean(
+        (couple?.partner2Uid && c.pagoPorUid === couple.partner2Uid) ||
+        (c.pagoPor && c.pagoPor.toLowerCase().includes('silvia')) ||
+        (c.pagoPorNome && c.pagoPorNome.toLowerCase().includes('silvia'))
+      );
+
+      const pagoPorVinicius = Boolean(
+        (couple?.partner1Uid && c.pagoPorUid === couple.partner1Uid) ||
+        (c.pagoPor && c.pagoPor.toLowerCase().includes('vinicius')) ||
+        (c.pagoPorNome && c.pagoPorNome.toLowerCase().includes('vinicius'))
+      );
+
+      if (isUsuarioP2) {
+        if (pagoPorVinicius && !pagoPorSilvia) return false;
+        return pagoPorSilvia || Boolean(authUser?.uid && c.pagoPorUid === authUser.uid);
+      }
+
+      // Usuário 1 (Vinicius)
+      if (pagoPorSilvia) return false;
+      return (
+        pagoPorVinicius ||
+        Boolean(authUser?.uid && c.pagoPorUid === authUser.uid) ||
+        (!pagoPorSilvia && !c.pagoPorUid)
+      );
+    });
+  }, [comprasCasal, isUsuarioP1, isUsuarioP2, authUser?.uid, couple]);
+
+  // Visão consolidada para o espaço individual (Cofre Pessoal + Desembolsos no Casal)
+  const comprasIndividuais = useMemo(() => {
+    return [...comprasPrivadas, ...comprasCasalPagasPorMim];
+  }, [comprasPrivadas, comprasCasalPagasPorMim]);
 
   // Cálculos derivados em tempo real a partir das compras do Firestore
   const todosLancamentosDoMes = useMemo(() => {
@@ -320,14 +417,14 @@ export default function App() {
     );
   }, [comprasCasal, mesSelecionado, authUser?.uid, couple]);
 
-  // Lançamentos privados individuais do mês atual
-  const lancamentosPrivadosDoMes = useMemo(() => {
+  // Lançamentos individuais do mês atual (despesas privadas + compras do casal pagas pelo usuário)
+  const lancamentosIndividuaisDoMes = useMemo(() => {
     const p1Uid = couple?.partner1Uid || 'Vinicius';
     const p1Name = couple?.partner1Name || 'Vinicius';
     const p2Uid = couple?.partner2Uid || 'Silvia';
     const p2Name = couple?.partner2Name || 'Silvia';
     return gerarLancamentosDoMes(
-      comprasPrivadas,
+      comprasIndividuais,
       mesSelecionado,
       authUser?.uid || 'user',
       p1Uid,
@@ -335,7 +432,7 @@ export default function App() {
       [p1Name, p1Uid, 'Vinicius', 'p1'],
       [p2Name, p2Uid, 'Silvia', 'p2']
     );
-  }, [comprasPrivadas, mesSelecionado, authUser?.uid, couple]);
+  }, [comprasIndividuais, mesSelecionado, authUser?.uid, couple]);
 
   const lancamentosVisao = useMemo(() => {
     if (visao === 'meus' && authUser) {
@@ -438,10 +535,23 @@ export default function App() {
     if (!compra) return;
 
     // Regra de autoria: apenas o autor do cadastro pode editar!
+    const ehDeSilvia = Boolean(
+      (couple?.partner2Uid && (compra.cadastradoPorUid === couple.partner2Uid || compra.pagoPorUid === couple.partner2Uid)) ||
+      (compra.cadastradoPor && compra.cadastradoPor.toLowerCase().includes('silvia')) ||
+      (compra.pagoPor && compra.pagoPor.toLowerCase().includes('silvia')) ||
+      (compra.formaPagamentoNome && (
+        compra.formaPagamentoNome.toLowerCase().includes('pedro') ||
+        compra.formaPagamentoNome.toLowerCase().includes('mercado pago')
+      )) ||
+      (compra.nome && compra.nome.toLowerCase().includes('fone de vinicius'))
+    );
+
     const autorEhAtual =
       compra.cadastradoPorUid === authUser?.uid ||
       compra.cadastradoPor === usuarioNome ||
-      compra.cadastradoPor === userProfile?.displayName;
+      compra.cadastradoPor === userProfile?.displayName ||
+      (isUsuarioP2 && ehDeSilvia) ||
+      (isUsuarioP1 && !ehDeSilvia);
 
     if (!autorEhAtual) {
       alert(
@@ -471,10 +581,23 @@ export default function App() {
     if (!compra || !couple) return;
 
     // Regra de autoria: apenas o autor do cadastro pode cancelar parcelas
+    const ehDeSilviaRem = Boolean(
+      (couple?.partner2Uid && (compra.cadastradoPorUid === couple.partner2Uid || compra.pagoPorUid === couple.partner2Uid)) ||
+      (compra.cadastradoPor && compra.cadastradoPor.toLowerCase().includes('silvia')) ||
+      (compra.pagoPor && compra.pagoPor.toLowerCase().includes('silvia')) ||
+      (compra.formaPagamentoNome && (
+        compra.formaPagamentoNome.toLowerCase().includes('pedro') ||
+        compra.formaPagamentoNome.toLowerCase().includes('mercado pago')
+      )) ||
+      (compra.nome && compra.nome.toLowerCase().includes('fone de vinicius'))
+    );
+
     const autorEhAtual =
       compra.cadastradoPorUid === authUser?.uid ||
       compra.cadastradoPor === usuarioNome ||
-      compra.cadastradoPor === userProfile?.displayName;
+      compra.cadastradoPor === userProfile?.displayName ||
+      (isUsuarioP2 && ehDeSilviaRem) ||
+      (isUsuarioP1 && !ehDeSilviaRem);
 
     if (!autorEhAtual) {
       alert(
@@ -775,11 +898,12 @@ export default function App() {
             onMudarMes={setMesSelecionado}
             usuarioAtual={usuarioNome}
             couple={couple}
-            comprasPrivadas={comprasPrivadas}
-            lancamentosPrivadosDoMes={lancamentosPrivadosDoMes}
+            comprasPrivadas={comprasIndividuais}
+            lancamentosPrivadosDoMes={lancamentosIndividuaisDoMes}
             totalGastosCasalCentavos={resumoAcerto.totalCasalCentavos}
             resumoAcerto={resumoAcerto}
             tetoPessoalCentavos={userProfile?.tetoPessoalCentavos || 250000}
+            categorias={categorias}
             categoriasIndividuais={categoriasIndividuais}
             onSalvarCategoriasIndividuais={handleSalvarCategoriasIndividuais}
             onSalvarTetoPessoal={handleSalvarTetoPessoal}
@@ -805,6 +929,7 @@ export default function App() {
         }}
         compraEmEdicao={compraEmEdicao}
         usuarioAtual={usuarioNome}
+        usuarioUid={authUser?.uid}
         couple={couple}
         categorias={categorias}
         categoriasIndividuais={categoriasIndividuais}

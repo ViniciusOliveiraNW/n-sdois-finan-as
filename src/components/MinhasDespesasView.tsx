@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { CategoriaMeta, Compra, CoupleSpace, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
-import { CATEGORIAS_PADRAO_INDIVIDUAIS } from '../data/initialData';
+import { CATEGORIAS_PADRAO, CATEGORIAS_PADRAO_INDIVIDUAIS } from '../data/initialData';
 import { formatarBRL } from '../calculations/acertoMensal';
 import { calcularTetoIndividual } from '../calculations/tetoIndividual';
 import { ModalCompartilharCompra } from './ModalCompartilharCompra';
@@ -23,6 +23,7 @@ interface MinhasDespesasViewProps {
   totalGastosCasalCentavos: number;
   tetoPessoalCentavos: number;
   resumoAcerto?: ResumoAcerto;
+  categorias?: CategoriaMeta[];
   categoriasIndividuais?: CategoriaMeta[];
   onSalvarCategoriasIndividuais?: (novasCategorias: CategoriaMeta[]) => Promise<void> | void;
   onSalvarTetoPessoal: (novoTetoCentavos: number) => Promise<void> | void;
@@ -43,6 +44,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   totalGastosCasalCentavos,
   tetoPessoalCentavos,
   resumoAcerto,
+  categorias,
   categoriasIndividuais,
   onSalvarCategoriasIndividuais,
   onSalvarTetoPessoal,
@@ -54,6 +56,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
 }) => {
   const [modoDiscreto, setModoDiscreto] = useState(false);
   const [categoriaAtiva, setCategoriaAtiva] = useState('Todos');
+  const [filtroOrigem, setFiltroOrigem] = useState<'todos' | 'privadas' | 'casal'>('todos');
   const [busca, setBusca] = useState('');
   const [compraParaCompartilhar, setCompraParaCompartilhar] = useState<Compra | null>(null);
   const [modalTetoAberta, setModalTetoAberta] = useState(false);
@@ -61,18 +64,37 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   const [mostrarPainelCategorias, setMostrarPainelCategorias] = useState(false);
 
   const categoriasEfetivas = useMemo(() => {
-    return categoriasIndividuais && categoriasIndividuais.length > 0
+    const indivs = categoriasIndividuais && categoriasIndividuais.length > 0
       ? categoriasIndividuais
       : CATEGORIAS_PADRAO_INDIVIDUAIS;
-  }, [categoriasIndividuais]);
+    const casal = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
+    const map = new Map<string, CategoriaMeta>();
+    indivs.forEach((c) => map.set(c.nome.toLowerCase(), c));
+    casal.forEach((c) => {
+      if (!map.has(c.nome.toLowerCase())) {
+        map.set(c.nome.toLowerCase(), c);
+      }
+    });
+    return Array.from(map.values());
+  }, [categoriasIndividuais, categorias]);
 
   const categoriasPills = useMemo(() => {
-    return ['Todos', ...categoriasEfetivas.map((c) => c.nome)];
-  }, [categoriasEfetivas]);
+    const catsSet = new Set<string>();
+    categoriasEfetivas.forEach((c) => catsSet.add(c.nome));
+    lancamentosPrivadosDoMes.forEach((l) => {
+      if (l.categoria) catsSet.add(l.categoria);
+    });
+    return ['Todos', ...Array.from(catsSet)];
+  }, [categoriasEfetivas, lancamentosPrivadosDoMes]);
 
-  const parceiroNome = couple?.partner1Uid === usuarioAtual || couple?.partner1Name === usuarioAtual
-    ? (couple?.partner2Name || 'Silvia')
-    : (couple?.partner1Name || 'Vinicius');
+  const isP1 = Boolean(
+    couple?.partner1Uid === usuarioAtual ||
+    (couple?.partner1Name && usuarioAtual.toLowerCase().includes(couple.partner1Name.toLowerCase())) ||
+    usuarioAtual.toLowerCase().includes('vinicius')
+  );
+  const parceiroNome = isP1
+    ? (couple?.partner2Name || 'Silvia de Santana')
+    : (couple?.partner1Name || 'Vinicius Oliveira');
 
   // Mês formatado por extenso (Ex: "Outubro de 2024")
   const nomeMesFormatado = useMemo(() => {
@@ -97,8 +119,28 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   }, [mesSelecionado]);
 
   // Cálculos de KPI
-  const totalGastoPessoalCentavos = useMemo(() => {
+  const totalDesembolsadoCentavos = useMemo(() => {
     return lancamentosPrivadosDoMes.reduce((acc, l) => acc + l.valorCentavos, 0);
+  }, [lancamentosPrivadosDoMes]);
+
+  const totalGastoPrivadoCentavos = useMemo(() => {
+    return lancamentosPrivadosDoMes
+      .filter((l) => l.privada)
+      .reduce((acc, l) => acc + l.valorCentavos, 0);
+  }, [lancamentosPrivadosDoMes]);
+
+  const totalGastoCasalPagoPorMimCentavos = useMemo(() => {
+    return lancamentosPrivadosDoMes
+      .filter((l) => !l.privada)
+      .reduce((acc, l) => acc + l.valorCentavos, 0);
+  }, [lancamentosPrivadosDoMes]);
+
+  const countPrivadas = useMemo(() => {
+    return lancamentosPrivadosDoMes.filter((l) => l.privada).length;
+  }, [lancamentosPrivadosDoMes]);
+
+  const countCasalPagasPorMim = useMemo(() => {
+    return lancamentosPrivadosDoMes.filter((l) => !l.privada).length;
   }, [lancamentosPrivadosDoMes]);
 
   // Compromisso em parcelas no mês atual (apenas itens com parcelamento > 1)
@@ -114,7 +156,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   const calculoTeto = useMemo(() => {
     return calcularTetoIndividual({
       tetoBaseCentavos: tetoPessoalCentavos,
-      gastoIndividualCentavos: totalGastoPessoalCentavos,
+      gastoIndividualCentavos: totalGastoPrivadoCentavos,
       resumoAcerto,
       usuarioAtual,
       p1Uid: couple?.partner1Uid || 'Vinicius',
@@ -124,7 +166,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
     });
   }, [
     tetoPessoalCentavos,
-    totalGastoPessoalCentavos,
+    totalGastoPrivadoCentavos,
     resumoAcerto,
     usuarioAtual,
     couple?.partner1Uid,
@@ -134,7 +176,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   ]);
 
   // Equilíbrio de Consciência: Casal vs Individual
-  const somaTotalCentavos = totalGastosCasalCentavos + totalGastoPessoalCentavos;
+  const somaTotalCentavos = totalGastosCasalCentavos + totalDesembolsadoCentavos;
   const percCasal = somaTotalCentavos > 0
     ? Math.round((totalGastosCasalCentavos / somaTotalCentavos) * 100)
     : 50;
@@ -162,11 +204,15 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
   }, [mesSelecionado]);
 
   // Média Diária (Ritmo) de gastos pessoais
-  const mediaDiariaCentavos = totalDiasDoMes > 0 ? Math.round(totalGastoPessoalCentavos / totalDiasDoMes) : 0;
+  const mediaDiariaCentavos = totalDiasDoMes > 0 ? Math.round(totalDesembolsadoCentavos / totalDiasDoMes) : 0;
 
   // Filtragem dos lançamentos
   const lancamentosFiltrados = useMemo(() => {
     return lancamentosPrivadosDoMes.filter((lanc) => {
+      // Filtro de origem
+      if (filtroOrigem === 'privadas' && !lanc.privada) return false;
+      if (filtroOrigem === 'casal' && lanc.privada) return false;
+
       // Filtro de categoria
       if (categoriaAtiva !== 'Todos') {
         const catNome = (lanc.categoria || '').toLowerCase().trim();
@@ -190,7 +236,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
 
       return true;
     });
-  }, [lancamentosPrivadosDoMes, categoriaAtiva, busca]);
+  }, [lancamentosPrivadosDoMes, filtroOrigem, categoriaAtiva, busca]);
 
   const formatarValorDiscreto = (centavos: number) => {
     if (modoDiscreto) return 'R$ ••••••';
@@ -224,23 +270,23 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12 animate-fadeIn">
-      {/* 1. Top Switcher Banner: 100% Individual & Confidencial */}
+      {/* 1. Top Switcher Banner: Espaço Individual & Gestão Pessoal */}
       <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-slate-900 border border-blue-200/80 dark:border-blue-900/60 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
         <div className="flex items-start sm:items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/20">
-            <span className="material-symbols-outlined text-[22px]">lock</span>
+            <span className="material-symbols-outlined text-[22px]">account_balance_wallet</span>
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs sm:text-sm font-bold text-blue-950 dark:text-blue-200 tracking-tight">
-                ESPAÇO 100% INDIVIDUAL & CONFIDENCIAL
+                ESPAÇO INDIVIDUAL & GASTOS PESSOAIS
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold tracking-wide uppercase">
-                Visível apenas por você
+                Consolidado do Usuário
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
-              Estas compras não entram no fechamento mensal do casal, não dividem meio a meio e são invisíveis para a {parceiroNome}.
+              Reúne suas compras particulares confidenciais e todas as compras do casal pagas por você. Compras privadas permanecem 100% invisíveis para {parceiroNome}.
             </p>
           </div>
         </div>
@@ -260,7 +306,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
             className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-700/60 shadow-xs flex items-center gap-1.5 cursor-default"
           >
             <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">person</span>
-            <span>Minhas Despesas (Privado)</span>
+            <span>Minhas Despesas (Individual)</span>
           </button>
         </div>
       </div>
@@ -329,28 +375,39 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
 
       {/* 3. Four Metric KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Total Gasto */}
+        {/* Card 1: Total Pago pelo Usuário (Consolidado) */}
         <div className="bg-white dark:bg-[#161f2e] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                TOTAL GASTO EM {nomeMesSimples.toUpperCase()}
+                TOTAL PAGO POR VOCÊ EM {nomeMesSimples.toUpperCase()}
               </span>
               <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
               </div>
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {formatarValorDiscreto(totalGastoPessoalCentavos)}
+              {formatarValorDiscreto(totalDesembolsadoCentavos)}
+            </div>
+            <div className="mt-1 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap">
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                {formatarValorDiscreto(totalGastoPrivadoCentavos)}
+              </span>
+              <span>privado</span>
+              <span>•</span>
+              <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                {formatarValorDiscreto(totalGastoCasalPagoPorMimCentavos)}
+              </span>
+              <span>casal</span>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <span className="material-symbols-outlined text-[15px]">arrow_downward</span>
-              <span>12% menor que o mês anterior</span>
+            <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold">
+              <span className="material-symbols-outlined text-[15px]">payments</span>
+              <span>Desembolsos do seu bolso</span>
             </span>
             <span className="text-slate-400 dark:text-slate-500 font-medium">
-              {lancamentosPrivadosDoMes.length} transações
+              {lancamentosPrivadosDoMes.length} lançamentos
             </span>
           </div>
         </div>
@@ -606,7 +663,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                 Minhas Despesas ({percIndividual}%)
               </span>
               <span className="text-slate-900 dark:text-white font-bold">
-                {formatarValorDiscreto(totalGastoPessoalCentavos)}
+                {formatarValorDiscreto(totalDesembolsadoCentavos)}
               </span>
             </div>
           </div>
@@ -661,9 +718,69 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
         </div>
       </section>
 
-      {/* 5. Categories Pills & Search Input */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
-        {/* Pills */}
+      {/* 5. Origin Tabs, Categories Pills & Search Input */}
+      <div className="space-y-3 pt-2">
+        {/* Origin filter segmented buttons & Search */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center p-1 bg-slate-100/90 dark:bg-[#111a28] border border-slate-200/80 dark:border-slate-800 rounded-xl text-xs font-semibold w-fit">
+            <button
+              type="button"
+              onClick={() => setFiltroOrigem('todos')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                filtroOrigem === 'todos'
+                  ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span>Todas ({lancamentosPrivadosDoMes.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFiltroOrigem('privadas')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                filtroOrigem === 'privadas'
+                  ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">lock</span>
+              <span>Cofre Privado ({countPrivadas})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFiltroOrigem('casal')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                filtroOrigem === 'casal'
+                  ? 'bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-400 shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">groups</span>
+              <span>Pagas no Casal ({countCasalPagasPorMim})</span>
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">
+                search
+              </span>
+              <input
+                type="text"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Filtrar lançamentos..."
+                className="pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 w-48 sm:w-60"
+              />
+            </div>
+            <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+              {lancamentosFiltrados.length} encontrados
+            </span>
+          </div>
+        </div>
+
+        {/* Category Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full text-xs">
           {categoriasPills.map((cat) => {
             const ehAtiva = categoriaAtiva === cat;
@@ -678,7 +795,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
-                {cat === 'Todos' ? `Todos (${lancamentosPrivadosDoMes.length})` : cat}
+                {cat === 'Todos' ? `Todas as Categorias` : cat}
               </button>
             );
           })}
@@ -692,25 +809,6 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
             <span>Editar Categorias</span>
           </button>
         </div>
-
-        {/* Search */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">
-              search
-            </span>
-            <input
-              type="text"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Filtrar lançamentos..."
-              className="pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 w-48 sm:w-60"
-            />
-          </div>
-          <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
-            Total: {lancamentosFiltrados.length} registros
-          </span>
-        </div>
       </div>
 
       {/* 6. Transactions Table */}
@@ -719,9 +817,9 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#111a28] text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-4 sm:px-6">DESCRIÇÃO & CONTEXTO PRIVADO</th>
+                <th className="py-3 px-4 sm:px-6">DESCRIÇÃO & ORIGEM</th>
                 <th className="py-3 px-4">CATEGORIA</th>
-                <th className="py-3 px-4 text-right">VALOR INDIVIDUAL</th>
+                <th className="py-3 px-4 text-right">VALOR DESEMBOLSADO</th>
                 <th className="py-3 px-4 sm:px-6 text-right">AÇÕES RÁPIDAS</th>
               </tr>
             </thead>
@@ -731,13 +829,17 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                   <td colSpan={4} className="py-12 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <span className="material-symbols-outlined text-[36px] text-slate-300 dark:text-slate-600">
-                        lock_open
+                        manage_search
                       </span>
                       <p className="font-semibold text-slate-600 dark:text-slate-300 text-sm">
-                        Nenhum lançamento privado encontrado neste mês.
+                        Nenhum lançamento encontrado para os filtros selecionados.
                       </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">
-                        Cadastre surpresas, assinaturas ou despesas particulares clicando em "+ Nova Despesa Privada".
+                        {filtroOrigem === 'casal'
+                          ? 'Nenhuma compra do casal paga por você neste mês.'
+                          : filtroOrigem === 'privadas'
+                          ? 'Nenhuma compra confidencial cadastrada no seu cofre individual.'
+                          : 'Cadastre despesas particulares ou compras conjuntas que você pagou para visualizá-las aqui.'}
                       </p>
                     </div>
                   </td>
@@ -788,7 +890,21 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                                 {lanc.nome}
                               </span>
 
-                              {/* Badges */}
+                              {/* Badges de Origem */}
+                              {lanc.privada ? (
+                                <span className="px-2 py-0.5 rounded-full bg-blue-100/80 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[10px] font-bold flex items-center gap-1 border border-blue-200/60 dark:border-blue-900/40">
+                                  <span className="material-symbols-outlined text-[12px]">lock</span>
+                                  <span>Privado</span>
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full bg-indigo-100/80 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold flex items-center gap-1 border border-indigo-200/60 dark:border-indigo-900/40">
+                                  <span className="material-symbols-outlined text-[12px]">groups</span>
+                                  <span>Conta do Casal</span>
+                                  {lanc.divisao ? <span className="opacity-80 font-normal">• {lanc.divisao}</span> : null}
+                                </span>
+                              )}
+
+                              {/* Badges adicionais */}
                               {lanc.segredoCasal && (
                                 <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold flex items-center gap-1">
                                   <span>Segredo do Casal 🤫</span>
@@ -820,9 +936,22 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                                 </>
                               )}
                               <span>•</span>
-                              <span className="text-blue-600 dark:text-blue-400 font-medium">
-                                Somente você pode visualizar
-                              </span>
+                              {lanc.privada ? (
+                                <span className="text-blue-600 dark:text-blue-400 font-medium flex items-center gap-0.5">
+                                  <span className="material-symbols-outlined text-[12px]">lock</span>
+                                  Somente você pode visualizar
+                                </span>
+                              ) : (
+                                <span className="text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[13px]">groups</span>
+                                  Pago por você no Casal
+                                  {lanc.minhaParteCentavos != null && lanc.minhaParteCentavos !== lanc.valorCentavos && (
+                                    <span className="text-slate-500 dark:text-slate-400 font-normal">
+                                      (sua cota: {formatarValorDiscreto(lanc.minhaParteCentavos)})
+                                    </span>
+                                  )}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -850,7 +979,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                         })()}
                       </td>
 
-                      {/* Valor Individual */}
+                      {/* Valor Individual / Desembolsado */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
                           {formatarValorDiscreto(lanc.valorCentavos)}
@@ -861,6 +990,8 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                                 compraOriginal?.valorCentavos ??
                                   Math.round((compraOriginal?.valor || 0) * 100)
                               )}`
+                            : !lanc.privada && lanc.minhaParteCentavos != null && lanc.minhaParteCentavos !== lanc.valorCentavos
+                            ? `Sua cota: ${formatarValorDiscreto(lanc.minhaParteCentavos)}`
                             : 'À vista'}
                         </div>
                       </td>
@@ -868,21 +999,33 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                       {/* Ações Rápidas */}
                       <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (compraOriginal) {
-                                setCompraParaCompartilhar(compraOriginal);
-                              }
-                            }}
-                            className="px-2.5 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold text-xs transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
-                            title="Mover este lançamento para as contas compartilhadas do casal"
-                          >
-                            <span className="material-symbols-outlined text-[15px] text-blue-600 dark:text-blue-400">
-                              group_add
+                          {lanc.privada ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (compraOriginal) {
+                                  setCompraParaCompartilhar(compraOriginal);
+                                }
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold text-xs transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                              title="Mover este lançamento para as contas compartilhadas do casal"
+                            >
+                              <span className="material-symbols-outlined text-[15px] text-blue-600 dark:text-blue-400">
+                                group_add
+                              </span>
+                              <span>+ Compartilhar</span>
+                            </button>
+                          ) : (
+                            <span
+                              className="px-2.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold text-xs flex items-center gap-1"
+                              title="Esta compra já faz parte do fechamento do casal"
+                            >
+                              <span className="material-symbols-outlined text-[15px] text-indigo-600 dark:text-indigo-400">
+                                done_all
+                              </span>
+                              <span>No Casal</span>
                             </span>
-                            <span>+ Compartilhar</span>
-                          </button>
+                          )}
 
                           <button
                             type="button"
@@ -919,7 +1062,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
             shield
           </span>
           <span>
-            Criptografia de ponta a ponta: itens identificados como privados nunca são sincronizados com o painel conjunto de {parceiroNome}.
+            <strong>Privacidade Garantida:</strong> Itens cadastrados no Cofre Privado nunca são exibidos no painel conjunto de {parceiroNome}. Compras do casal pagas por você aparecem em ambas as visões para controle financeiro completo.
           </span>
         </div>
         <button
@@ -927,7 +1070,7 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
           onClick={() => setModalTetoAberta(true)}
           className="text-blue-700 dark:text-blue-400 font-bold hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap self-start sm:self-auto"
         >
-          <span>Gerenciar chaves e teto de privacidade</span>
+          <span>Gerenciar teto pessoal e limites</span>
           <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
         </button>
       </div>
