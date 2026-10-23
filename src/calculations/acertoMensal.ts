@@ -26,6 +26,32 @@ export function parseBRLParaCentavos(valorStr: string): number {
   return Math.round(num * 100);
 }
 
+export function formatarDataBR(dataStr?: string): string {
+  if (!dataStr) return '—';
+  try {
+    const parts = dataStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dataStr;
+  } catch {
+    return dataStr;
+  }
+}
+
+export function formatarDataCurtaBR(dataStr?: string): string {
+  if (!dataStr) return '—';
+  try {
+    const parts = dataStr.split('-');
+    if (parts.length >= 2) {
+      return `${parts[2]}/${parts[1]}`;
+    }
+    return dataStr;
+  } catch {
+    return dataStr;
+  }
+}
+
 export function parseDivisaoPercentuais(
   divisao: string,
   p1Identifier: string = 'Vinicius',

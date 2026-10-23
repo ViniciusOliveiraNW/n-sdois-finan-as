@@ -51,6 +51,9 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   const [nome, setNome] = useState('');
   const [valorInput, setValorInput] = useState('');
   const [categoria, setCategoria] = useState<CategoriaId>('Mercado');
+  const [dataCompra, setDataCompra] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const [dataPrimeiroPagamento, setDataPrimeiroPagamento] = useState(
     new Date().toISOString().slice(0, 10)
   );
@@ -83,6 +86,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
         : compraEmEdicao.valor;
       setValorInput(valorReais.toFixed(2).replace('.', ','));
       setCategoria(compraEmEdicao.categoria);
+      setDataCompra(compraEmEdicao.dataCompra || compraEmEdicao.dataPrimeiroPagamento || new Date().toISOString().slice(0, 10));
       setDataPrimeiroPagamento(compraEmEdicao.dataPrimeiroPagamento);
       const parcelas = compraEmEdicao.numeroDeParcelas || 1;
       setNumeroDeParcelas(parcelas);
@@ -121,7 +125,9 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       const catsIndiv = categoriasIndividuais && categoriasIndividuais.length > 0 ? categoriasIndividuais : CATEGORIAS_PADRAO_INDIVIDUAIS;
       const catsCasal = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
       setCategoria(ehPrivada ? (catsIndiv[0]?.id || 'Lazer & Hobbies') : (catsCasal[0]?.id || 'Mercado'));
-      setDataPrimeiroPagamento(new Date().toISOString().slice(0, 10));
+      const hoje = new Date().toISOString().slice(0, 10);
+      setDataCompra(hoje);
+      setDataPrimeiroPagamento(hoje);
       setTipoCobranca('a_vista');
       setNumeroDeParcelas(1);
 
@@ -225,6 +231,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       cadastradoPorUid: cadastradoPorUidFinal,
       divisao: divisaoFinal,
       categoria,
+      dataCompra: dataCompra || dataPrimeiroPagamento,
       dataPrimeiroPagamento,
       numeroDeParcelas: parcelasFinais,
       ultimaParcelaAtiva: ultimaParcelaAtivaFinal,
@@ -333,66 +340,104 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Categoria & Data */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Row 2: Categoria */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="compra-cat" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">category</span>
+                <span>Categoria</span>
+                <span className="text-red-500">*</span>
+              </span>
+              {(() => {
+                const catAtual = listaCategorias.find((c) => c.id === categoria);
+                return catAtual?.imagemUrl ? (
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.2 rounded font-semibold border border-emerald-200 dark:border-emerald-800">
+                    Foto CDN
+                  </span>
+                ) : null;
+              })()}
+            </label>
+            <div className="flex items-center gap-2">
+              {(() => {
+                const catAtual = listaCategorias.find((c) => c.id === categoria);
+                return (
+                  <CategoryIconOrImage
+                    icone={catAtual?.icone}
+                    imagemUrl={catAtual?.imagemUrl}
+                    nome={catAtual?.nome}
+                    size="md"
+                    className="shrink-0"
+                  />
+                );
+              })()}
+              <select
+                id="compra-cat"
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value as CategoriaId)}
+                className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
+              >
+                {listaCategorias.map((cat) => (
+                  <option key={cat.id} value={cat.id} className="dark:bg-slate-800">
+                    {cat.icone} {cat.nome} {cat.imagemUrl ? '• (CDN)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 3: Datas (Data da Compra & Data do 1º Pagamento) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800">
+            {/* Data da Compra */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="compra-cat" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <label htmlFor="compra-data-feita" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">category</span>
-                  <span>Categoria</span>
+                  <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">shopping_bag</span>
+                  <span>Data da Compra</span>
                   <span className="text-red-500">*</span>
                 </span>
-                {(() => {
-                  const catAtual = listaCategorias.find((c) => c.id === categoria);
-                  return catAtual?.imagemUrl ? (
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.2 rounded font-semibold border border-emerald-200 dark:border-emerald-800">
-                      Foto CDN
-                    </span>
-                  ) : null;
-                })()}
-              </label>
-              <div className="flex items-center gap-2">
-                {(() => {
-                  const catAtual = listaCategorias.find((c) => c.id === categoria);
-                  return (
-                    <CategoryIconOrImage
-                      icone={catAtual?.icone}
-                      imagemUrl={catAtual?.imagemUrl}
-                      nome={catAtual?.nome}
-                      size="md"
-                      className="shrink-0"
-                    />
-                  );
-                })()}
-                <select
-                  id="compra-cat"
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value as CategoriaId)}
-                  className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
-                >
-                  {listaCategorias.map((cat) => (
-                    <option key={cat.id} value={cat.id} className="dark:bg-slate-800">
-                      {cat.icone} {cat.nome} {cat.imagemUrl ? '• (CDN)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="compra-data" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-[#006948] dark:text-emerald-400">calendar_today</span>
-                <span>Data do 1º Pagamento</span>
-                <span className="text-red-500">*</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">Quando comprou</span>
               </label>
               <input
-                id="compra-data"
+                id="compra-data-feita"
+                type="date"
+                value={dataCompra}
+                onChange={(e) => {
+                  const novaDataCompra = e.target.value;
+                  setDataCompra(novaDataCompra);
+                  // Se for novo cadastro e as datas estavam iguais, mantém o primeiro pagamento sugerido
+                  if (!compraEmEdicao && dataPrimeiroPagamento === dataCompra) {
+                    setDataPrimeiroPagamento(novaDataCompra);
+                  }
+                }}
+                className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
+                required
+              />
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                Dia em que a despesa foi efetuada
+              </span>
+            </div>
+
+            {/* Data do 1º Pagamento */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="compra-data-pagamento" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">calendar_month</span>
+                  <span>1º Pagamento / Fatura</span>
+                  <span className="text-red-500">*</span>
+                </span>
+                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">Impacto no Dashboard</span>
+              </label>
+              <input
+                id="compra-data-pagamento"
                 type="date"
                 value={dataPrimeiroPagamento}
                 onChange={(e) => setDataPrimeiroPagamento(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#006948]/30 cursor-pointer"
+                className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
                 required
               />
+              <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                Mês em que o valor é cobrado e entra no fechamento
+              </span>
             </div>
           </div>
 

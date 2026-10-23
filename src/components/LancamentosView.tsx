@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { CategoriaId, CategoriaMeta, Compra, DivisaoTipo, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
-import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
+import {
+  formatarBRL,
+  formatarDataBR,
+  formatarDataCurtaBR,
+  parseDivisaoPercentuais,
+} from '../calculations/acertoMensal';
 import { CATEGORIAS_PADRAO } from '../data/initialData';
 import { CategoryIconOrImage } from './CategoryIconOrImage';
 import { SeletorMesFlutuante } from './SeletorMesFlutuante';
@@ -44,6 +49,12 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   const p1Uid = resumoAcerto.p1Uid || 'Vinicius';
   const p2Uid = resumoAcerto.p2Uid || 'Silvia';
 
+  const getPrimeiroNome = (nomeCompleto?: string) => {
+    if (!nomeCompleto) return 'Você';
+    const primeiro = nomeCompleto.trim().split(' ')[0];
+    return primeiro || nomeCompleto;
+  };
+
   const [busca, setBusca] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
   const [filtroPagador, setFiltroPagador] = useState<string>('');
@@ -53,7 +64,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
     'recente'
   );
   const [pagina, setPagina] = useState(1);
-  const itensPorPagina = 8;
+  const itensPorPagina = 20;
 
   // Alternância entre visualização do mês e todas as compras cadastradas
   const [modoExibicao, setModoExibicao] = useState<'mes' | 'todas_compras'>('mes');
@@ -278,27 +289,67 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   return (
     <div className="flex flex-col gap-5">
       {/* Top Context Bar: Month, View Mode, Actions */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-[#161f2e] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Navegador de Mês (ativo no modo mês) */}
-          <SeletorMesFlutuante
-            mesSelecionado={mesSelecionado}
-            onMudarMes={(m) => {
-              onMudarMes(m);
-              setPagina(1);
-            }}
-            variante="casal"
-          />
+      <div className="bg-white dark:bg-[#161f2e] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors flex flex-col gap-3.5">
+        {/* Linha Superior: Navegador Temporal & Ações Principais */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Esquerda: Seletor de Mês e Indicador de Modo */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <SeletorMesFlutuante
+              mesSelecionado={mesSelecionado}
+              onMudarMes={(m) => {
+                onMudarMes(m);
+                setModoExibicao('mes');
+                setPagina(1);
+              }}
+              variante="casal"
+            />
+            {modoExibicao === 'todas_compras' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-[#006948] dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-800/50">
+                <span className="material-symbols-outlined text-[14px]">view_timeline</span>
+                <span>Histórico Completo</span>
+              </span>
+            )}
+          </div>
 
-          {/* Alternância: Lançamentos do Mês vs Todas as Compras */}
-          <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-transparent dark:border-slate-700/60">
+          {/* Direita: Ações Rápidas (Cofre Privado + Novo Lançamento) */}
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            {onIrParaMinhasDespesas && (
+              <button
+                onClick={onIrParaMinhasDespesas}
+                type="button"
+                className="h-10 flex items-center gap-1.5 px-3.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs"
+                title="Acessar cofre individual protegido e confidencial"
+              >
+                <span className="material-symbols-outlined text-[16px]">lock</span>
+                <span>Cofre Privado</span>
+              </button>
+            )}
+
+            <button
+              onClick={onAbrirNovaCompra}
+              type="button"
+              className="h-10 flex items-center gap-1.5 px-4 rounded-xl bg-[#006948] hover:bg-[#005137] text-white text-xs font-bold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              <span>Novo Lançamento</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Divisor sutil entre ações e filtros */}
+        <div className="h-px w-full bg-slate-100 dark:bg-slate-800/80" />
+
+        {/* Linha Inferior: Alternância de Modo & Filtro de Visão */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Esquerda: Alternância: Lançamentos do Mês vs Todas as Compras */}
+          <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700/60 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => {
                 setModoExibicao('mes');
                 setPagina(1);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 modoExibicao === 'mes'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
@@ -313,7 +364,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 setModoExibicao('todas_compras');
                 setPagina(1);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 modoExibicao === 'todas_compras'
                   ? 'bg-white dark:bg-slate-700 text-[#006948] dark:text-emerald-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
@@ -323,25 +374,23 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               <span>Todas as Compras ({compras.filter((c) => !c.privada).length})</span>
             </button>
           </div>
-        </div>
 
-        {/* Toggle Visão & Botão Novo Lançamento */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-transparent dark:border-slate-700/60">
+          {/* Direita: Toggle Visão Meus vs Casal */}
+          <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700/60 w-full sm:w-auto">
             <button
               onClick={() => {
                 onAlternarVisao('meus');
                 setPagina(1);
               }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 visao === 'meus'
                   ? 'bg-white dark:bg-slate-700 text-[#0051d5] dark:text-blue-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
+              <span className="w-2 h-2 rounded-full bg-[#0051d5] shrink-0"></span>
               <span>Meus Pagamentos</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-950/80 text-[#0051d5] dark:text-blue-300 text-[10px]">
+              <span className="px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-950/80 text-[#0051d5] dark:text-blue-300 text-[10px] font-bold">
                 {todosLancamentosDoMes.filter((l) => l.pagoPor === usuarioAtual).length}
               </span>
             </button>
@@ -350,40 +399,19 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                 onAlternarVisao('casal');
                 setPagina(1);
               }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 visao === 'casal'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#006948]"></span>
+              <span className="w-2 h-2 rounded-full bg-[#006948] shrink-0"></span>
               <span>Casal (Ambos)</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px]">
+              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                 {todosLancamentosDoMes.length}
               </span>
             </button>
           </div>
-
-          {onIrParaMinhasDespesas && (
-            <button
-              onClick={onIrParaMinhasDespesas}
-              type="button"
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs"
-              title="Acessar cofre individual protegido e confidencial"
-            >
-              <span className="material-symbols-outlined text-[16px]">lock</span>
-              <span>Cofre Privado</span>
-            </button>
-          )}
-
-          <button
-            onClick={onAbrirNovaCompra}
-            type="button"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            <span>Novo Lançamento</span>
-          </button>
         </div>
       </div>
 
@@ -622,15 +650,16 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             <div className="w-full overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
-                    <th className="py-3 px-4 whitespace-nowrap">1º Pagamento</th>
-                    <th className="py-3 px-4 min-w-[220px]">Estabelecimento / Item</th>
-                    <th className="py-3 px-4 whitespace-nowrap">Categoria</th>
-                    <th className="py-3 px-4 whitespace-nowrap">Quem Pagou</th>
-                    <th className="py-3 px-4 whitespace-nowrap">Regime Divisão</th>
-                    <th className="py-3 px-4 text-center whitespace-nowrap">Parcelas</th>
-                    <th className="py-3 px-4 text-right whitespace-nowrap">Valor Total</th>
-                    <th className="py-3 px-3 text-center w-20">Ações</th>
+                  <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800 text-[11px]">
+                    <th className="py-2.5 px-2.5 whitespace-nowrap">Data Compra</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap">1º Pagamento</th>
+                    <th className="py-2.5 px-2.5 min-w-[130px]">Estabelecimento / Item</th>
+                    <th className="py-2.5 px-2 whitespace-nowrap">Categoria</th>
+                    <th className="py-2.5 px-2 whitespace-nowrap">Quem Pagou</th>
+                    <th className="py-2.5 px-2 whitespace-nowrap">Regime Divisão</th>
+                    <th className="py-2.5 px-2 text-center whitespace-nowrap">Parcelas</th>
+                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap">Valor Total</th>
+                    <th className="py-2.5 px-2 text-center w-14">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -643,28 +672,31 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
 
                     return (
                       <tr key={compra.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                          {compra.dataPrimeiroPagamento || '—'}
+                        <td className="py-2.5 px-2.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap" title={`Compra efetuada em: ${formatarDataBR(compra.dataCompra || compra.dataPrimeiroPagamento)}`}>
+                          {formatarDataBR(compra.dataCompra || compra.dataPrimeiroPagamento)}
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-slate-900 dark:text-white leading-tight">
+                        <td className="py-2.5 px-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap" title={`1º pagamento / fatura: ${formatarDataBR(compra.dataPrimeiroPagamento)}`}>
+                          {formatarDataBR(compra.dataPrimeiroPagamento)}
+                        </td>
+                        <td className="py-2.5 px-2.5">
+                          <div className="flex flex-col min-w-[120px] max-w-[200px]">
+                            <span className="font-semibold text-slate-900 dark:text-white leading-tight truncate" title={compra.nome}>
                               {compra.nome}
                             </span>
                             {compra.descricao && (
-                              <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-sm">
+                              <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate" title={compra.descricao}>
                                 {compra.descricao}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
+                        <td className="py-2.5 px-2 whitespace-nowrap">
                           {(() => {
                             const catObj = listaCategorias.find(
                               (c) => c.id === compra.categoria || c.nome === compra.categoria
                             );
                             return (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/50 dark:border-slate-700/50">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/50 dark:border-slate-700/50">
                                 <CategoryIconOrImage
                                   icone={catObj?.icone}
                                   imagemUrl={catObj?.imagemUrl}
@@ -672,30 +704,35 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                                   size="xs"
                                   className="shrink-0"
                                 />
-                                <span>{compra.categoria}</span>
+                                <span className="truncate max-w-[80px]">{compra.categoria}</span>
                               </span>
                             );
                           })()}
                         </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                              (compra.pagoPorNome || compra.pagoPor) === 'Vinicius'
-                                ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
-                                : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
-                            }`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                (compra.pagoPorNome || compra.pagoPor) === 'Vinicius'
-                                  ? 'bg-[#0051d5]'
-                                  : 'bg-[#712ae2]'
-                              }`}
-                            ></span>
-                            <span>{compra.pagoPorNome || compra.pagoPor}</span>
-                          </span>
+                        <td className="py-2.5 px-2 whitespace-nowrap">
+                          {(() => {
+                            const ehVinicius = (compra.pagoPorNome || compra.pagoPor || '').toLowerCase().includes('vinicius');
+                            const primeiroNome = getPrimeiroNome(compra.pagoPorNome || compra.pagoPor);
+                            return (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                  ehVinicius
+                                    ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
+                                    : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
+                                }`}
+                                title={compra.pagoPorNome || compra.pagoPor}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                    ehVinicius ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                                  }`}
+                                ></span>
+                                <span>{primeiroNome}</span>
+                              </span>
+                            );
+                          })()}
                         </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
+                        <td className="py-2.5 px-2 whitespace-nowrap">
                           {(() => {
                             const { percP1, percP2 } = parseDivisaoPercentuais(
                               compra.divisao,
@@ -714,14 +751,14 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                             if (percP1 === 100 && percP2 === 0) {
                               return (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400">
-                                  👤 Só {p1Name}
+                                  👤 {p1Name}
                                 </span>
                               );
                             }
                             if (percP1 === 0 && percP2 === 100) {
                               return (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400">
-                                  👤 Só {p2Name}
+                                  👤 {p2Name}
                                 </span>
                               );
                             }
@@ -732,19 +769,19 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                             );
                           })()}
                         </td>
-                        <td className="py-3 px-4 text-center whitespace-nowrap">
+                        <td className="py-2.5 px-2 text-center whitespace-nowrap">
                           {compra.numeroDeParcelas > 1 ? (
-                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[11px]">
-                              {compra.numeroDeParcelas} parcelas
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10px]">
+                              {compra.numeroDeParcelas}x
                             </span>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-500 text-[11px]">À vista (1x)</span>
+                            <span className="text-slate-400 dark:text-slate-500 text-[10px]">À vista (1x)</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-right font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 text-right font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
                           {formatarBRL(totalCentavos)}
                         </td>
-                        <td className="py-3 px-3 text-center whitespace-nowrap">
+                        <td className="py-2.5 px-2 text-center whitespace-nowrap w-14">
                           {isAutor ? (
                             <div className="flex items-center justify-center gap-1">
                               <button
@@ -759,17 +796,15 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                                 className="w-7 h-7 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer"
                                 title="Cancelar compra"
                               >
-                                <span className="material-symbols-outlined text-[16px]">
-                                  delete
-                                </span>
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
                               </button>
                             </div>
                           ) : (
                             <span
-                              className="text-[10px] text-slate-400 dark:text-slate-500 italic block"
+                              className="text-[10px] text-slate-400 dark:text-slate-500 italic truncate max-w-[65px] inline-block"
                               title={`Registrado por ${compra.cadastradoPorNome || compra.cadastradoPor}.`}
                             >
-                              Por {compra.cadastradoPorNome || compra.cadastradoPor}
+                              {getPrimeiroNome(compra.cadastradoPorNome || compra.cadastradoPor)}
                             </span>
                           )}
                         </td>
@@ -848,24 +883,30 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
-                  <th className="py-3 px-4 whitespace-nowrap">Data</th>
-                  <th className="py-3 px-4 min-w-[220px]">Estabelecimento / Item</th>
-                  <th className="py-3 px-4 whitespace-nowrap">Categoria</th>
-                  <th className="py-3 px-4 whitespace-nowrap">Quem Pagou</th>
-                  <th className="py-3 px-4 whitespace-nowrap">Divisão</th>
-                  <th className="py-3 px-4 text-right whitespace-nowrap">Valor Total</th>
-                  <th className="py-3 px-4 text-right whitespace-nowrap">Minha Parte</th>
-                  <th className="py-3 px-3 text-center w-20">Ações</th>
+                <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800 text-[11px]">
+                  <th className="py-2.5 px-2.5 whitespace-nowrap">Data Compra</th>
+                  <th className="py-2.5 px-2.5 whitespace-nowrap">1º Pagamento</th>
+                  <th className="py-2.5 px-2.5 min-w-[130px]">Estabelecimento / Item</th>
+                  <th className="py-2.5 px-2 whitespace-nowrap">Categoria</th>
+                  <th className="py-2.5 px-2 whitespace-nowrap">Quem Pagou</th>
+                  <th className="py-2.5 px-2 whitespace-nowrap">Regime Divisão</th>
+                  <th className="py-2.5 px-2 text-center whitespace-nowrap">Parcela</th>
+                  <th className="py-2.5 px-2 text-right whitespace-nowrap">Valor Mês</th>
+                  <th className="py-2.5 px-2 text-right whitespace-nowrap">Minha Parte</th>
+                  <th className="py-2.5 px-1.5 text-center w-14">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {lancamentosPaginados.map((lancamento) => {
-                  const dataFormatada = (() => {
-                    const parts = lancamento.dataReferencia.split('-');
-                    return `${parts[2]}/${parts[1]}`;
-                  })();
-
+                  const compraOriginal = compras.find((c) => c.id === lancamento.compraId);
+                  const dataCompraEfetiva =
+                    lancamento.dataCompra ||
+                    compraOriginal?.dataCompra ||
+                    compraOriginal?.dataPrimeiroPagamento ||
+                    lancamento.dataReferencia;
+                  const dataPrimeiroPagamentoEfetiva =
+                    compraOriginal?.dataPrimeiroPagamento ||
+                    lancamento.dataReferencia;
                   const isAutor = lancamento.cadastradoPor === usuarioAtual;
 
                   return (
@@ -873,35 +914,31 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                       key={`${lancamento.compraId}-${lancamento.numeroParcela}`}
                       className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                     >
-                      <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                        {dataFormatada}
+                      <td className="py-2.5 px-2.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap" title={`Compra efetuada em: ${formatarDataBR(dataCompraEfetiva)}`}>
+                        {formatarDataBR(dataCompraEfetiva)}
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-slate-900 dark:text-white leading-tight">
-                              {lancamento.nome}
-                            </span>
-                            {lancamento.totalParcelas > 1 && (
-                              <span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
-                                Parcela {lancamento.numeroParcela}/{lancamento.totalParcelas}
-                              </span>
-                            )}
-                          </div>
+                      <td className="py-2.5 px-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap" title={`1º pagamento / fatura: ${formatarDataBR(dataPrimeiroPagamentoEfetiva)}`}>
+                        {formatarDataBR(dataPrimeiroPagamentoEfetiva)}
+                      </td>
+                      <td className="py-2.5 px-2.5">
+                        <div className="flex flex-col min-w-[120px] max-w-[190px]">
+                          <span className="font-semibold text-slate-900 dark:text-white leading-tight truncate" title={lancamento.nome}>
+                            {lancamento.nome}
+                          </span>
                           {lancamento.descricao && (
-                            <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-sm">
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate" title={lancamento.descricao}>
                               {lancamento.descricao}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-2.5 px-2 whitespace-nowrap">
                         {(() => {
                           const catObj = listaCategorias.find(
                             (c) => c.id === lancamento.categoria || c.nome === lancamento.categoria
                           );
                           return (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/50 dark:border-slate-700/50">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200/50 dark:border-slate-700/50 max-w-[110px]" title={lancamento.categoria}>
                               <CategoryIconOrImage
                                 icone={catObj?.icone}
                                 imagemUrl={catObj?.imagemUrl}
@@ -909,28 +946,29 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                                 size="xs"
                                 className="shrink-0"
                               />
-                              <span>{lancamento.categoria}</span>
+                              <span className="truncate">{lancamento.categoria}</span>
                             </span>
                           );
                         })()}
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-2.5 px-2 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                            lancamento.pagoPor === 'Vinicius'
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            (lancamento.pagoPor || '').toLowerCase().includes('vinicius')
                               ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
                               : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
                           }`}
+                          title={`Pago por ${lancamento.pagoPor}`}
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              lancamento.pagoPor === 'Vinicius' ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                              (lancamento.pagoPor || '').toLowerCase().includes('vinicius') ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
                             }`}
                           ></span>
-                          <span>{lancamento.pagoPor}</span>
+                          <span>{getPrimeiroNome(lancamento.pagoPor)}</span>
                         </span>
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-2.5 px-2 whitespace-nowrap">
                         {(() => {
                           const { percP1, percP2 } = parseDivisaoPercentuais(
                             lancamento.divisao,
@@ -941,39 +979,48 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           );
                           if (lancamento.divisao === '50/50' || (percP1 === 50 && percP2 === 50)) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400">
                                 ⚖️ 50/50
                               </span>
                             );
                           }
                           if (percP1 === 100 && percP2 === 0) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400">
                                 👤 Só {p1Name}
                               </span>
                             );
                           }
                           if (percP1 === 0 && percP2 === 100) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400">
                                 👤 Só {p2Name}
                               </span>
                             );
                           }
                           return (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50">
                               📊 {percP1}/{percP2}
                             </span>
                           );
                         })()}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
+                      <td className="py-2.5 px-2 text-center whitespace-nowrap">
+                        {lancamento.totalParcelas > 1 ? (
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10px]">
+                            {lancamento.numeroParcela}/{lancamento.totalParcelas}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 dark:text-slate-500 text-[10px]">1x</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-2 text-right font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.valorCentavos)}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-[#006948] dark:text-emerald-400 tabular-nums whitespace-nowrap">
+                      <td className="py-2.5 px-2 text-right font-bold text-[#006948] dark:text-emerald-400 tabular-nums whitespace-nowrap">
                         {formatarBRL(lancamento.minhaParteCentavos)}
                       </td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                      <td className="py-2.5 px-1.5 text-center whitespace-nowrap w-14">
                         {isAutor ? (
                           <div className="flex items-center justify-center gap-1">
                             <button
@@ -997,10 +1044,10 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           </div>
                         ) : (
                           <span
-                            className="text-[10px] text-slate-400 dark:text-slate-500 italic block"
+                            className="text-[10px] text-slate-400 dark:text-slate-500 italic truncate max-w-[65px] inline-block"
                             title={`Registrado por ${lancamento.cadastradoPor}. Apenas o autor pode editar ou remover.`}
                           >
-                            Por {lancamento.cadastradoPor}
+                            {getPrimeiroNome(lancamento.cadastradoPor)}
                           </span>
                         )}
                       </td>
@@ -1023,35 +1070,37 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             </strong>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setPagina((p) => Math.max(1, p - 1))}
-              disabled={pagina === 1}
-              className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 cursor-pointer"
-            >
-              Anterior
-            </button>
-            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((num) => (
+          {totalPaginas > 1 && (
+            <div className="flex items-center gap-1.5">
               <button
-                key={num}
-                onClick={() => setPagina(num)}
-                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  pagina === num
-                    ? 'bg-[#006948] text-white shadow-sm'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
+                onClick={() => setPagina((p) => Math.max(1, p - 1))}
+                disabled={pagina === 1}
+                className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 cursor-pointer"
               >
-                {num}
+                Anterior
               </button>
-            ))}
-            <button
-              onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
-              disabled={pagina >= totalPaginas}
-              className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 cursor-pointer"
-            >
-              Próxima
-            </button>
-          </div>
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((num) => (
+                <button
+                  key={num}
+                  onClick={() => setPagina(num)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    pagina === num
+                      ? 'bg-[#006948] text-white shadow-sm'
+                      : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
+              <button
+                onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+                disabled={pagina >= totalPaginas}
+                className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 cursor-pointer"
+              >
+                Próxima
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

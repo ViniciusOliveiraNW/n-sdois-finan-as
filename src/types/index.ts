@@ -47,7 +47,8 @@ export interface Compra {
   cadastradoPor?: string; // Compatibilidade / Nome de exibição
   divisao: DivisaoTipo; // '50/50' ou o UID/Nome da pessoa a quem a despesa pertence
   categoria: CategoriaId;
-  dataPrimeiroPagamento: string; // 'AAAA-MM-DD'
+  dataCompra?: string; // 'AAAA-MM-DD' - Data em que a compra foi realizada
+  dataPrimeiroPagamento: string; // 'AAAA-MM-DD' - Data do 1º pagamento / vencimento da fatura
   numeroDeParcelas: number;
   ultimaParcelaAtiva: number; // Número ordinal inclusivo
   descricao?: string;
@@ -65,7 +66,8 @@ export interface LancamentoMensal {
   numeroParcela: number;
   totalParcelas: number;
   mesReferencia: string; // 'AAAA-MM'
-  dataReferencia: string; // 'AAAA-MM-DD'
+  dataReferencia: string; // 'AAAA-MM-DD' - Data do pagamento da parcela no mês
+  dataCompra?: string; // 'AAAA-MM-DD' - Data em que a compra foi realizada
   valorCentavos: number;
   nome: string;
   categoria: CategoriaId;

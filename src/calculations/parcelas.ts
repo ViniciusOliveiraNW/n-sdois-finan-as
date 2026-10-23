@@ -203,6 +203,7 @@ export function gerarLancamentosDoMes(
       totalParcelas: compra.numeroDeParcelas,
       mesReferencia: mesSelecionado,
       dataReferencia: parcelaDoMes.dataReferencia,
+      dataCompra: compra.dataCompra || compra.dataPrimeiroPagamento,
       valorCentavos: parcelaDoMes.valorCentavos,
       nome: compra.nome,
       categoria: compra.categoria,

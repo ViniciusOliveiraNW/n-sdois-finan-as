@@ -1,6 +1,11 @@
 import React from 'react';
 import { CategoriaMeta, Compra, FechamentoMensal, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
-import { formatarBRL, parseDivisaoPercentuais } from '../calculations/acertoMensal';
+import {
+  formatarBRL,
+  formatarDataBR,
+  formatarDataCurtaBR,
+  parseDivisaoPercentuais,
+} from '../calculations/acertoMensal';
 import { ResultadoRanking } from '../calculations/rankingCategorias';
 import { RankingCategoriasView } from './RankingCategoriasView';
 import { HeatmapCalendario } from './HeatmapCalendario';
@@ -572,7 +577,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="bg-slate-50 dark:bg-[#111a28] text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
-                  <th className="py-2.5 px-4 whitespace-nowrap">Data</th>
+                  <th className="py-2.5 px-4 whitespace-nowrap">Pagamento / Compra</th>
                   <th className="py-2.5 px-4 min-w-[200px]">Estabelecimento / Item</th>
                   <th className="py-2.5 px-4 whitespace-nowrap">Categoria</th>
                   <th className="py-2.5 px-4 whitespace-nowrap">Quem Pagou</th>
@@ -596,8 +601,23 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                       key={`${lancamento.compraId}-${lancamento.numeroParcela}`}
                       className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                     >
-                      <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                        {dataFormatada}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs" title="Data do pagamento/parcela no mês">
+                            {dataFormatada}
+                          </span>
+                          {lancamento.dataCompra && (
+                            <span
+                              className="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 mt-0.5"
+                              title={`Compra realizada em: ${formatarDataBR(lancamento.dataCompra)}`}
+                            >
+                              <span className="material-symbols-outlined text-[12px] text-[#006948] dark:text-emerald-400">
+                                shopping_bag
+                              </span>
+                              <span>{formatarDataCurtaBR(lancamento.dataCompra)}</span>
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">

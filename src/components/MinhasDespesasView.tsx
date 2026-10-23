@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { CategoriaMeta, Compra, CoupleSpace, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
 import { CATEGORIAS_PADRAO, CATEGORIAS_PADRAO_INDIVIDUAIS } from '../data/initialData';
-import { formatarBRL } from '../calculations/acertoMensal';
+import { formatarBRL, formatarDataBR } from '../calculations/acertoMensal';
 import { calcularTetoIndividual } from '../calculations/tetoIndividual';
 import { ModalCompartilharCompra } from './ModalCompartilharCompra';
 import { ModalTetoPessoal } from './ModalTetoPessoal';
@@ -926,9 +926,20 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                             <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
                               <span>
                                 {lanc.dataReferencia
-                                  ? `${lanc.dataReferencia.split('-')[2]} de ${nomeMesSimples}`
+                                  ? `Pagamento: ${lanc.dataReferencia.split('-')[2]} de ${nomeMesSimples}`
                                   : 'Data avulsa'}
                               </span>
+                              {lanc.dataCompra && (
+                                <>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-0.5 text-slate-600 dark:text-slate-300 font-medium" title="Data em que a compra foi realizada">
+                                    <span className="material-symbols-outlined text-[13px] text-[#006948] dark:text-emerald-400">
+                                      shopping_bag
+                                    </span>
+                                    <span>Compra: {formatarDataBR(lanc.dataCompra)}</span>
+                                  </span>
+                                </>
+                              )}
                               {lanc.formaPagamentoNome && (
                                 <>
                                   <span>•</span>
