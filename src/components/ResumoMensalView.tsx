@@ -625,11 +625,16 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
                             <span className="font-semibold text-slate-900 dark:text-white leading-tight">
                               {lancamento.nome}
                             </span>
-                            {lancamento.totalParcelas > 1 && (
+                            {lancamento.recorrente ? (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 text-[10px] font-bold border border-emerald-200/50 dark:border-emerald-800/40">
+                                <span className="material-symbols-outlined text-[11px]">sync</span>
+                                <span>Recorrente</span>
+                              </span>
+                            ) : lancamento.totalParcelas > 1 ? (
                               <span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                                 {lancamento.numeroParcela}/{lancamento.totalParcelas}
                               </span>
-                            )}
+                            ) : null}
                           </div>
                           {lancamento.descricao && (
                             <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-xs">

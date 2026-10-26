@@ -622,6 +622,21 @@ export async function cancelarParcelasFirestore(
   }
 }
 
+export async function cancelarRecorrenciaFirestore(
+  coupleId: string,
+  compraId: string,
+  dataFimRecorrencia: string
+): Promise<void> {
+  const path = `couples/${coupleId}/purchases/${compraId}`;
+  try {
+    await updateDoc(doc(db, 'couples', coupleId, 'purchases', compraId), {
+      dataFimRecorrencia,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
 export async function deletarCompraFirestore(
   coupleId: string,
   compraId: string

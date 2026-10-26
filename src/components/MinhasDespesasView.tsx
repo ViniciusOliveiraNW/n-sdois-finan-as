@@ -996,14 +996,21 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
                           {formatarValorDiscreto(lanc.valorCentavos)}
                         </div>
                         <div className="text-[11px] text-slate-400 dark:text-slate-500">
-                          {lanc.totalParcelas > 1
-                            ? `Total: ${formatarValorDiscreto(
-                                compraOriginal?.valorCentavos ??
-                                  Math.round((compraOriginal?.valor || 0) * 100)
-                              )}`
-                            : !lanc.privada && lanc.minhaParteCentavos != null && lanc.minhaParteCentavos !== lanc.valorCentavos
-                            ? `Sua cota: ${formatarValorDiscreto(lanc.minhaParteCentavos)}`
-                            : 'À vista'}
+                          {lanc.recorrente ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold inline-flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[13px]">sync</span>
+                              <span>Recorrente</span>
+                            </span>
+                          ) : lanc.totalParcelas > 1 ? (
+                            `Total: ${formatarValorDiscreto(
+                              compraOriginal?.valorCentavos ??
+                                Math.round((compraOriginal?.valor || 0) * 100)
+                            )}`
+                          ) : !lanc.privada && lanc.minhaParteCentavos != null && lanc.minhaParteCentavos !== lanc.valorCentavos ? (
+                            `Sua cota: ${formatarValorDiscreto(lanc.minhaParteCentavos)}`
+                          ) : (
+                            'À vista'
+                          )}
                         </div>
                       </td>
 

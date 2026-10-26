@@ -169,6 +169,76 @@ export function gerarLancamentosDoMes(
 
     if (totalCentavos <= 0) continue;
 
+    // Compra Recorrente (repete todo mês a partir de dataPrimeiroPagamento até ser cancelada)
+    if (compra.recorrente) {
+      const mesInicio = (compra.dataPrimeiroPagamento || '').slice(0, 7);
+      if (!mesInicio || mesSelecionado < mesInicio) {
+        // Ainda não iniciou no mês selecionado
+        continue;
+      }
+
+      // Se foi cancelada/interrompida a partir de um mês específico
+      if (compra.dataFimRecorrencia && mesSelecionado >= compra.dataFimRecorrencia) {
+        continue;
+      }
+
+      // Se foi desativada completamente
+      if (compra.ultimaParcelaAtiva === 0) {
+        continue;
+      }
+
+      const [anoSel, mesSel] = mesSelecionado.split('-').map(Number);
+      const [anoIni, mesIni, diaIniRaw] = compra.dataPrimeiroPagamento.split('-').map(Number);
+      const diaIni = diaIniRaw || 1;
+      const numeroMes = (anoSel - anoIni) * 12 + (mesSel - mesIni) + 1;
+
+      const maxDias = obterDiasNoMes(anoSel, mesSel);
+      const diaAjustado = Math.min(diaIni, maxDias);
+      const dataReferencia = `${anoSel}-${String(mesSel).padStart(2, '0')}-${String(diaAjustado).padStart(2, '0')}`;
+
+      const minhaParteCentavos = calcularMinhaParteCentavos(
+        totalCentavos,
+        compra.divisao,
+        usuarioUid,
+        p1Identifier,
+        p2Identifier,
+        extraP1Identifiers,
+        extraP2Identifiers
+      );
+
+      const pagoPorNome = compra.pagoPorNome || compra.pagoPor || 'Você';
+      const cadastradoPorNome = compra.cadastradoPorNome || compra.cadastradoPor || 'Você';
+      const pagoPorUid = compra.pagoPorUid || compra.pagoPor || 'p1';
+      const cadastradoPorUid = compra.cadastradoPorUid || compra.cadastradoPor || 'p1';
+
+      lancamentos.push({
+        compraId: compra.id,
+        numeroParcela: numeroMes,
+        totalParcelas: 0, // 0 indica recorrência contínua
+        mesReferencia: mesSelecionado,
+        dataReferencia,
+        dataCompra: compra.dataCompra || compra.dataPrimeiroPagamento,
+        valorCentavos: totalCentavos,
+        nome: compra.nome,
+        categoria: compra.categoria,
+        descricao: compra.descricao,
+        pagoPorUid,
+        pagoPorNome,
+        pagoPor: pagoPorNome,
+        cadastradoPorUid,
+        cadastradoPorNome,
+        cadastradoPor: cadastradoPorNome,
+        divisao: compra.divisao,
+        minhaParteCentavos,
+        privada: compra.privada,
+        segredoCasal: compra.segredoCasal,
+        formaPagamentoNome: compra.formaPagamentoNome,
+        assinatura: true,
+        recorrente: true,
+      });
+      continue;
+    }
+
     const parcelas = gerarParcelas(
       totalCentavos,
       compra.dataPrimeiroPagamento,

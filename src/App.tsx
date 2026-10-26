@@ -10,6 +10,7 @@ import {
   ouvirCompras,
   salvarCompraFirestore,
   cancelarParcelasFirestore,
+  cancelarRecorrenciaFirestore,
   deletarFechamentoFirestore,
   ouvirFechamentos,
   salvarFechamentoFirestore,
@@ -610,6 +611,37 @@ export default function App() {
 
     const novoLimiteAtivo = numeroParcela - 1;
     const ehPrimeiraParcela = numeroParcela === 1;
+
+    // Caso seja uma despesa recorrente
+    if (compra.recorrente) {
+      const mesInicio = (compra.dataPrimeiroPagamento || '').slice(0, 7);
+      const cancelarPermanente = ehPrimeiraParcela || mesSelecionado <= mesInicio;
+
+      setConfirmacao({
+        aberto: true,
+        titulo: cancelarPermanente ? 'Remover compra recorrente?' : 'Interromper recorrência?',
+        mensagem: cancelarPermanente
+          ? `Deseja excluir a compra recorrente "${compra.nome}"? Ela será removida da tabela e dos fechamentos.`
+          : `Deseja interromper a assinatura "${compra.nome}" a partir de ${mesSelecionado}?`,
+        detalhe: cancelarPermanente
+          ? 'Esta despesa deixará de se repetir e não constará mais nos registros.'
+          : `Os meses anteriores a ${mesSelecionado} continuarão preservados no histórico de fechamentos e acertos. Novos meses não receberão esta cobrança.`,
+        onConfirmar: async () => {
+          try {
+            if (cancelarPermanente) {
+              await deletarCompraFirestore(couple.id, compraId);
+            } else {
+              await cancelarRecorrenciaFirestore(couple.id, compraId, mesSelecionado);
+            }
+          } catch (e) {
+            console.error('Erro ao atualizar recorrência no Firestore:', e);
+            alert('Erro ao atualizar despesa recorrente no banco.');
+          }
+          setConfirmacao((prev) => ({ ...prev, aberto: false }));
+        },
+      });
+      return;
+    }
 
     setConfirmacao({
       aberto: true,

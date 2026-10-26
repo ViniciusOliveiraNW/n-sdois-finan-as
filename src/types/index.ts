@@ -59,6 +59,8 @@ export interface Compra {
   segredoCasal?: boolean; // Badge "Segredo do Casal 🤫" (ex: presente surpresa para parceiro)
   formaPagamentoNome?: string; // Ex: 'Cartão Nubank Vinicius', 'Amazon Kindle Store', 'VR / Cartão Refeição'
   assinatura?: boolean; // Se é assinatura / renovação periódica
+  recorrente?: boolean; // Se é compra/assinatura recorrente contínua (repete todo mês)
+  dataFimRecorrencia?: string; // 'AAAA-MM' - Se cancelada/interrompida a partir deste mês
 }
 
 export interface LancamentoMensal {
@@ -84,6 +86,7 @@ export interface LancamentoMensal {
   segredoCasal?: boolean;
   formaPagamentoNome?: string;
   assinatura?: boolean;
+  recorrente?: boolean;
 }
 
 export interface CategoriaMeta {

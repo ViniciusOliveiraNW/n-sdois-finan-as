@@ -57,7 +57,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
   const [dataPrimeiroPagamento, setDataPrimeiroPagamento] = useState(
     new Date().toISOString().slice(0, 10)
   );
-  const [tipoCobranca, setTipoCobranca] = useState<'a_vista' | 'parcelado'>('a_vista');
+  const [tipoCobranca, setTipoCobranca] = useState<'a_vista' | 'parcelado' | 'recorrente'>('a_vista');
   const [numeroDeParcelas, setNumeroDeParcelas] = useState(1);
   const [pagoPor, setPagoPor] = useState<string>(meuNome);
   const [divisao, setDivisao] = useState<DivisaoTipo>('50/50');
@@ -88,9 +88,16 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       setCategoria(compraEmEdicao.categoria);
       setDataCompra(compraEmEdicao.dataCompra || compraEmEdicao.dataPrimeiroPagamento || new Date().toISOString().slice(0, 10));
       setDataPrimeiroPagamento(compraEmEdicao.dataPrimeiroPagamento);
-      const parcelas = compraEmEdicao.numeroDeParcelas || 1;
-      setNumeroDeParcelas(parcelas);
-      setTipoCobranca(parcelas > 1 ? 'parcelado' : 'a_vista');
+      
+      if (compraEmEdicao.recorrente) {
+        setTipoCobranca('recorrente');
+        setNumeroDeParcelas(1);
+      } else {
+        const parcelas = compraEmEdicao.numeroDeParcelas || 1;
+        setNumeroDeParcelas(parcelas);
+        setTipoCobranca(parcelas > 1 ? 'parcelado' : 'a_vista');
+      }
+
       const ehPrivada = Boolean(compraEmEdicao.privada);
       setPrivada(ehPrivada);
 
@@ -191,7 +198,8 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       return;
     }
 
-    const parcelasFinais = tipoCobranca === 'a_vista' ? 1 : numeroDeParcelas;
+    const ehRecorrente = tipoCobranca === 'recorrente';
+    const parcelasFinais = ehRecorrente ? 1 : (tipoCobranca === 'a_vista' ? 1 : numeroDeParcelas);
 
     let ultimaParcelaAtivaFinal = parcelasFinais;
     if (compraEmEdicao) {
@@ -239,7 +247,9 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
       privada,
       segredoCasal: privada ? segredoCasal : false,
       formaPagamentoNome: formaPagamentoNome.trim() || undefined,
-      assinatura: privada ? assinatura : false,
+      assinatura: ehRecorrente ? true : (privada ? assinatura : false),
+      recorrente: ehRecorrente,
+      dataFimRecorrencia: ehRecorrente ? compraEmEdicao?.dataFimRecorrencia : undefined,
     };
 
     onSalvarCompra(compraSalva);
@@ -448,7 +458,7 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                 <span className="material-symbols-outlined text-[18px] text-[#006948] dark:text-emerald-400">credit_card</span>
                 <span className="text-xs font-semibold text-slate-900 dark:text-white">Tipo de Cobrança</span>
               </div>
-              <div className="inline-flex p-1 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+              <div className="inline-flex p-1 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 flex-wrap gap-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -477,8 +487,48 @@ export const ModalCompra: React.FC<ModalCompraProps> = ({
                 >
                   Parcelado
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTipoCobranca('recorrente');
+                    setNumeroDeParcelas(1);
+                  }}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    tipoCobranca === 'recorrente'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/70 text-[#006948] dark:text-emerald-400 shadow-sm font-bold border border-emerald-200/60 dark:border-emerald-800/50'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[15px]">sync</span>
+                  <span>Recorrente (Infinito)</span>
+                </button>
               </div>
             </div>
+
+            {tipoCobranca === 'recorrente' && (
+              <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/80 flex flex-col gap-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/80 text-[#006948] dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold tabular-nums flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[15px]">all_inclusive</span>
+                      <span>{valorCentavosLimpo > 0 ? formatarBRL(valorCentavosLimpo) : 'R$ 0,00'}/mês</span>
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Inicia em {dataPrimeiroPagamento || 'mês informado'} e se repete todo mês
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 flex items-start gap-2.5">
+                  <span className="material-symbols-outlined text-[18px] text-[#006948] dark:text-emerald-400 shrink-0 mt-0.5">
+                    published_with_changes
+                  </span>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <strong className="text-slate-900 dark:text-white font-semibold">Repetição infinita automática:</strong> Esta despesa será lançada automaticamente a cada mês a partir da data de início informada. Ideal para assinaturas (Netflix, Spotify), planos de celular, internet, condomínio ou gastos fixos. Não é necessário recadastrar todo mês e você poderá cancelar a qualquer momento!
+                  </div>
+                </div>
+              </div>
+            )}
 
             {tipoCobranca === 'parcelado' && (
               <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

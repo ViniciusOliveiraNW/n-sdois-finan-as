@@ -59,7 +59,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
   const [filtroPagador, setFiltroPagador] = useState<string>('');
   const [filtroDivisao, setFiltroDivisao] = useState<string>('');
-  const [filtroRapido, setFiltroRapido] = useState<'todos' | 'parcelados' | 'mercado'>('todos');
+  const [filtroRapido, setFiltroRapido] = useState<'todos' | 'recorrentes' | 'parcelados' | 'mercado'>('todos');
   const [ordenacao, setOrdenacao] = useState<'recente' | 'antigo' | 'maior_valor' | 'menor_valor'>(
     'recente'
   );
@@ -153,7 +153,10 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       }
 
       // Filtros rápidos
-      if (filtroRapido === 'parcelados' && l.totalParcelas <= 1) {
+      if (filtroRapido === 'recorrentes' && !l.recorrente) {
+        return false;
+      }
+      if (filtroRapido === 'parcelados' && (l.recorrente || l.totalParcelas <= 1)) {
         return false;
       }
       if (filtroRapido === 'mercado' && l.categoria !== 'Mercado') {
@@ -227,7 +230,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
           if (percP2 !== 100) return false;
         }
       }
-      if (filtroRapido === 'parcelados' && (c.numeroDeParcelas || 1) <= 1) return false;
+      if (filtroRapido === 'recorrentes' && !c.recorrente) return false;
+      if (filtroRapido === 'parcelados' && (c.recorrente || (c.numeroDeParcelas || 1) <= 1)) return false;
       if (filtroRapido === 'mercado' && c.categoria !== 'Mercado') return false;
       return true;
     });
@@ -597,6 +601,20 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
             </button>
             <button
               onClick={() => {
+                setFiltroRapido('recorrentes');
+                setPagina(1);
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1 ${
+                filtroRapido === 'recorrentes'
+                  ? 'bg-emerald-100 dark:bg-emerald-950 text-[#006948] dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[13px]">sync</span>
+              <span>Recorrentes ({modoExibicao === 'mes' ? todosLancamentosDoMes.filter((l) => l.recorrente).length : compras.filter((c) => !c.privada && c.recorrente).length})</span>
+            </button>
+            <button
+              onClick={() => {
                 setFiltroRapido('parcelados');
                 setPagina(1);
               }}
@@ -606,7 +624,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              Parcelados ({modoExibicao === 'mes' ? qtdParceladas : compras.filter((c) => !c.privada && (c.numeroDeParcelas || 1) > 1).length})
+              Parcelados ({modoExibicao === 'mes' ? todosLancamentosDoMes.filter((l) => (l.totalParcelas || 1) > 1 && !l.recorrente).length : compras.filter((c) => !c.privada && !c.recorrente && (c.numeroDeParcelas || 1) > 1).length})
             </button>
             <button
               onClick={() => {
@@ -770,7 +788,12 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                           })()}
                         </td>
                         <td className="py-2.5 px-2 text-center whitespace-nowrap">
-                          {compra.numeroDeParcelas > 1 ? (
+                          {compra.recorrente ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 font-bold text-[10px] border border-emerald-200/50 dark:border-emerald-800/40" title="Assinatura contínua / despesa recorrente mensal">
+                              <span className="material-symbols-outlined text-[12px]">sync</span>
+                              <span>Recorrente</span>
+                            </span>
+                          ) : compra.numeroDeParcelas > 1 ? (
                             <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10px]">
                               {compra.numeroDeParcelas}x
                             </span>
@@ -1006,7 +1029,12 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         })()}
                       </td>
                       <td className="py-2.5 px-2 text-center whitespace-nowrap">
-                        {lancamento.totalParcelas > 1 ? (
+                        {lancamento.recorrente ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-[#006948] dark:text-emerald-400 font-bold text-[10px] border border-emerald-200/50 dark:border-emerald-800/40" title={`Despesa recorrente mensal contínua (Mês ${lancamento.numeroParcela})`}>
+                            <span className="material-symbols-outlined text-[12px]">sync</span>
+                            <span>Recorrente</span>
+                          </span>
+                        ) : lancamento.totalParcelas > 1 ? (
                           <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10px]">
                             {lancamento.numeroParcela}/{lancamento.totalParcelas}
                           </span>
