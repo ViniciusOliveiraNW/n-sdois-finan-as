@@ -10,6 +10,7 @@ import { RankingCategoriasView } from './RankingCategoriasView';
 import { HeatmapCalendario } from './HeatmapCalendario';
 import { CategoryIconOrImage } from './CategoryIconOrImage';
 import { SeletorMesFlutuante } from './SeletorMesFlutuante';
+import { GraficoLinhaGastos } from './GraficoLinhaGastos';
 import { calcularRankingCategorias } from '../calculations/rankingCategorias';
 import { obterDiasNoMes } from '../calculations/parcelas';
 
@@ -694,6 +695,17 @@ export const MinhasDespesasView: React.FC<MinhasDespesasViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 4.0. GRÁFICO EM LINHA: EVOLUÇÃO DOS GASTOS PESSOAIS */}
+      <GraficoLinhaGastos
+        tipo="individual"
+        mesSelecionado={mesSelecionado}
+        lancamentosDoMes={lancamentosPrivadosDoMes}
+        compras={comprasPrivadas}
+        usuarioNome={usuarioAtual}
+        tetoPessoalCentavos={tetoPessoalCentavos}
+        modoDiscreto={modoDiscreto}
+      />
 
       {/* 4.1. Dashboard Duplo: Top 5 Categorias & Calendário de Calor Individual */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">

@@ -1,5 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { CategoriaId, CategoriaMeta, Compra, DivisaoTipo, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
+import {
+  CategoriaId,
+  CategoriaMeta,
+  Compra,
+  CoupleSpace,
+  DivisaoTipo,
+  LancamentoMensal,
+  ResumoAcerto,
+  UserProfile,
+  UsuarioId,
+} from '../types';
 import {
   formatarBRL,
   formatarDataBR,
@@ -20,6 +30,8 @@ interface LancamentosViewProps {
   compras: Compra[];
   resumoAcerto: ResumoAcerto;
   categorias?: CategoriaMeta[];
+  couple?: CoupleSpace | null;
+  userProfile?: UserProfile | null;
   onAbrirNovaCompra: () => void;
   onEditarCompra: (compraId: string) => void;
   onRemoverCompra: (compraId: string, numeroParcela: number) => void;
@@ -37,6 +49,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   compras,
   resumoAcerto,
   categorias,
+  couple,
+  userProfile,
   onAbrirNovaCompra,
   onEditarCompra,
   onRemoverCompra,
@@ -44,16 +58,73 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   onIrParaMinhasDespesas,
 }) => {
   const listaCategorias = categorias && categorias.length > 0 ? categorias : CATEGORIAS_PADRAO;
-  const p1Name = resumoAcerto.p1Name || 'Vinicius';
-  const p2Name = resumoAcerto.p2Name || 'Silvia';
-  const p1Uid = resumoAcerto.p1Uid || 'Vinicius';
-  const p2Uid = resumoAcerto.p2Uid || 'Silvia';
+  const p1Nome = couple?.partner1Name || resumoAcerto.p1Name || 'Vinicius';
+  const p2Nome = couple?.partner2Name || resumoAcerto.p2Name || 'Silvia';
+  const p1Name = p1Nome;
+  const p2Name = p2Nome;
+  const p1Uid = couple?.partner1Uid || resumoAcerto.p1Uid || 'Vinicius';
+  const p2Uid = couple?.partner2Uid || resumoAcerto.p2Uid || 'Silvia';
 
   const getPrimeiroNome = (nomeCompleto?: string) => {
     if (!nomeCompleto) return 'Você';
     const primeiro = nomeCompleto.trim().split(' ')[0];
     return primeiro || nomeCompleto;
   };
+
+  const p1Photo =
+    couple?.partner1PhotoURL ||
+    (userProfile?.uid === p1Uid ? userProfile?.photoURL : undefined) ||
+    (userProfile?.displayName === p1Nome ? userProfile?.photoURL : undefined) ||
+    (usuarioAtual && (usuarioAtual === couple?.partner1Name || usuarioAtual === p1Nome)
+      ? userProfile?.photoURL
+      : undefined);
+
+  const p2Photo =
+    couple?.partner2PhotoURL ||
+    (userProfile?.uid === p2Uid ? userProfile?.photoURL : undefined) ||
+    (userProfile?.displayName === p2Nome ? userProfile?.photoURL : undefined) ||
+    (usuarioAtual && (usuarioAtual === couple?.partner2Name || usuarioAtual === p2Nome)
+      ? userProfile?.photoURL
+      : undefined);
+
+  const isP1Pagador = (item: { pagoPorUid?: string; pagoPorNome?: string; pagoPor?: string }) => {
+    if (item.pagoPorUid && p1Uid && item.pagoPorUid === p1Uid) return true;
+    const pagador = (item.pagoPorNome || item.pagoPor || '').trim().toLowerCase();
+    const p1 = p1Nome.trim().toLowerCase();
+    const p1Primeiro = getPrimeiroNome(p1Nome).trim().toLowerCase();
+    if (pagador === 'p1' || pagador === 'vinicius') return true;
+    if (pagador === p1 || pagador === p1Primeiro) return true;
+    if (p1 && pagador.includes(p1Primeiro)) return true;
+    return false;
+  };
+
+  const isP2Pagador = (item: { pagoPorUid?: string; pagoPorNome?: string; pagoPor?: string }) => {
+    if (item.pagoPorUid && p2Uid && item.pagoPorUid === p2Uid) return true;
+    const pagador = (item.pagoPorNome || item.pagoPor || '').trim().toLowerCase();
+    const p2 = p2Nome.trim().toLowerCase();
+    const p2Primeiro = getPrimeiroNome(p2Nome).trim().toLowerCase();
+    if (pagador === 'p2' || pagador === 'silvia') return true;
+    if (pagador === p2 || pagador === p2Primeiro) return true;
+    if (p2 && pagador.includes(p2Primeiro)) return true;
+    return false;
+  };
+
+  const atendeFiltroPagador = (item: { pagoPorUid?: string; pagoPorNome?: string; pagoPor?: string }) => {
+    if (!filtroPagador) return true;
+    if (filtroPagador === 'p1' || filtroPagador === p1Nome || filtroPagador === 'Vinicius') {
+      return isP1Pagador(item);
+    }
+    if (filtroPagador === 'p2' || filtroPagador === p2Nome || filtroPagador === 'Silvia') {
+      return isP2Pagador(item);
+    }
+    const val = (item.pagoPorNome || item.pagoPor || '').toLowerCase();
+    return val.includes(filtroPagador.toLowerCase());
+  };
+
+  const isUsuarioP1 =
+    usuarioAtual === p1Nome ||
+    usuarioAtual === getPrimeiroNome(p1Nome) ||
+    (userProfile && (userProfile.uid === p1Uid || userProfile.displayName === p1Nome));
 
   const [busca, setBusca] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
@@ -109,8 +180,11 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
   const lancamentosFiltrados = useMemo(() => {
     return todosLancamentosDoMes.filter((l) => {
       // Visão Meus vs Casal
-      if (visao === 'meus' && l.pagoPor !== usuarioAtual) {
-        return false;
+      if (visao === 'meus') {
+        const meu = isUsuarioP1 ? isP1Pagador(l) : isP2Pagador(l);
+        if (!meu && l.pagoPor !== usuarioAtual) {
+          return false;
+        }
       }
 
       // Busca por texto
@@ -128,7 +202,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       }
 
       // Pagador
-      if (filtroPagador && l.pagoPor !== filtroPagador) {
+      if (filtroPagador && !atendeFiltroPagador(l)) {
         return false;
       }
 
@@ -174,6 +248,11 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
     filtroPagador,
     filtroDivisao,
     filtroRapido,
+    isUsuarioP1,
+    p1Uid,
+    p2Uid,
+    p1Name,
+    p2Name,
   ]);
 
   // Ordenação
@@ -200,8 +279,11 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
       if (c.privada) {
         return false;
       }
-      if (visao === 'meus' && c.pagoPor !== usuarioAtual) {
-        return false;
+      if (visao === 'meus') {
+        const meu = isUsuarioP1 ? isP1Pagador(c) : isP2Pagador(c);
+        if (!meu && c.pagoPor !== usuarioAtual) {
+          return false;
+        }
       }
       if (busca.trim()) {
         const termo = busca.toLowerCase();
@@ -211,7 +293,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
         if (!bateNome && !bateDesc && !bateCat) return false;
       }
       if (filtroCategoria && c.categoria !== filtroCategoria) return false;
-      if (filtroPagador && c.pagoPor !== filtroPagador) return false;
+      if (filtroPagador && !atendeFiltroPagador(c)) return false;
       if (filtroDivisao) {
         const { percP1, percP2 } = parseDivisaoPercentuais(
           c.divisao,
@@ -244,6 +326,7 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
     filtroPagador,
     filtroDivisao,
     filtroRapido,
+    isUsuarioP1,
     p1Uid,
     p2Uid,
     p1Name,
@@ -392,10 +475,18 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#0051d5] shrink-0"></span>
+              {userProfile?.photoURL ? (
+                <img
+                  src={userProfile.photoURL}
+                  alt={userProfile.displayName || 'Você'}
+                  className="w-4 h-4 rounded-full object-cover ring-1 ring-blue-500/50 shrink-0"
+                />
+              ) : (
+                <span className="w-2 h-2 rounded-full bg-[#0051d5] shrink-0"></span>
+              )}
               <span>Meus Pagamentos</span>
               <span className="px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-950/80 text-[#0051d5] dark:text-blue-300 text-[10px] font-bold">
-                {todosLancamentosDoMes.filter((l) => l.pagoPor === usuarioAtual).length}
+                {todosLancamentosDoMes.filter((l) => (isUsuarioP1 ? isP1Pagador(l) : isP2Pagador(l)) || l.pagoPor === usuarioAtual).length}
               </span>
             </button>
             <button
@@ -439,52 +530,80 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
           </div>
         </div>
 
-        {/* Pago por Vinicius */}
+        {/* Pago por {p1Nome} */}
         <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
-              <span className="text-xs font-semibold text-[#0051d5] dark:text-blue-400">Pago por Vinicius</span>
+            <div className="flex items-center gap-2">
+              {p1Photo ? (
+                <img
+                  src={p1Photo}
+                  alt={p1Nome}
+                  className="w-6 h-6 rounded-full object-cover ring-2 ring-blue-500/50 shadow-xs shrink-0"
+                />
+              ) : (
+                <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/60 text-[#0051d5] dark:text-blue-300 text-xs font-bold flex items-center justify-center shrink-0">
+                  {p1Nome.charAt(0)}
+                </span>
+              )}
+              <span className="text-xs font-semibold text-[#0051d5] dark:text-blue-400">
+                Pago por {getPrimeiroNome(p1Nome)}
+              </span>
             </div>
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
               {resumoAcerto.totalCasalCentavos > 0
                 ? `${Math.round(
-                    (resumoAcerto.totalPagoViniciusCentavos / resumoAcerto.totalCasalCentavos) * 100
+                    ((resumoAcerto.totalPagoP1Centavos ?? resumoAcerto.totalPagoViniciusCentavos ?? 0) /
+                      resumoAcerto.totalCasalCentavos) *
+                      100
                   )}%`
                 : '0%'}
             </span>
           </div>
           <div className="mt-2">
             <span className="text-2xl font-extrabold text-[#0051d5] dark:text-blue-400 tabular-nums">
-              {formatarBRL(resumoAcerto.totalPagoViniciusCentavos)}
+              {formatarBRL(resumoAcerto.totalPagoP1Centavos ?? resumoAcerto.totalPagoViniciusCentavos ?? 0)}
             </span>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-              {todosLancamentosDoMes.filter((l) => l.pagoPor === 'Vinicius').length} compras
+              {todosLancamentosDoMes.filter((l) => isP1Pagador(l)).length} compras
             </p>
           </div>
         </div>
 
-        {/* Pago por Silvia */}
+        {/* Pago por {p2Nome} */}
         <div className="p-4 rounded-2xl bg-white dark:bg-[#161f2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#712ae2]"></span>
-              <span className="text-xs font-semibold text-[#712ae2] dark:text-purple-400">Pago por Silvia</span>
+            <div className="flex items-center gap-2">
+              {p2Photo ? (
+                <img
+                  src={p2Photo}
+                  alt={p2Nome}
+                  className="w-6 h-6 rounded-full object-cover ring-2 ring-purple-500/50 shadow-xs shrink-0"
+                />
+              ) : (
+                <span className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/60 text-[#712ae2] dark:text-purple-300 text-xs font-bold flex items-center justify-center shrink-0">
+                  {p2Nome.charAt(0)}
+                </span>
+              )}
+              <span className="text-xs font-semibold text-[#712ae2] dark:text-purple-400">
+                Pago por {getPrimeiroNome(p2Nome)}
+              </span>
             </div>
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
               {resumoAcerto.totalCasalCentavos > 0
                 ? `${Math.round(
-                    (resumoAcerto.totalPagoSilviaCentavos / resumoAcerto.totalCasalCentavos) * 100
+                    ((resumoAcerto.totalPagoP2Centavos ?? resumoAcerto.totalPagoSilviaCentavos ?? 0) /
+                      resumoAcerto.totalCasalCentavos) *
+                      100
                   )}%`
                 : '0%'}
             </span>
           </div>
           <div className="mt-2">
             <span className="text-2xl font-extrabold text-[#712ae2] dark:text-purple-400 tabular-nums">
-              {formatarBRL(resumoAcerto.totalPagoSilviaCentavos)}
+              {formatarBRL(resumoAcerto.totalPagoP2Centavos ?? resumoAcerto.totalPagoSilviaCentavos ?? 0)}
             </span>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-              {todosLancamentosDoMes.filter((l) => l.pagoPor === 'Silvia').length} compras
+              {todosLancamentosDoMes.filter((l) => isP2Pagador(l)).length} compras
             </p>
           </div>
         </div>
@@ -558,8 +677,8 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
               className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-[#0d1522] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:bg-white dark:focus:bg-[#111a28] focus:outline-none focus:ring-2 focus:ring-[#006948]/20 cursor-pointer"
             >
               <option value="">Quem Pagou: Todos</option>
-              <option value="Vinicius">Vinicius</option>
-              <option value="Silvia">Silvia</option>
+              <option value="p1">{p1Nome}</option>
+              <option value="p2">{p2Nome}</option>
             </select>
           </div>
 
@@ -729,22 +848,31 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         </td>
                         <td className="py-2.5 px-2 whitespace-nowrap">
                           {(() => {
-                            const ehVinicius = (compra.pagoPorNome || compra.pagoPor || '').toLowerCase().includes('vinicius');
-                            const primeiroNome = getPrimeiroNome(compra.pagoPorNome || compra.pagoPor);
+                            const isP1 = isP1Pagador(compra);
+                            const photo = isP1 ? p1Photo : p2Photo;
+                            const primeiroNome = isP1 ? getPrimeiroNome(p1Nome) : getPrimeiroNome(p2Nome);
                             return (
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                                  ehVinicius
+                                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                  isP1
                                     ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
                                     : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
                                 }`}
                                 title={compra.pagoPorNome || compra.pagoPor}
                               >
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                    ehVinicius ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
-                                  }`}
-                                ></span>
+                                {photo ? (
+                                  <img
+                                    src={photo}
+                                    alt={primeiroNome}
+                                    className="w-4 h-4 rounded-full object-cover ring-1 ring-current shrink-0"
+                                  />
+                                ) : (
+                                  <span
+                                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                      isP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                                    }`}
+                                  ></span>
+                                )}
                                 <span>{primeiroNome}</span>
                               </span>
                             );
@@ -975,21 +1103,36 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         })()}
                       </td>
                       <td className="py-2.5 px-2 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            (lancamento.pagoPor || '').toLowerCase().includes('vinicius')
-                              ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
-                              : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
-                          }`}
-                          title={`Pago por ${lancamento.pagoPor}`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              (lancamento.pagoPor || '').toLowerCase().includes('vinicius') ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
-                            }`}
-                          ></span>
-                          <span>{getPrimeiroNome(lancamento.pagoPor)}</span>
-                        </span>
+                        {(() => {
+                          const isP1 = isP1Pagador(lancamento);
+                          const photo = isP1 ? p1Photo : p2Photo;
+                          const primeiroNome = isP1 ? getPrimeiroNome(p1Nome) : getPrimeiroNome(p2Nome);
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                isP1
+                                  ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0051d5] dark:text-blue-400'
+                                  : 'bg-purple-50 dark:bg-purple-950/60 text-[#712ae2] dark:text-purple-400'
+                              }`}
+                              title={`Pago por ${lancamento.pagoPorNome || lancamento.pagoPor}`}
+                            >
+                              {photo ? (
+                                <img
+                                  src={photo}
+                                  alt={primeiroNome}
+                                  className="w-4 h-4 rounded-full object-cover ring-1 ring-current shrink-0"
+                                />
+                              ) : (
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                    isP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                                  }`}
+                                ></span>
+                              )}
+                              <span>{primeiroNome}</span>
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-2.5 px-2 whitespace-nowrap">
                         {(() => {

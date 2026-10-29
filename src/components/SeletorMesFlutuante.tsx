@@ -277,27 +277,11 @@ export const SeletorMesFlutuante: React.FC<SeletorMesFlutuanteProps> = ({
 }) => {
   const { isDark: appIsDark } = useTheme();
 
-  // Permite override local do tema dentro do calendário se o usuário quiser alternar ali
-  const [temaLocal, setTemaLocal] = useState<TemaCalendario>(tema);
-
-  // Mantém sincronizado se a prop tema mudar
-  useEffect(() => {
-    setTemaLocal(tema);
-  }, [tema]);
-
-  // Determina se o calendário atual está em modo escuro ou claro
-  const isEscuro = temaLocal === 'dark' || (temaLocal === 'auto' && appIsDark);
+  // O calendário acompanha sempre o tema da aplicação (resto da tela)
+  const isEscuro = appIsDark;
 
   const [aberto, setAberto] = useState(false);
   const [modoVisualizacao, setModoVisualizacao] = useState<'calendario' | 'grade-meses'>('calendario');
-
-  // Alterna tema exclusivo deste seletor ou sincroniza
-  const alternarTemaCalendario = () => {
-    setTemaLocal((prev) => {
-      const atual = prev === 'dark' || (prev === 'auto' && appIsDark);
-      return atual ? 'light' : 'dark';
-    });
-  };
 
   // Decompõe o mês selecionado atual
   const [anoAtual, mesAtual] = useMemo(() => {
@@ -558,24 +542,8 @@ export const SeletorMesFlutuante: React.FC<SeletorMesFlutuanteProps> = ({
               </span>
             </div>
 
-            {/* Ações rápidas + Seletor de Tema do Calendário */}
+            {/* Ações rápidas */}
             <div className="flex items-center gap-1.5 self-end sm:self-auto">
-              {/* Botão de alternar tema específico do calendário (Claro / Escuro) */}
-              <button
-                type="button"
-                onClick={alternarTemaCalendario}
-                className={`px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer border ${
-                  isEscuro
-                    ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
-                    : 'bg-slate-100 hover:bg-slate-200 text-indigo-700 border-slate-200'
-                }`}
-                title={isEscuro ? 'Mudar calendário para tema claro' : 'Mudar calendário para tema escuro'}
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  {isEscuro ? 'light_mode' : 'dark_mode'}
-                </span>
-                <span className="hidden sm:inline">{isEscuro ? 'Claro' : 'Escuro'}</span>
-              </button>
 
               <button
                 type="button"

@@ -1,5 +1,14 @@
 import React from 'react';
-import { CategoriaMeta, Compra, FechamentoMensal, LancamentoMensal, ResumoAcerto, UsuarioId } from '../types';
+import {
+  CategoriaMeta,
+  Compra,
+  CoupleSpace,
+  FechamentoMensal,
+  LancamentoMensal,
+  ResumoAcerto,
+  UserProfile,
+  UsuarioId,
+} from '../types';
 import {
   formatarBRL,
   formatarDataBR,
@@ -11,6 +20,7 @@ import { RankingCategoriasView } from './RankingCategoriasView';
 import { HeatmapCalendario } from './HeatmapCalendario';
 import { CategoryIconOrImage } from './CategoryIconOrImage';
 import { SeletorMesFlutuante } from './SeletorMesFlutuante';
+import { GraficoLinhaGastos } from './GraficoLinhaGastos';
 
 interface ResumoMensalViewProps {
   mesSelecionado: string;
@@ -25,6 +35,8 @@ interface ResumoMensalViewProps {
   todosLancamentosDoMes: LancamentoMensal[];
   compras: Compra[];
   categorias?: CategoriaMeta[];
+  couple?: CoupleSpace | null;
+  userProfile?: UserProfile | null;
   onAbrirModalAcerto: () => void;
   onAbrirNotaFechamento?: (mes: string) => void;
   onEditarCompra: (compraId: string) => void;
@@ -47,6 +59,8 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
   todosLancamentosDoMes,
   compras,
   categorias,
+  couple,
+  userProfile,
   onAbrirModalAcerto,
   onAbrirNotaFechamento,
   onEditarCompra,
@@ -80,10 +94,17 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
   })();
 
   // Estatísticas de Regimes Dinâmicos (50/50, 70/30, 30/70, 100/0, etc.)
-  const p1Name = resumoAcerto.p1Name || 'Vinicius';
-  const p2Name = resumoAcerto.p2Name || 'Silvia';
-  const p1Uid = resumoAcerto.p1Uid || 'Vinicius';
-  const p2Uid = resumoAcerto.p2Uid || 'Silvia';
+  const p1Name = couple?.partner1Name || resumoAcerto.p1Name || 'Vinicius';
+  const p2Name = couple?.partner2Name || resumoAcerto.p2Name || 'Silvia';
+  const p1Uid = couple?.partner1Uid || resumoAcerto.p1Uid || 'Vinicius';
+  const p2Uid = couple?.partner2Uid || resumoAcerto.p2Uid || 'Silvia';
+
+  const p1Photo =
+    couple?.partner1PhotoURL ||
+    (userProfile?.uid === p1Uid ? userProfile?.photoURL : undefined);
+  const p2Photo =
+    couple?.partner2PhotoURL ||
+    (userProfile?.uid === p2Uid ? userProfile?.photoURL : undefined);
 
   let gastosCompartilhadosCentavos = 0;
   let gastosIndividuaisCentavos = 0;
@@ -503,6 +524,18 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
           </div>
         </div>
       </section>
+
+      {/* 3.1. GRÁFICO EM LINHA: EVOLUÇÃO TEMPORAL DOS GASTOS DO CASAL */}
+      <GraficoLinhaGastos
+        tipo="casal"
+        mesSelecionado={mesSelecionado}
+        lancamentosDoMes={todosLancamentosDoMes}
+        compras={compras}
+        p1Nome={p1Name}
+        p2Nome={p2Name}
+        p1Photo={p1Photo}
+        p2Photo={p2Photo}
+      />
 
       {/* 4. SEÇÃO DUPLA: TOP CATEGORIAS + CALENDÁRIO HEATMAP */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">

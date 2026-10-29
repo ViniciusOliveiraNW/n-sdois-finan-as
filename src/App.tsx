@@ -870,6 +870,8 @@ export default function App() {
             todosLancamentosDoMes={todosLancamentosDoMes}
             compras={comprasCasal}
             categorias={categorias}
+            couple={couple}
+            userProfile={userProfile}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
             onAbrirNotaFechamento={handleAbrirNotaFechamento}
             onEditarCompra={handleEditarCompra}
@@ -891,6 +893,8 @@ export default function App() {
             compras={comprasCasal}
             resumoAcerto={resumoAcerto}
             categorias={categorias}
+            couple={couple}
+            userProfile={userProfile}
             onAbrirNovaCompra={handleAbrirNovaCompra}
             onEditarCompra={handleEditarCompra}
             onRemoverCompra={handleRemoverCompra}
@@ -906,6 +910,7 @@ export default function App() {
             fechamentos={fechamentos}
             usuarioAtual={usuarioNome}
             couple={couple}
+            userProfile={userProfile}
             onAbrirModalAcerto={() => setModalAcertoAberta(true)}
             onFecharMes={handleFecharMes}
             onAbrirNotaFechamento={handleAbrirNotaFechamento}

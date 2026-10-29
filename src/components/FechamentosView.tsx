@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CoupleSpace, FechamentoMensal, ResumoAcerto, UsuarioId } from '../types';
+import { CoupleSpace, FechamentoMensal, ResumoAcerto, UserProfile, UsuarioId } from '../types';
 import { formatarBRL } from '../calculations/acertoMensal';
 
 interface FechamentosViewProps {
@@ -8,6 +8,7 @@ interface FechamentosViewProps {
   fechamentos: FechamentoMensal[];
   usuarioAtual: UsuarioId;
   couple?: CoupleSpace | null;
+  userProfile?: UserProfile | null;
   onAbrirModalAcerto: () => void;
   onFecharMes: () => void;
   onAbrirNotaFechamento: (mes: string) => void;
@@ -21,6 +22,7 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
   fechamentos,
   usuarioAtual,
   couple,
+  userProfile,
   onAbrirModalAcerto,
   onFecharMes,
   onAbrirNotaFechamento,
@@ -40,6 +42,16 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
   const p1Nome = couple?.partner1Name || resumoAcerto.p1Name || 'Vinicius';
   const p2Nome = couple?.partner2Name || resumoAcerto.p2Name || 'Silvia';
 
+  const p1Photo =
+    couple?.partner1PhotoURL ||
+    (userProfile?.uid === couple?.partner1Uid ? userProfile?.photoURL : undefined) ||
+    (usuarioAtual && (usuarioAtual === couple?.partner1Name || usuarioAtual === p1Nome) ? userProfile?.photoURL : undefined);
+
+  const p2Photo =
+    couple?.partner2PhotoURL ||
+    (userProfile?.uid === couple?.partner2Uid ? userProfile?.photoURL : undefined) ||
+    (usuarioAtual && (usuarioAtual === couple?.partner2Name || usuarioAtual === p2Nome) ? userProfile?.photoURL : undefined);
+
   const p1PagoCentavos =
     resumoAcerto.totalPagoP1Centavos ?? resumoAcerto.totalPagoViniciusCentavos ?? 0;
   const p2PagoCentavos =
@@ -58,6 +70,9 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
 
   const isDevedorP1 = devedorNome === p1Nome;
   const isCredorP1 = credorNome === p1Nome;
+
+  const devedorPhoto = isDevedorP1 ? p1Photo : p2Photo;
+  const credorPhoto = isCredorP1 ? p1Photo : p2Photo;
 
   const devedorPagoCentavos = isDevedorP1 ? p1PagoCentavos : p2PagoCentavos;
   const credorPagoCentavos = isCredorP1 ? p1PagoCentavos : p2PagoCentavos;
@@ -214,12 +229,32 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
           <div className="lg:col-span-7 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/90 dark:bg-slate-800/90 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
             {/* Debtor */}
             <div className="flex flex-col items-center text-center gap-1">
-              <div
-                className={`w-14 h-14 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-sm ${
-                  isDevedorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
-                }`}
-              >
-                {devedorNome.charAt(0).toUpperCase()}
+              <div className="relative">
+                {devedorPhoto ? (
+                  <img
+                    src={devedorPhoto}
+                    alt={devedorNome}
+                    className={`w-14 h-14 rounded-full object-cover shadow-sm ring-2 ${
+                      isDevedorP1 ? 'ring-[#0051d5]' : 'ring-[#712ae2]'
+                    }`}
+                  />
+                ) : (
+                  <div
+                    className={`w-14 h-14 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-sm ${
+                      isDevedorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                    }`}
+                  >
+                    {devedorNome.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span
+                  className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-xs ${
+                    isDevedorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                  }`}
+                  title={isDevedorP1 ? p1Nome : p2Nome}
+                >
+                  {isDevedorP1 ? '1' : '2'}
+                </span>
               </div>
               <span className="text-sm font-bold text-slate-900 dark:text-white mt-1">{devedorNome}</span>
               <span
@@ -254,12 +289,32 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
 
             {/* Creditor */}
             <div className="flex flex-col items-center text-center gap-1">
-              <div
-                className={`w-14 h-14 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-sm ${
-                  isCredorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
-                }`}
-              >
-                {credorNome.charAt(0).toUpperCase()}
+              <div className="relative">
+                {credorPhoto ? (
+                  <img
+                    src={credorPhoto}
+                    alt={credorNome}
+                    className={`w-14 h-14 rounded-full object-cover shadow-sm ring-2 ${
+                      isCredorP1 ? 'ring-[#0051d5]' : 'ring-[#712ae2]'
+                    }`}
+                  />
+                ) : (
+                  <div
+                    className={`w-14 h-14 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-sm ${
+                      isCredorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                    }`}
+                  >
+                    {credorNome.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span
+                  className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-xs ${
+                    isCredorP1 ? 'bg-[#0051d5]' : 'bg-[#712ae2]'
+                  }`}
+                  title={isCredorP1 ? p1Nome : p2Nome}
+                >
+                  {isCredorP1 ? '1' : '2'}
+                </span>
               </div>
               <span className="text-sm font-bold text-slate-900 dark:text-white mt-1">{credorNome}</span>
               <span
@@ -499,15 +554,29 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                   {fechamento.status === 'quitado' && (
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs">
                       <div className="flex items-center gap-2.5">
-                        <span
-                          className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
-                            fechamento.devedor === p1Nome
-                              ? 'bg-blue-100 dark:bg-blue-950/70 text-[#0051d5] dark:text-blue-400'
-                              : 'bg-purple-100 dark:bg-purple-950/70 text-[#712ae2] dark:text-purple-400'
-                          }`}
-                        >
-                          {(fechamento.devedor || 'P').charAt(0).toUpperCase()}
-                        </span>
+                        {(() => {
+                          const isP1 = fechamento.devedor === p1Nome || fechamento.devedorUid === couple?.partner1Uid;
+                          const photo = isP1 ? p1Photo : p2Photo;
+                          return photo ? (
+                            <img
+                              src={photo}
+                              alt={fechamento.devedor}
+                              className={`w-7 h-7 rounded-full object-cover ring-2 ${
+                                isP1 ? 'ring-blue-500/60' : 'ring-purple-500/60'
+                              } shrink-0`}
+                            />
+                          ) : (
+                            <span
+                              className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                isP1
+                                  ? 'bg-blue-100 dark:bg-blue-950/70 text-[#0051d5] dark:text-blue-400'
+                                  : 'bg-purple-100 dark:bg-purple-950/70 text-[#712ae2] dark:text-purple-400'
+                              }`}
+                            >
+                              {(fechamento.devedor || 'P').charAt(0).toUpperCase()}
+                            </span>
+                          );
+                        })()}
                         <div>
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {fechamento.devedor} pagou{' '}
@@ -671,12 +740,38 @@ export const FechamentosView: React.FC<FechamentosViewProps> = ({
                       title={`${p2Nome}: ${percP2Acertos}% (${formatarBRL(totalPagoP2AcertosCentavos)})`}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
-                    <span className="text-[#0051d5] dark:text-blue-400">
-                      {p1Nome} ({percP1Acertos}%)
+                  <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 font-semibold items-center">
+                    <span className="flex items-center gap-1.5 text-[#0051d5] dark:text-blue-400">
+                      {p1Photo ? (
+                        <img
+                          src={p1Photo}
+                          alt={p1Nome}
+                          className="w-4 h-4 rounded-full object-cover ring-1 ring-blue-500/50"
+                        />
+                      ) : (
+                        <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900/60 text-[#0051d5] dark:text-blue-300 text-[10px] flex items-center justify-center font-bold">
+                          {p1Nome.charAt(0)}
+                        </span>
+                      )}
+                      <span>
+                        {p1Nome} ({percP1Acertos}%)
+                      </span>
                     </span>
-                    <span className="text-[#712ae2] dark:text-purple-400">
-                      {p2Nome} ({percP2Acertos}%)
+                    <span className="flex items-center gap-1.5 text-[#712ae2] dark:text-purple-400">
+                      {p2Photo ? (
+                        <img
+                          src={p2Photo}
+                          alt={p2Nome}
+                          className="w-4 h-4 rounded-full object-cover ring-1 ring-purple-500/50"
+                        />
+                      ) : (
+                        <span className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-900/60 text-[#712ae2] dark:text-purple-300 text-[10px] flex items-center justify-center font-bold">
+                          {p2Nome.charAt(0)}
+                        </span>
+                      )}
+                      <span>
+                        {p2Nome} ({percP2Acertos}%)
+                      </span>
                     </span>
                   </div>
                 </>
