@@ -44,6 +44,7 @@ interface ResumoMensalViewProps {
   onIrParaLancamentos: () => void;
   onIrParaCategorias: () => void;
   onIrParaMinhasDespesas?: () => void;
+  onIrParaPrevisao?: () => void;
 }
 
 export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
@@ -68,6 +69,7 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
   onIrParaLancamentos,
   onIrParaCategorias,
   onIrParaMinhasDespesas,
+  onIrParaPrevisao,
 }) => {
   // Navegação de mês anterior e posterior
   const handleAvancarMes = (offset: number) => {
@@ -247,6 +249,18 @@ export const ResumoMensalView: React.FC<ResumoMensalViewProps> = ({
               </span>
             </button>
           </div>
+
+          {onIrParaPrevisao && (
+            <button
+              type="button"
+              onClick={onIrParaPrevisao}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800/80 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-[#006948] dark:text-emerald-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              title="Ver projeções e previsão estatística com séries temporais para os próximos meses"
+            >
+              <span className="material-symbols-outlined text-[15px]">insights</span>
+              <span>Previsão</span>
+            </button>
+          )}
 
           {onIrParaMinhasDespesas && (
             <button

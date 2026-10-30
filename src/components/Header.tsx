@@ -3,7 +3,7 @@ import { CoupleSpace, UserProfile, UsuarioId } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 import { useTheme } from '../context/ThemeContext';
 
-export type AbaNavegacao = 'resumo-mensal' | 'lancamentos' | 'fechamentos-e-acertos' | 'categorias' | 'minhas-despesas';
+export type AbaNavegacao = 'resumo-mensal' | 'lancamentos' | 'fechamentos-e-acertos' | 'categorias' | 'minhas-despesas' | 'previsao';
 
 interface HeaderProps {
   abaAtiva: AbaNavegacao;
@@ -14,6 +14,7 @@ interface HeaderProps {
   onAbrirNovaCompra: () => void;
   onAbrirEspacoModal: () => void;
   onAbrirPerfilModal?: () => void;
+  onAbrirTelegramModal?: () => void;
   onLogout: () => void;
 }
 
@@ -26,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   onAbrirNovaCompra,
   onAbrirEspacoModal,
   onAbrirPerfilModal,
+  onAbrirTelegramModal,
   onLogout,
 }) => {
   const { isDark, toggleTheme } = useTheme();
@@ -140,6 +142,17 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               Categorias
+            </button>
+            <button
+              onClick={() => onSelecionarAba('previsao')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                abaAtiva === 'previsao'
+                  ? 'bg-white dark:bg-slate-700 text-[#006948] dark:text-emerald-400 font-bold shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">insights</span>
+              <span>Previsão</span>
             </button>
           </nav>
         </div>
@@ -279,6 +292,17 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           Categorias
+        </button>
+        <button
+          onClick={() => onSelecionarAba('previsao')}
+          className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+            abaAtiva === 'previsao'
+              ? 'bg-slate-100 dark:bg-slate-800 text-[#006948] dark:text-emerald-400 font-bold'
+              : 'text-slate-600 dark:text-slate-400'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[13px]">insights</span>
+          <span>Previsão</span>
         </button>
         <button
           onClick={() => onSelecionarAba('minhas-despesas')}

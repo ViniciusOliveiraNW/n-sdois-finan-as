@@ -235,6 +235,7 @@ export function gerarLancamentosDoMes(
         formaPagamentoNome: compra.formaPagamentoNome,
         assinatura: true,
         recorrente: true,
+        origem: compra.origem,
       });
       continue;
     }
@@ -290,6 +291,7 @@ export function gerarLancamentosDoMes(
       segredoCasal: compra.segredoCasal,
       formaPagamentoNome: compra.formaPagamentoNome,
       assinatura: compra.assinatura,
+      origem: compra.origem,
     });
   }
 

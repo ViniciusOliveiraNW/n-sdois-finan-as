@@ -13,6 +13,19 @@ export interface UserProfile {
   createdAt?: string;
   tetoPessoalCentavos?: number; // Teto orçamentário pessoal mensal (ex: 250000 = R$ 2.500,00)
   categoriasIndividuais?: CategoriaMeta[]; // Categorias personalizadas do espaço individual
+  telegramUserId?: string;
+  telegramUsername?: string;
+  telegramChatId?: string;
+  telegramLinkedAt?: string;
+}
+
+export interface TelegramPartnerInfo {
+  uid: string;
+  displayName: string;
+  role: 'partner1' | 'partner2';
+  username?: string;
+  chatId?: string;
+  linkedAt: string;
 }
 
 export interface CoupleSpace {
@@ -31,6 +44,7 @@ export interface CoupleSpace {
   categories?: CategoriaMeta[];
   defaultSplit?: string; // ex: '50/50', '70/30', '30/70', '60/40', etc.
   createdBy?: string;
+  telegramPairings?: Record<string, TelegramPartnerInfo>;
 }
 
 export interface Compra {
@@ -61,6 +75,55 @@ export interface Compra {
   assinatura?: boolean; // Se é assinatura / renovação periódica
   recorrente?: boolean; // Se é compra/assinatura recorrente contínua (repete todo mês)
   dataFimRecorrencia?: string; // 'AAAA-MM' - Se cancelada/interrompida a partir deste mês
+
+  // Integração com Bot do Telegram
+  origem?: 'web' | 'telegram';
+  telegramMessageId?: string;
+  telegramUserId?: string;
+}
+
+export interface TelegramPairingCode {
+  code: string;
+  coupleId: string;
+  uid: string;
+  userName: string;
+  role: 'partner1' | 'partner2';
+  expiresAt: number;
+  used: boolean;
+  createdAt: number;
+}
+
+export interface TelegramPendingOperation {
+  id: string;
+  telegramUserId: string;
+  telegramChatId: string;
+  coupleId: string;
+  authorUid: string;
+  authorName: string;
+  status: 'aguardando_info' | 'aguardando_confirmacao' | 'confirmado' | 'cancelado' | 'expirado';
+  dados: {
+    nome: string;
+    valorCentavos: number;
+    valor: number;
+    categoria: string;
+    dataCompra: string;
+    dataPrimeiroPagamento: string;
+    numeroDeParcelas: number;
+    pagoPorUid: string;
+    pagoPorNome: string;
+    cadastradoPorUid: string;
+    cadastradoPorNome: string;
+    divisao: string;
+    tipo: 'compartilhada' | 'individual';
+    privada: boolean;
+    recorrente?: boolean;
+    descricao?: string;
+    resumoDivisao?: string;
+  };
+  missingFields: string[];
+  lastPrompt?: string;
+  createdAt: number;
+  expiresAt: number;
 }
 
 export interface LancamentoMensal {
@@ -87,6 +150,7 @@ export interface LancamentoMensal {
   formaPagamentoNome?: string;
   assinatura?: boolean;
   recorrente?: boolean;
+  origem?: 'web' | 'telegram';
 }
 
 export interface CategoriaMeta {

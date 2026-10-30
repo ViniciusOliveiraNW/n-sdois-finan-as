@@ -58,10 +58,16 @@ service cloud.firestore {
     // Purchases Subcollection
     match /couples/{coupleId}/purchases/{purchaseId} {
       allow read: if isCoupleMember(coupleId);
-      // Only members can create, and cadastradoPorUid must match auth uid
-      allow create: if isCoupleMember(coupleId) && request.resource.data.cadastradoPorUid == request.auth.uid;
+      // Members can create; also allow valid telegram-originated purchases for member
+      allow create: if isCoupleMember(coupleId) && (
+        request.resource.data.cadastradoPorUid == request.auth.uid ||
+        request.resource.data.origem == 'telegram'
+      );
       // Rule of authorship: Only the author can update or delete, or creator when wiping space
-      allow update: if isCoupleMember(coupleId) && resource.data.cadastradoPorUid == request.auth.uid;
+      allow update: if isCoupleMember(coupleId) && (
+        resource.data.cadastradoPorUid == request.auth.uid ||
+        request.resource.data.origem == 'telegram'
+      );
       allow delete: if isCoupleMember(coupleId) && (
         resource.data.cadastradoPorUid == request.auth.uid ||
         get(/databases/$(database)/documents/couples/$(coupleId)).data.partner1Uid == request.auth.uid ||
@@ -75,6 +81,16 @@ service cloud.firestore {
       allow create: if isCoupleMember(coupleId) && request.resource.data.conciliadoPorUid == request.auth.uid;
       allow update: if isCoupleMember(coupleId);
       allow delete: if isCoupleMember(coupleId);
+    }
+
+    // Temporary pairing codes for Telegram bot
+    match /telegram_codes/{codeId} {
+      allow read, write: if true;
+    }
+
+    // Conversational pending operations for Telegram bot
+    match /telegram_operations/{operationId} {
+      allow read, write: if true;
     }
   }
 }

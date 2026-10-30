@@ -817,9 +817,16 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                         </td>
                         <td className="py-2.5 px-2.5">
                           <div className="flex flex-col min-w-[120px] max-w-[200px]">
-                            <span className="font-semibold text-slate-900 dark:text-white leading-tight truncate" title={compra.nome}>
-                              {compra.nome}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-slate-900 dark:text-white leading-tight truncate" title={compra.nome}>
+                                {compra.nome}
+                              </span>
+                              {compra.origem === 'telegram' && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#229ED9]/15 text-[#229ED9] border border-[#229ED9]/30" title="Cadastrado via Telegram Bot">
+                                  <span>Telegram</span>
+                                </span>
+                              )}
+                            </div>
                             {compra.descricao && (
                               <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate" title={compra.descricao}>
                                 {compra.descricao}
@@ -1073,9 +1080,16 @@ export const LancamentosView: React.FC<LancamentosViewProps> = ({
                       </td>
                       <td className="py-2.5 px-2.5">
                         <div className="flex flex-col min-w-[120px] max-w-[190px]">
-                          <span className="font-semibold text-slate-900 dark:text-white leading-tight truncate" title={lancamento.nome}>
-                            {lancamento.nome}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-slate-900 dark:text-white leading-tight truncate" title={lancamento.nome}>
+                              {lancamento.nome}
+                            </span>
+                            {lancamento.origem === 'telegram' && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#229ED9]/15 text-[#229ED9] border border-[#229ED9]/30" title="Cadastrado via Telegram Bot">
+                                <span>Telegram</span>
+                              </span>
+                            )}
+                          </div>
                           {lancamento.descricao && (
                             <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate" title={lancamento.descricao}>
                               {lancamento.descricao}

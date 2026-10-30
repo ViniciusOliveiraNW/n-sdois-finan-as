@@ -8,6 +8,7 @@ interface ModalPerfilUsuarioProps {
   user: UserProfile;
   couple?: CoupleSpace | null;
   onPerfilAtualizado: () => Promise<void> | void;
+  onAbrirTelegram?: () => void;
 }
 
 export const ModalPerfilUsuario: React.FC<ModalPerfilUsuarioProps> = ({
@@ -16,6 +17,7 @@ export const ModalPerfilUsuario: React.FC<ModalPerfilUsuarioProps> = ({
   user,
   couple,
   onPerfilAtualizado,
+  onAbrirTelegram,
 }) => {
   const [nome, setNome] = useState(user?.displayName || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
@@ -230,6 +232,56 @@ export const ModalPerfilUsuario: React.FC<ModalPerfilUsuarioProps> = ({
               required
             />
           </div>
+
+          {/* Seção Conectar Telegram no Perfil */}
+          {onAbrirTelegram && (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-[#229ED9]/10 via-[#229ED9]/5 to-transparent border border-[#229ED9]/30 flex flex-col gap-2.5 shadow-2xs">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#229ED9] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-2.02 1.28-5.71 3.77-.54.37-1.03.55-1.47.54-.48-.01-1.4-.27-2.09-.49-.84-.27-1.51-.42-1.45-.89.03-.25.38-.5.98-.75 3.86-1.68 6.43-2.79 7.73-3.33 3.67-1.53 4.44-1.8 4.93-1.81.11 0 .35.03.51.16.13.11.17.26.19.37-.01.07.01.23 0 .35z" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
+                        Bot do Telegram
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                          user.telegramUserId
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-[#229ED9]/15 text-[#229ED9]'
+                        }`}
+                      >
+                        {user.telegramUserId ? 'Conectado' : 'Disponível'}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {user.telegramUserId
+                        ? `Vinculado como @${user.telegramUsername || user.displayName}`
+                        : 'Registre despesas rapidamente enviando mensagens no Telegram'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onFechar();
+                    onAbrirTelegram();
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-[#229ED9] hover:bg-[#1a80b0] text-white font-bold text-xs transition-all shadow-xs cursor-pointer shrink-0 flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">
+                    {user.telegramUserId ? 'settings' : 'link'}
+                  </span>
+                  <span>{user.telegramUserId ? 'Gerenciar' : 'Conectar'}</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Email Info (read-only) */}
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-[11px]">

@@ -31,11 +31,13 @@ import { LancamentosView } from './components/LancamentosView';
 import { FechamentosView } from './components/FechamentosView';
 import { CategoriasView } from './components/CategoriasView';
 import { MinhasDespesasView } from './components/MinhasDespesasView';
+import { PrevisaoGastosView } from './components/PrevisaoGastosView';
 import { ModalCompra } from './components/ModalCompra';
 import { ModalAcerto } from './components/ModalAcerto';
 import { ModalNotaFechamento } from './components/ModalNotaFechamento';
 import { ModalEspacoCasal } from './components/ModalEspacoCasal';
 import { ModalPerfilUsuario } from './components/ModalPerfilUsuario';
+import { ModalTelegramBot } from './components/ModalTelegramBot';
 import { ModalConfirmacao } from './components/ModalConfirmacao';
 import { AuthScreen } from './components/AuthScreen';
 import { CoupleSetupScreen } from './components/CoupleSetupScreen';
@@ -101,6 +103,7 @@ export default function App() {
   });
   const [modalEspacoAberta, setModalEspacoAberta] = useState(false);
   const [modalPerfilAberta, setModalPerfilAberta] = useState(false);
+  const [modalTelegramAberta, setModalTelegramAberta] = useState(false);
 
   // Modal de confirmação para cancelamento seguro de parcelas
   const [confirmacao, setConfirmacao] = useState<{
@@ -851,6 +854,7 @@ export default function App() {
         onAbrirNovaCompra={handleAbrirNovaCompra}
         onAbrirEspacoModal={() => setModalEspacoAberta(true)}
         onAbrirPerfilModal={() => setModalPerfilAberta(true)}
+        onAbrirTelegramModal={() => setModalTelegramAberta(true)}
         onLogout={handleLogout}
       />
 
@@ -879,6 +883,7 @@ export default function App() {
             onIrParaLancamentos={() => setAbaAtiva('lancamentos')}
             onIrParaCategorias={() => setAbaAtiva('categorias')}
             onIrParaMinhasDespesas={() => setAbaAtiva('minhas-despesas')}
+            onIrParaPrevisao={() => setAbaAtiva('previsao')}
           />
         )}
 
@@ -926,6 +931,21 @@ export default function App() {
             categorias={categorias}
             couple={couple}
             onSalvarCategorias={handleSalvarCategorias}
+          />
+        )}
+
+        {abaAtiva === 'previsao' && (
+          <PrevisaoGastosView
+            mesSelecionado={mesSelecionado}
+            onMudarMes={setMesSelecionado}
+            comprasCasal={comprasCasal}
+            comprasIndividuais={comprasIndividuais}
+            categorias={categorias}
+            usuarioAtual={usuarioNome}
+            couple={couple}
+            userProfile={userProfile}
+            onIrParaLancamentos={() => setAbaAtiva('lancamentos')}
+            onIrParaResumoMensal={() => setAbaAtiva('resumo-mensal')}
           />
         )}
 
@@ -1017,8 +1037,17 @@ export default function App() {
           user={userProfile}
           couple={couple}
           onPerfilAtualizado={recarregarPerfil}
+          onAbrirTelegram={() => setModalTelegramAberta(true)}
         />
       )}
+
+      <ModalTelegramBot
+        aberto={modalTelegramAberta}
+        onFechar={() => setModalTelegramAberta(false)}
+        couple={couple}
+        userProfile={userProfile}
+        onAtualizarCouple={recarregarPerfil}
+      />
 
       <ModalConfirmacao
         aberto={confirmacao.aberto}

@@ -3,17 +3,39 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import rawConfig from '../firebase-applet-config.json';
 
-// Suporte para Vercel via variáveis de ambiente com fallback para o json gerado
+// Suporte para Vercel e Node.js via variáveis de ambiente com fallback para o json gerado
+const getEnvVar = (viteKey: string, fallback: string): string => {
+  try {
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env[viteKey]) {
+      return (import.meta as any).env[viteKey];
+    }
+  } catch {
+    // ignore
+  }
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env[viteKey]) {
+      return process.env[viteKey];
+    }
+  } catch {
+    // ignore
+  }
+  return fallback;
+};
+
 const firebaseConfig = {
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || rawConfig.projectId,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || rawConfig.appId,
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || rawConfig.apiKey,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || rawConfig.authDomain,
-  firestoreDatabaseId:
-    import.meta.env.VITE_FIREBASE_DATABASE_ID || rawConfig.firestoreDatabaseId,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || rawConfig.storageBucket,
-  messagingSenderId:
-    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || rawConfig.messagingSenderId,
+  projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID', rawConfig.projectId),
+  appId: getEnvVar('VITE_FIREBASE_APP_ID', rawConfig.appId),
+  apiKey: getEnvVar('VITE_FIREBASE_API_KEY', rawConfig.apiKey),
+  authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN', rawConfig.authDomain),
+  firestoreDatabaseId: getEnvVar(
+    'VITE_FIREBASE_DATABASE_ID',
+    rawConfig.firestoreDatabaseId
+  ),
+  storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET', rawConfig.storageBucket),
+  messagingSenderId: getEnvVar(
+    'VITE_FIREBASE_MESSAGING_SENDER_ID',
+    rawConfig.messagingSenderId
+  ),
 };
 
 const app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
