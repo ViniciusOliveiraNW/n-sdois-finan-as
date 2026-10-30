@@ -44,9 +44,22 @@ export interface InterpretedExpense {
   resumoFormatado: string;
 }
 
-// Inicializa SDK Gemini se API Key estiver disponível no ambiente
-const apiKey = process.env.GEMINI_API_KEY || (typeof window !== 'undefined' ? (window as unknown as { __GEMINI_API_KEY__?: string }).__GEMINI_API_KEY__ : undefined);
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : new GoogleGenAI();
+// Retorna cliente Gemini SDK de forma segura e apenas se houver chave configurada, evitando erro no browser
+function getGeminiClient(): GoogleGenAI | null {
+  try {
+    const key =
+      (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) ||
+      (typeof window !== 'undefined' ? (window as unknown as { __GEMINI_API_KEY__?: string }).__GEMINI_API_KEY__ : undefined);
+
+    if (!key || typeof key !== 'string' || key.trim() === '') {
+      return null;
+    }
+    return new GoogleGenAI({ apiKey: key.trim() });
+  } catch (err) {
+    console.warn('GoogleGenAI não pôde ser instanciado:', err);
+    return null;
+  }
+}
 
 function hojeISO(): string {
   const d = new Date();
@@ -361,6 +374,12 @@ export async function interpretarMensagemTelegram(
   contexto: TelegramMessageContext
 ): Promise<InterpretedExpense> {
   const fallback = interpretarComRegex(mensagem, contexto);
+
+  const ai = getGeminiClient();
+  if (!ai) {
+    // Se não houver chave de API configurada, utiliza o parser regex com precisão e sem erros
+    return fallback;
+  }
 
   try {
     const categoriesPrompt = contexto.categories
