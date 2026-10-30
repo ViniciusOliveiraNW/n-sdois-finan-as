@@ -756,3 +756,28 @@ export async function salvarDefaultSplitCasal(
     handleFirestoreError(error, OperationType.UPDATE, path);
   }
 }
+
+// Configuração do Bot do Telegram do casal
+export async function salvarConfiguracaoBotTelegram(
+  coupleId: string,
+  botConfig: {
+    configured: boolean;
+    botUsername: string;
+    botFirstName?: string;
+    token?: string;
+    linkedAt?: string;
+  }
+): Promise<void> {
+  const path = `couples/${coupleId}`;
+  try {
+    await updateDoc(doc(db, 'couples', coupleId), {
+      telegramBotConfig: {
+        ...botConfig,
+        linkedAt: botConfig.linkedAt || new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+

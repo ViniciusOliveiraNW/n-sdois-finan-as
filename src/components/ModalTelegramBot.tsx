@@ -4,6 +4,7 @@ import {
   gerarCodigoVinculacao,
   desvincularTelegram,
 } from '../services/telegramBotService';
+import { salvarConfiguracaoBotTelegram } from '../services/firebaseService';
 
 interface ModalTelegramBotProps {
   aberto: boolean;
@@ -44,39 +45,128 @@ export const ModalTelegramBot: React.FC<ModalTelegramBotProps> = ({
   useEffect(() => {
     if (aberto) {
       fetch('/api/telegram/status')
-        .then((res) => res.json())
-        .then((data) => setBotStatus(data))
-        .catch((err) => console.warn('Erro ao carregar status do Telegram:', err));
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.configured) {
+            setBotStatus(data);
+          } else if (couple?.telegramBotConfig?.configured) {
+            setBotStatus({
+              configured: true,
+              username: couple.telegramBotConfig.botUsername,
+              botInfo: {
+                id: 0,
+                first_name: couple.telegramBotConfig.botFirstName || 'Bot',
+                username: couple.telegramBotConfig.botUsername,
+              },
+            });
+          }
+        })
+        .catch(() => {
+          if (couple?.telegramBotConfig?.configured) {
+            setBotStatus({
+              configured: true,
+              username: couple.telegramBotConfig.botUsername,
+              botInfo: {
+                id: 0,
+                first_name: couple.telegramBotConfig.botFirstName || 'Bot',
+                username: couple.telegramBotConfig.botUsername,
+              },
+            });
+          }
+        });
     }
-  }, [aberto]);
+  }, [aberto, couple?.telegramBotConfig]);
 
-  // Função para salvar token e registrar webhook
+  // Função para salvar token e registrar bot com validação robusta
   const handleSalvarTokenEWebhook = async () => {
-    if (!botTokenInput.trim()) return;
+    const rawToken = botTokenInput.trim();
+    if (!rawToken) return;
     setSalvandoWebhook(true);
     setWebhookFeedback(null);
+
+    // Limpa token: remove "bot" inicial se o usuário colou, aspas ou espaços
+    const cleanToken = rawToken.replace(/^bot/i, '').replace(/['"]/g, '').trim();
+
     try {
-      const resp = await fetch('/api/telegram/set-webhook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: botTokenInput.trim() }),
-      });
-      const data = await resp.json();
-      if (data.success) {
-        setWebhookFeedback({ sucesso: true, msg: data.message });
-        setBotStatus((prev) => ({
-          ...prev,
+      // 1. Validação direta via Telegram API (CORS liberado nativamente pelo Telegram)
+      let telegramBot: { id: number; first_name: string; username: string } | null = null;
+      try {
+        const tgResp = await fetch(`https://api.telegram.org/bot${cleanToken}/getMe`);
+        const tgData = await tgResp.json().catch(() => null);
+        if (tgData && tgData.ok && tgData.result) {
+          telegramBot = tgData.result;
+        } else if (tgData && !tgData.ok) {
+          setWebhookFeedback({
+            sucesso: false,
+            msg: `Erro do Telegram: ${tgData.description || 'Token inválido ou não autorizado'} (verifique o token gerado pelo @BotFather)`,
+          });
+          setSalvandoWebhook(false);
+          return;
+        }
+      } catch (errTg) {
+        console.warn('Checagem direta no Telegram:', errTg);
+      }
+
+      // 2. Registro no Backend Node.js
+      let backendMsg = '';
+      try {
+        const resp = await fetch('/api/telegram/set-webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: cleanToken }),
+        });
+
+        const text = await resp.text();
+        if (text) {
+          try {
+            const data = JSON.parse(text);
+            if (data.bot) {
+              telegramBot = data.bot;
+            }
+            if (data.message) {
+              backendMsg = data.message;
+            }
+          } catch {
+            // Ignora se o backend retornou texto puro
+          }
+        }
+      } catch (errBe) {
+        console.warn('Aviso: backend não respondeu imediatamente:', errBe);
+      }
+
+      // 3. Se obtivemos confirmação do bot
+      if (telegramBot) {
+        const username = telegramBot.username;
+        setBotStatus({
           configured: true,
-          username: data.bot?.username || prev?.username || 'NosDoisFinancasBot',
-          botInfo: data.bot,
-        }));
+          username,
+          botInfo: telegramBot,
+        });
+
+        // Salva na nuvem do casal (Firestore) para persistir entre sessões e para ambos
+        if (couple?.id) {
+          await salvarConfiguracaoBotTelegram(couple.id, {
+            configured: true,
+            botUsername: username,
+            botFirstName: telegramBot.first_name,
+            token: cleanToken,
+          }).catch((e) => console.warn('Erro ao salvar bot no Firestore:', e));
+        }
+
+        setWebhookFeedback({
+          sucesso: true,
+          msg: `🎉 Bot @${username} (${telegramBot.first_name}) conectado com sucesso! O sistema está ativo e pronto para receber lançamentos.`,
+        });
         setBotTokenInput('');
       } else {
-        setWebhookFeedback({ sucesso: false, msg: data.message || 'Erro ao conectar com o Telegram.' });
+        setWebhookFeedback({
+          sucesso: false,
+          msg: backendMsg || 'Não foi possível validar o token do Telegram. Verifique se copiou a chave completa do @BotFather.',
+        });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setWebhookFeedback({ sucesso: false, msg: `Erro de conexão: ${msg}` });
+      setWebhookFeedback({ sucesso: false, msg: `Erro ao conectar: ${msg}` });
     } finally {
       setSalvandoWebhook(false);
     }
@@ -291,8 +381,8 @@ export const ModalTelegramBot: React.FC<ModalTelegramBotProps> = ({
                     </h4>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       {botStatus?.configured
-                        ? `Bot configurado: @${botStatus.username} (Webhook online)`
-                        : 'Cole o token gerado pelo @BotFather para ativar o bot no servidor'}
+                        ? `Bot conectado: @${botStatus.username} (Receptor em tempo real ativo)`
+                        : 'Cole o token gerado pelo @BotFather para conectar seu bot ao sistema'}
                     </p>
                   </div>
 
@@ -314,7 +404,7 @@ export const ModalTelegramBot: React.FC<ModalTelegramBotProps> = ({
                     type="password"
                     value={botTokenInput}
                     onChange={(e) => setBotTokenInput(e.target.value)}
-                    placeholder={botStatus?.configured ? 'Token ativo (cole um novo para atualizar)...' : 'Ex: 7123456789:AAFlmQk...'}
+                    placeholder={botStatus?.configured ? 'Token ativo (cole um novo para alterar)...' : 'Cole aqui o token do @BotFather...'}
                     className="flex-1 h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#229ED9]"
                   />
                   <button
@@ -326,9 +416,9 @@ export const ModalTelegramBot: React.FC<ModalTelegramBotProps> = ({
                     {salvandoWebhook ? (
                       <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
                     ) : (
-                      <span className="material-symbols-outlined text-[16px]">cloud_sync</span>
+                      <span className="material-symbols-outlined text-[16px]">link</span>
                     )}
-                    <span>{salvandoWebhook ? 'Conectando...' : 'Ativar Webhook'}</span>
+                    <span>{salvandoWebhook ? 'Validando...' : 'Conectar Bot'}</span>
                   </button>
                 </div>
 

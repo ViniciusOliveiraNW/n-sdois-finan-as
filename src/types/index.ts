@@ -45,6 +45,13 @@ export interface CoupleSpace {
   defaultSplit?: string; // ex: '50/50', '70/30', '30/70', '60/40', etc.
   createdBy?: string;
   telegramPairings?: Record<string, TelegramPartnerInfo>;
+  telegramBotConfig?: {
+    configured: boolean;
+    botUsername: string;
+    botFirstName?: string;
+    token?: string;
+    linkedAt?: string;
+  };
 }
 
 export interface Compra {
