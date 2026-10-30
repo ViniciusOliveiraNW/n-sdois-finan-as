@@ -19,6 +19,8 @@ import {
   processarAcaoBotaoTelegram,
   buscarCouplePorTelegramId,
 } from './src/services/telegramBotService';
+import { db } from './src/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 // Parser para corpo JSON
 app.use(express.json());
@@ -26,6 +28,28 @@ app.use(express.json());
 let TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 let TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'NosDoisFinancasBot';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
+
+const CONFIG_FILE = path.resolve(__dirname, '.telegram-bot.json');
+
+function salvarConfigLocal(token: string, username: string) {
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify({ token, username, updatedAt: new Date().toISOString() }), 'utf-8');
+  } catch (e) {
+    console.warn('Erro ao salvar .telegram-bot.json local:', e);
+  }
+}
+
+function carregarConfigLocal(): { token?: string; username?: string } | null {
+  try {
+    if (fs.existsSync(CONFIG_FILE)) {
+      const data = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+      return data;
+    }
+  } catch (e) {
+    console.warn('Erro ao ler .telegram-bot.json local:', e);
+  }
+  return null;
+}
 
 // Status da Integração do Telegram
 app.get('/api/telegram/status', async (_req: Request, res: Response) => {
@@ -95,6 +119,7 @@ app.post('/api/telegram/set-webhook', async (req: Request, res: Response) => {
 
     TELEGRAM_BOT_TOKEN = tokenToUse;
     TELEGRAM_BOT_USERNAME = meData.result.username || TELEGRAM_BOT_USERNAME;
+    salvarConfigLocal(TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USERNAME);
 
     let mode = 'polling';
     let webhookResult = null;
@@ -212,7 +237,7 @@ async function handleTelegramUpdate(update: any) {
       const username = msg.from.username || msg.from.first_name || '';
       const text = (msg.text || '').trim();
 
-      // Caso 1: Comando de vinculação ou start com código (/vincular CODIGO ou /start CODIGO)
+      // Caso 1: Comando de vinculação ou start com código (/vincular CODIGO ou /start CODIGO ou código direto)
       let codigoParaVincular: string | null = null;
       if (text.startsWith('/vincular')) {
         const partes = text.split(/\s+/);
@@ -221,7 +246,7 @@ async function handleTelegramUpdate(update: any) {
         } else {
           await sendTelegramMessage(
             chatId,
-            '⚠️ *Como vincular:*\nPor favor envie o comando com o seu código gerado no aplicativo NósDois Finanças.\n\nExemplo: `/vincular VIN-1234`'
+            '⚠️ *Como vincular:*\nPor favor envie o comando com o seu código gerado no aplicativo NósDois Finanças.\n\nExemplo: `/vincular VIN-1234` ou envie apenas `VIN-1234`'
           );
           return;
         }
@@ -230,6 +255,9 @@ async function handleTelegramUpdate(update: any) {
         if (partes.length > 1 && partes[1] && (partes[1].startsWith('VIN-') || partes[1].startsWith('SIL-') || partes[1].length >= 6)) {
           codigoParaVincular = partes[1].trim();
         }
+      } else if (/^(VIN|SIL)-\d{4}$/i.test(text.trim())) {
+        // Envio direto do código sem barra (ex: "VIN-8178")
+        codigoParaVincular = text.trim();
       }
 
       if (codigoParaVincular) {
@@ -414,6 +442,45 @@ app.post('/api/telegram/webhook', async (req: Request, res: Response) => {
   });
 });
 
+async function inicializarTokenBot() {
+  if (process.env.TELEGRAM_BOT_TOKEN) {
+    TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN.trim();
+    TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || TELEGRAM_BOT_USERNAME;
+  }
+
+  if (!TELEGRAM_BOT_TOKEN) {
+    const local = carregarConfigLocal();
+    if (local && local.token) {
+      TELEGRAM_BOT_TOKEN = local.token;
+      if (local.username) TELEGRAM_BOT_USERNAME = local.username;
+    }
+  }
+
+  // Se ainda não tiver token, procura nos casais do Firestore
+  if (!TELEGRAM_BOT_TOKEN) {
+    try {
+      const couplesSnap = await getDocs(collection(db, 'couples'));
+      couplesSnap.forEach((docSnap) => {
+        const cData = docSnap.data();
+        if (cData && cData.telegramBotConfig && cData.telegramBotConfig.token) {
+          TELEGRAM_BOT_TOKEN = cData.telegramBotConfig.token;
+          if (cData.telegramBotConfig.botUsername) {
+            TELEGRAM_BOT_USERNAME = cData.telegramBotConfig.botUsername;
+          }
+          salvarConfigLocal(TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USERNAME);
+        }
+      });
+    } catch (e) {
+      console.warn('Erro ao carregar token do bot no Firestore:', e);
+    }
+  }
+
+  if (TELEGRAM_BOT_TOKEN) {
+    console.log(`🤖 Bot Telegram carregado com sucesso: @${TELEGRAM_BOT_USERNAME}`);
+    startTelegramPolling();
+  }
+}
+
 // Setup Dev vs Production
 async function startServer() {
   if (!isProd) {
@@ -439,9 +506,10 @@ async function startServer() {
     }
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, '0.0.0.0', async () => {
     console.log(`🚀 NósDois Finanças rodando na porta ${PORT} [${isProd ? 'produção' : 'desenvolvimento'}]`);
     console.log(`🤖 Telegram Bot Webhook disponível em: http://0.0.0.0:${PORT}/api/telegram/webhook`);
+    await inicializarTokenBot();
   });
 }
 
